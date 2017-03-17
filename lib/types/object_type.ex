@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.ObjectType do
+defmodule JS2E.Types.ObjectType do
   @moduledoc ~S"""
   Represents a custom 'object' type definition in a JSON schema.
 

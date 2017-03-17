@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.ArrayType do
+defmodule JS2E.Types.ArrayType do
   @moduledoc ~S"""
   Represents a custom 'array' type definition in a JSON schema.
 

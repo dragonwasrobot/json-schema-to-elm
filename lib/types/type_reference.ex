@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.TypeReference do
+defmodule JS2E.Types.TypeReference do
   @moduledoc ~S"""
   Represents a reference to a custom type definition in a JSON schema.
 

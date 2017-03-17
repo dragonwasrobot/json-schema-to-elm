@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.EnumType do
+defmodule JS2E.Types.EnumType do
   @moduledoc ~S"""
   Represents a custom 'enum' type definition in a JSON schema.
 

@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.UnionType do
+defmodule JS2E.Types.UnionType do
   @moduledoc ~S"""
   Represents a custom 'union' type definition in a JSON schema.
 

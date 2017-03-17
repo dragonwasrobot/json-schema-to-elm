@@ -1,12 +1,12 @@
-defmodule DecoderGenerator.Types do
+defmodule JS2E.Types do
   @moduledoc ~S"""
   Specifies the main Elixir types used for describing the
   intermediate representations of JSON schema types.
   """
 
-  alias DecoderGenerator.Types.{ArrayType, EnumType, PrimitiveType,
-                                ObjectType, OneOfType, UnionType,
-                                TypeReference, SchemaDefinition}
+  alias JS2E.Types.{ArrayType, EnumType, PrimitiveType,
+                    ObjectType, OneOfType, UnionType,
+                    TypeReference, SchemaDefinition}
 
   @type typeDefinition :: (
     ArrayType.t |

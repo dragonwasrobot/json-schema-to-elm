@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.OneOfType do
+defmodule JS2E.Types.OneOfType do
   @moduledoc ~S"""
   Represents a custom 'one_of' type definition in a JSON schema.
 

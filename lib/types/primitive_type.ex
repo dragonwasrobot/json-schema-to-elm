@@ -1,4 +1,4 @@
-defmodule DecoderGenerator.Types.PrimitiveType do
+defmodule JS2E.Types.PrimitiveType do
   @moduledoc ~S"""
   Represents a custom 'primitive' type definition in a JSON schema.
 
