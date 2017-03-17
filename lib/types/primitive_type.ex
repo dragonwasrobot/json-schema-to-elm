@@ -28,7 +28,7 @@ defmodule DecoderGenerator.Types.PrimitiveType do
                      path: "#/name",
                      type: "string"}
 
-  Elm:
+  Elm code generated:
 
   - Usage
 
