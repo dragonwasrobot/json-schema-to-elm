@@ -38,10 +38,9 @@ defmodule DecoderGenerator.Types.UnionType do
 
   """
 
-  @type t :: %__MODULE__{
-    name: String.t,
-    path: String.t,
-    types: [String.t]}
+  @type t :: %__MODULE__{name: String.t,
+                         path: String.t,
+                         types: [String.t]}
 
   defstruct [:name, :path, :types]
 end

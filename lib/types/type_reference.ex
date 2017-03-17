@@ -29,9 +29,8 @@ defmodule DecoderGenerator.Types.TypeReference do
 
   """
 
-  @type t :: %DecoderGenerator.Types.TypeReference{
-    name: String.t,
-    path: String.t}
+  @type t :: %__MODULE__{name: String.t,
+                         path: String.t}
 
   defstruct [:name, :path]
 end

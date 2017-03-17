@@ -54,8 +54,6 @@ defmodule DecoderGenerator.Types.ObjectType do
 
   """
 
-  alias DecoderGenerator.Types
-
   @type t :: %__MODULE__{name: String.t,
                          path: String.t,
                          properties: %{required(String.t) => String.t},
