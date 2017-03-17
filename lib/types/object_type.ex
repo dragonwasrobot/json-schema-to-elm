@@ -4,22 +4,20 @@ defmodule DecoderGenerator.Types.ObjectType do
 
   JSON Schema:
 
-      {
-        "circle": {
-          "type": "object",
-          "properties": {
-            "color": {
-              "$ref": "#/color"
-            },
-            "title": {
-              "type": "string"
-            },
-            "radius": {
-              "type": "number"
-            }
+      "circle": {
+        "type": "object",
+        "properties": {
+          "color": {
+            "$ref": "#/color"
           },
-          "required": [ "color", "radius" ]
-        }
+          "title": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number"
+          }
+        },
+        "required": [ "color", "radius" ]
       }
 
   Elixir intermediate representation:
@@ -33,7 +31,7 @@ defmodule DecoderGenerator.Types.ObjectType do
                     "radius" => "#/circle/properties/radius"
                   ]}
 
-  Elm:
+  Elm code generated:
 
   - Type definitions
 
@@ -51,6 +49,10 @@ defmodule DecoderGenerator.Types.ObjectType do
               |> required "color" colorDecoder
               |> optional "title" (nullable string) Nothing
               |> required "radius" float
+
+  - Usage
+
+      |> required "circle" circleDecoder
 
   """
 

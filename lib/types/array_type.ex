@@ -14,7 +14,7 @@ defmodule DecoderGenerator.Types.ArrayType do
 
   JSON Schema:
 
-      {
+      "rectangles": {
         "type": "array",
         "items": {
           "$ref": "#/rectangle"
@@ -23,21 +23,22 @@ defmodule DecoderGenerator.Types.ArrayType do
 
   Elixir intermediate representation:
 
-      "#" => %ArrayType{name: "root",
-                        path: "#",
-                        items: "#/items"}
+      %ArrayType{name: "root",
+                 path: "#/rectangles",
+                 items: "#/rectangles/items"}
 
-      "#/items" => %TypeReference{name: "items",
-                                  path: "#/rectangle"}
+  Elm code generated:
 
-  Elm:
+  - Decoder definition
 
-      rootDecoder : Decoder (list Rectangle)
-      rootDecoder =
+      rectanglesDecoder : Decoder (list Rectangle)
+      rectanglesDecoder =
           list rectangleDecoder
 
-  We resolve "#/rectangle" to the Rectangle type and use it
-  directly in the decoder.
+  - Usage
+
+      |> required "rectangles" rectanglesDecoder
+
   """
 
   @type t :: %__MODULE__{name: String.t,

@@ -29,7 +29,7 @@ defmodule DecoderGenerator.Types.EnumType do
                 enum: ["none", "green", "orange",
                        "blue", "yellow", "red"]}
 
-  Elm:
+  Elm code generated:
 
   - Type definition
 
@@ -59,7 +59,7 @@ defmodule DecoderGenerator.Types.EnumType do
 
   - Usage
 
-  |> custom (field "color" string |> andThen colorDecoder)
+      |> custom (field "color" string |> andThen colorDecoder)
 
   """
 
