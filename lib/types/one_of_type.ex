@@ -19,8 +19,8 @@ defmodule DecoderGenerator.Types.OneOfType do
 
       %OneOfType{name: "shape",
                  path: "#/shape",
-                 types: ["#/definitions/circle",
-                         "#/definitions/rectangle"]}
+                 types: ["#/shape/0",
+                         "#/shape/1"]}
 
   Elm code generated:
 

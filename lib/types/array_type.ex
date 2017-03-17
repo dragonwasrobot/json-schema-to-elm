@@ -23,7 +23,7 @@ defmodule DecoderGenerator.Types.ArrayType do
 
   Elixir intermediate representation:
 
-      %ArrayType{name: "root",
+      %ArrayType{name: "rectangles",
                  path: "#/rectangles",
                  items: "#/rectangles/items"}
 
@@ -31,7 +31,7 @@ defmodule DecoderGenerator.Types.ArrayType do
 
   - Decoder definition
 
-      rectanglesDecoder : Decoder (list Rectangle)
+      rectanglesDecoder : Decoder (List Rectangle)
       rectanglesDecoder =
           list rectangleDecoder
 

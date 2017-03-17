@@ -25,11 +25,9 @@ defmodule DecoderGenerator.Types.ObjectType do
       %ObjectType{name: "circle",
                   path: "#/circle",
                   required: ["color", "radius"],
-                  properties: %{
-                    "color" => "#/circle/properties/color",
-                    "title" => "#/circle/properties/title",
-                    "radius" => "#/circle/properties/radius"
-                  ]}
+                  properties: %{"color" => "#/circle/properties/color",
+                                "title" => "#/circle/properties/title",
+                                "radius" => "#/circle/properties/radius"}}
 
   Elm code generated:
 
@@ -38,7 +36,7 @@ defmodule DecoderGenerator.Types.ObjectType do
       type alias Circle =
           { color : Color
           , title : Maybe String
-          , radius : number
+          , radius : Float
           }
 
   - Decoder definition
