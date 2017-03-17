@@ -40,10 +40,9 @@ defmodule DecoderGenerator.Types.ArrayType do
   directly in the decoder.
   """
 
-  @type t :: %DecoderGenerator.Types.ArrayType{
-    name: String.t,
-    path: String.t,
-    items: String.t}
+  @type t :: %__MODULE__{name: String.t,
+                         path: String.t,
+                         items: String.t}
 
   defstruct [:name, :path, :items]
 end
