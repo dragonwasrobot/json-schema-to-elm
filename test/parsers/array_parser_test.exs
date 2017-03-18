@@ -1,8 +1,7 @@
 defmodule JS2ETest.Parsers.ArrayParser do
   use ExUnit.Case
 
-  alias JS2E.Types
-  alias Types.{ArrayType, TypeReference}
+  alias JS2E.Types.{ArrayType, TypeReference}
   alias JS2E.Parsers.ArrayParser
 
   test "parse array type" do
