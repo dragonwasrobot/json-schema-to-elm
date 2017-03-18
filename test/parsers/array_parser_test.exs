@@ -25,8 +25,7 @@ defmodule JS2ETest.Parsers.ArrayParser do
 
     expected_type_reference = %TypeReference{
       name: "items",
-      path: ["#", "definitions", "rectangle"]
-    }
+      path: ["#", "definitions", "rectangle"]}
 
     assert type_dict == %{
       "#/rectangles" => expected_array_type,

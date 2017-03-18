@@ -39,9 +39,10 @@ defmodule JS2ETest.Parsers.OneOfParser do
       path: ["#", "oneOfExample", "0"],
       required: ["color", "radius"],
       properties: %{
-        "color" => "#/oneOfExample/0/color",
-        "title" => "#/oneOfExample/0/title",
-        "radius" => "#/oneOfExample/0/radius"}}
+        "color" => ["#", "oneOfExample", "0", "color"],
+        "title" => ["#", "oneOfExample", "0", "title"],
+        "radius" => ["#", "oneOfExample", "0", "radius"]}
+    }
 
     expected_primitive_type = %PrimitiveType{
       name: "1",
@@ -65,8 +66,11 @@ defmodule JS2ETest.Parsers.OneOfParser do
     expected_one_of_type = %OneOfType{
       name: "oneOfExample",
       path: ["#", "oneOfExample"],
-      types: ["#/oneOfExample/0",
-              "#/oneOfExample/1"]}
+      types: [
+        ["#", "oneOfExample", "0"],
+        ["#", "oneOfExample", "1"]
+      ]
+    }
 
     assert type_dict == %{
       "#/oneOfExample" => expected_one_of_type,

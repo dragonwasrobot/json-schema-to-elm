@@ -32,10 +32,9 @@ defmodule JS2ETest.Parsers.ObjectParser do
       path: ["#", "circle"],
       required: ["color", "radius"],
       properties: %{
-        "color" => "#/circle/color",
-        "title" => "#/circle/title",
-        "radius" => "#/circle/radius"
-      }
+        "color" => ["#", "circle", "color"],
+        "title" => ["#", "circle", "title"],
+        "radius" => ["#", "circle", "radius"]}
     }
 
     expected_color_type_reference = %TypeReference{

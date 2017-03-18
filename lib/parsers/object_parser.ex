@@ -66,10 +66,6 @@ defmodule JS2E.Parsers.ObjectParser do
     end)
   end
 
-  @doc ~S"""
-  Given a typeDictionary, returns a dictionary containing just
-  immediate properties of the type found at the accompanying TypePath.
-  """
   @spec create_properties_dict(Types.typeDictionary, TypePath.t)
   :: %{required(String.t) => String.t}
   defp create_properties_dict(type_dict, path) do
@@ -78,7 +74,7 @@ defmodule JS2E.Parsers.ObjectParser do
       child_type_path = TypePath.add_child(path, child_type.name)
 
       if child_type_path == TypePath.from_string(child_path) do
-        Map.merge(reference_dict, %{child_type.name => child_path})
+        Map.merge(reference_dict, %{child_type.name => child_type_path})
 
       else
         reference_dict

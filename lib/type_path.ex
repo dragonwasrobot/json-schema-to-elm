@@ -20,7 +20,11 @@ defmodule JS2E.TypePath do
 
   @spec add_child(TypePath.t, String.t) :: TypePath.t
   def add_child(segments, segment) do
-    segments ++ [segment]
+    if segment != "" do
+      segments ++ [segment]
+    else
+      segments
+    end
   end
 
 end

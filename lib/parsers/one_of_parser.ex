@@ -81,10 +81,10 @@ defmodule JS2E.Parsers.OneOfParser do
     type_dict
     |> Enum.reduce(%{}, fn({child_abs_path, child_type}, reference_dict) ->
 
-      child_path = TypePath.add_child(path, child_type.name)
+      child_type_path = TypePath.add_child(path, child_type.name)
 
-      if child_path == TypePath.from_string(child_abs_path) do
-        Map.merge(reference_dict, %{child_type.name => child_abs_path})
+      if child_type_path == TypePath.from_string(child_abs_path) do
+        Map.merge(reference_dict, %{child_type.name => child_type_path})
       else
         reference_dict
       end
