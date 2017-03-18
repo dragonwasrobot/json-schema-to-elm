@@ -1,0 +1,49 @@
+defmodule JS2E.Parsers.ArrayParser do
+  @moduledoc ~S"""
+  Parses a JSON schema array type:
+
+      {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/rectangle"
+        }
+      }
+
+  Into an `JS2E.Types.ArrayType`.
+  """
+
+  require Logger
+  alias JS2E.{Parser, TypePath, Types}
+  alias JS2E.Parsers.Util
+  alias JS2E.Types.ArrayType
+
+  @doc ~S"""
+  Parses a JSON schema array type into an `JS2E.Types.ArrayType`.
+  """
+  @spec parse(map, URI.t, URI.t, TypePath.t, String.t)
+  :: Types.typeDictionary
+  def parse(schema_node, parent_id, id, path, name) do
+    Logger.debug "Parsing '#{path}' as ArrayType"
+
+    items = schema_node["items"]
+    items_name = "items"
+
+    items_abs_path =
+      path
+      |> TypePath.add_child(items_name)
+
+    items_type_dict =
+      items
+      |> Parser.parse_type(parent_id, path, items_name)
+
+    array_type = %ArrayType{name: name,
+                            path: path,
+                            items: items_abs_path}
+    Logger.debug "Parsed array type: #{inspect array_type}"
+
+    array_type
+    |> Util.create_type_dict(path, id)
+    |> Map.merge(items_type_dict)
+  end
+
+end
