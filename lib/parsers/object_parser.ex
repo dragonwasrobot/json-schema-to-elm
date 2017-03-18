@@ -31,7 +31,7 @@ defmodule JS2E.Parsers.ObjectParser do
   """
   @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
   def parse(schema_node, parent_id, id, path, name) do
-    Logger.debug "Parsing '#{path}' as ObjectType"
+    Logger.debug "Parsing '#{inspect path}' as ObjectType"
 
     required = Map.get(schema_node, "required", [])
 

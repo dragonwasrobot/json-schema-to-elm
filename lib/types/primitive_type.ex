@@ -41,5 +41,5 @@ defmodule JS2E.Types.PrimitiveType do
                          path: TypePath.t,
                          type: String.t}
 
-  defstruct [:name, :path, :type, :default]
+  defstruct [:name, :path, :type]
 end

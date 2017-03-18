@@ -23,7 +23,7 @@ defmodule JS2E.Parsers.ArrayParser do
   @spec parse(map, URI.t, URI.t, TypePath.t, String.t)
   :: Types.typeDictionary
   def parse(schema_node, parent_id, id, path, name) do
-    Logger.debug "Parsing '#{path}' as ArrayType"
+    Logger.debug "Parsing '#{inspect path}' as ArrayType"
 
     items_abs_path =
       path

@@ -19,7 +19,7 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   """
   @spec parse(map, URI.t, TypePath.t, String.t) :: Types.typeDictionary
   def parse(schema_node, id, path, name) do
-    Logger.debug "parsing '#{path}' as TypeReference"
+    Logger.debug "parsing '#{inspect path}' as TypeReference"
 
     ref_type_path =
       schema_node

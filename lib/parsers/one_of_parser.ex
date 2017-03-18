@@ -39,7 +39,7 @@ defmodule JS2E.Parsers.OneOfParser do
   @spec parse(map, URI.t, URI.t, TypePath.t, String.t)
   :: Types.typeDictionary
   def parse(schema_node, parent_id, id, path, name) do
-    Logger.debug "Parsing '#{path}' as oneOf type"
+    Logger.debug "Parsing '#{inspect path}' as oneOf type"
 
     descendants_types_dict =
       schema_node
