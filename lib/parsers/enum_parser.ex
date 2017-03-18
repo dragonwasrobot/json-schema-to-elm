@@ -11,8 +11,8 @@ defmodule JS2E.Parsers.EnumParser do
   """
 
   require Logger
-  alias JS2E.Parsers.Util
   alias JS2E.{TypePath, Types}
+  alias JS2E.Parsers.Util
   alias JS2E.Types.EnumType
 
   @doc ~S"""
@@ -20,7 +20,7 @@ defmodule JS2E.Parsers.EnumParser do
   """
   @spec parse(map, URI.t, TypePath.t, String.t) :: Types.typeDictionary
   def parse(schema_node, id, path, name) do
-    Logger.debug "parsing '#{path}' as enum"
+    Logger.debug "parsing '#{path}' as EnumType"
 
     type = schema_node["type"]
     enum_values = schema_node["enum"]
