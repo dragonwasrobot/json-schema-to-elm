@@ -19,7 +19,7 @@ defmodule JS2E.Types.TypeReference do
   Elixir intermediate representation:
 
       %TypeReference{name: "self",
-                     path: "#/definitions/link"}
+                     path: ["#", "definitions", "link"]}
 
   Elm code generated:
 
@@ -29,8 +29,10 @@ defmodule JS2E.Types.TypeReference do
 
   """
 
+  alias JS2E.TypePath
+
   @type t :: %__MODULE__{name: String.t,
-                         path: String.t}
+                         path: TypePath.t}
 
   defstruct [:name, :path]
 end

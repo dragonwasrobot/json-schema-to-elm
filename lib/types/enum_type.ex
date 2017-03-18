@@ -24,7 +24,7 @@ defmodule JS2E.Types.EnumType do
   Elixir intermediate representation:
 
       %EnumType{name: "color",
-                path: "#/color",
+                path: ["#", "color"],
                 type: "string",
                 enum: ["none", "green", "orange",
                        "blue", "yellow", "red"]}
@@ -63,8 +63,10 @@ defmodule JS2E.Types.EnumType do
 
   """
 
+  alias JS2E.TypePath
+
   @type t :: %__MODULE__{name: String.t,
-                         path: String.t,
+                         path: TypePath.t,
                          type: String.t,
                          values: [(String.t | number)]}
 

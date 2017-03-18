@@ -18,7 +18,7 @@ defmodule JS2E.Types.OneOfType do
   Elixir intermediate representation:
 
       %OneOfType{name: "shape",
-                 path: "#/shape",
+                 path: ["#", "shape"],
                  types: ["#/shape/0",
                          "#/shape/1"]}
 
@@ -47,8 +47,10 @@ defmodule JS2E.Types.OneOfType do
 
   """
 
+  alias JS2E.TypePath
+
   @type t :: %__MODULE__{name: String.t,
-                         path: String.t,
+                         path: TypePath.t,
                          types: [String.t]}
 
   defstruct [:name, :path, :types]

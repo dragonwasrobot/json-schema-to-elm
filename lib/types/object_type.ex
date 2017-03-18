@@ -23,7 +23,7 @@ defmodule JS2E.Types.ObjectType do
   Elixir intermediate representation:
 
       %ObjectType{name: "circle",
-                  path: "#/circle",
+                  path: ["#", "circle"],
                   required: ["color", "radius"],
                   properties: %{"color" => "#/circle/properties/color",
                                 "title" => "#/circle/properties/title",
@@ -54,8 +54,10 @@ defmodule JS2E.Types.ObjectType do
 
   """
 
+  alias JS2E.TypePath
+
   @type t :: %__MODULE__{name: String.t,
-                         path: String.t,
+                         path: TypePath.t,
                          properties: %{required(String.t) => String.t},
                          required: [String.t]}
 

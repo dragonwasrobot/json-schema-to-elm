@@ -25,7 +25,7 @@ defmodule JS2E.Types.PrimitiveType do
   Elixir intermediate representation:
 
       %PrimitiveType{name: "name",
-                     path: "#/name",
+                     path: ["#", "name"],
                      type: "string"}
 
   Elm code generated:
@@ -35,8 +35,10 @@ defmodule JS2E.Types.PrimitiveType do
       |> required "name" string
   """
 
+  alias JS2E.TypePath
+
   @type t :: %__MODULE__{name: String.t,
-                         path: String.t,
+                         path: TypePath.t,
                          type: String.t}
 
   defstruct [:name, :path, :type, :default]

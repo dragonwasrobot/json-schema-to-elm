@@ -24,7 +24,7 @@ defmodule JS2E.Types.ArrayType do
   Elixir intermediate representation:
 
       %ArrayType{name: "rectangles",
-                 path: "#/rectangles",
+                 path: ["#", "rectangles"],
                  items: "#/rectangles/items"}
 
   Elm code generated:
@@ -41,8 +41,10 @@ defmodule JS2E.Types.ArrayType do
 
   """
 
+  alias JS2E.TypePath
+
   @type t :: %__MODULE__{name: String.t,
-                         path: String.t,
+                         path: TypePath.t,
                          items: String.t}
 
   defstruct [:name, :path, :items]
