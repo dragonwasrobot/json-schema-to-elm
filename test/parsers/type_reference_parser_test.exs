@@ -9,7 +9,7 @@ defmodule JS2ETest.Parsers.TypeReferenceParser do
     type_dict =
       ~S"""
       {
-        "$ref": "#/targetTypeId"
+        "$ref": "#/definitions/targetTypeId"
       }
       """
       |> Poison.decode!()
@@ -17,7 +17,7 @@ defmodule JS2ETest.Parsers.TypeReferenceParser do
 
     expected_type_reference = %TypeReference{
       name: "typeRef",
-      path: ["#", "targetTypeId"]}
+      path: ["#", "definitions", "targetTypeId"]}
 
     assert type_dict == %{"#/typeRef" => expected_type_reference}
   end
