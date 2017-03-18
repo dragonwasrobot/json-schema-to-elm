@@ -34,10 +34,11 @@ defmodule JS2E.Parsers.ObjectParser do
     Logger.debug "Parsing '#{path}' as ObjectType"
 
     required = Map.get(schema_node, "required", [])
-    node_properties = schema_node["properties"]
 
-    descendants_type_dict = create_descendants_dict(
-      node_properties, parent_id, path)
+    descendants_type_dict =
+      schema_node
+      |> Map.get("properties")
+      |> create_descendants_dict(parent_id, path)
     Logger.debug "Descendants types dict: #{inspect descendants_type_dict}"
 
     property_type_ref_dict = create_properties_dict(

@@ -25,16 +25,14 @@ defmodule JS2E.Parsers.ArrayParser do
   def parse(schema_node, parent_id, id, path, name) do
     Logger.debug "Parsing '#{path}' as ArrayType"
 
-    items = schema_node["items"]
-    items_name = "items"
-
     items_abs_path =
       path
-      |> TypePath.add_child(items_name)
+      |> TypePath.add_child("items")
 
     items_type_dict =
-      items
-      |> Parser.parse_type(parent_id, path, items_name)
+      schema_node
+      |> Map.get("items")
+      |> Parser.parse_type(parent_id, path, "items")
 
     array_type = %ArrayType{name: name,
                             path: path,
