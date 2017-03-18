@@ -1,8 +1,7 @@
 defmodule JS2ETest.Parsers.PrimitiveParser do
   use ExUnit.Case
 
-  alias JS2E.Types
-  alias Types.PrimitiveType
+  alias JS2E.Types.PrimitiveType
   alias JS2E.Parsers.PrimitiveParser
 
   test "parse primitive type" do
