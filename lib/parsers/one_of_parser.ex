@@ -76,7 +76,7 @@ defmodule JS2E.Parsers.OneOfParser do
     |> elem(0)
   end
 
-  @spec create_types_list(Types.typeDictionary, TypePath.t) :: [String.t]
+  @spec create_types_list(Types.typeDictionary, TypePath.t) :: [TypePath.t]
   defp create_types_list(type_dict, path) do
     type_dict
     |> Enum.reduce(%{}, fn({child_abs_path, child_type}, reference_dict) ->

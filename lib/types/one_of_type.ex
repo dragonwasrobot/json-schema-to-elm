@@ -19,8 +19,8 @@ defmodule JS2E.Types.OneOfType do
 
       %OneOfType{name: "shape",
                  path: ["#", "shape"],
-                 types: ["#/shape/0",
-                         "#/shape/1"]}
+                 types: [["#", "shape", "0"],
+                         ["#", "shape", "1"]]}
 
   Elm code generated:
 
@@ -51,7 +51,7 @@ defmodule JS2E.Types.OneOfType do
 
   @type t :: %__MODULE__{name: String.t,
                          path: TypePath.t,
-                         types: [String.t]}
+                         types: [TypePath.t]}
 
   defstruct [:name, :path, :types]
 end
