@@ -41,7 +41,7 @@ defmodule JS2E.Parsers.ObjectParser do
       |> create_descendants_dict(parent_id, path)
     Logger.debug "Descendants types dict: #{inspect descendants_type_dict}"
 
-    property_type_ref_dict = create_properties_dict(
+    property_type_ref_dict = create_property_dict(
       descendants_type_dict, path)
     Logger.debug "Property ref dict: #{inspect property_type_ref_dict}"
 
@@ -66,9 +66,9 @@ defmodule JS2E.Parsers.ObjectParser do
     end)
   end
 
-  @spec create_properties_dict(Types.typeDictionary, TypePath.t)
-  :: %{required(String.t) => String.t}
-  defp create_properties_dict(type_dict, path) do
+  @spec create_property_dict(Types.typeDictionary, TypePath.t)
+  :: Types.propertyDictionary
+  defp create_property_dict(type_dict, path) do
     type_dict
     |> Enum.reduce(%{}, fn({child_path, child_type}, reference_dict) ->
       child_type_path = TypePath.add_child(path, child_type.name)

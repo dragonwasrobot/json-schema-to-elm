@@ -55,10 +55,11 @@ defmodule JS2E.Types.ObjectType do
   """
 
   alias JS2E.TypePath
+  alias JS2E.Types
 
   @type t :: %__MODULE__{name: String.t,
                          path: TypePath.t,
-                         properties: %{required(String.t) => String.t},
+                         properties: Types.propertyDictionary,
                          required: [String.t]}
 
   defstruct [:name, :path, :properties, :required]
