@@ -14,7 +14,7 @@ defmodule JS2ETest.Parsers.EnumParser do
       }
       """
       |> Poison.decode!()
-      |> EnumParser.parse(nil, ["#", "favoriteNumber"], "favoriteNumber")
+      |> EnumParser.parse(nil, nil, ["#", "favoriteNumber"], "favoriteNumber")
 
     expected_enum_type = %EnumType{
       name: "favoriteNumber",
@@ -35,7 +35,7 @@ defmodule JS2ETest.Parsers.EnumParser do
       }
       """
       |> Poison.decode!()
-      |> EnumParser.parse(nil, ["#", "color"], "color")
+      |> EnumParser.parse(nil, nil, ["#", "color"], "color")
 
     expected_enum_type = %EnumType{
       name: "color",

@@ -13,7 +13,7 @@ defmodule JS2ETest.Parsers.PrimitiveParser do
       }
       """
       |> Poison.decode!()
-      |> PrimitiveParser.parse(nil, ["#", "primitive"], "primitive")
+      |> PrimitiveParser.parse(nil, nil, ["#", "primitive"], "primitive")
 
     expected_primitive_type = %PrimitiveType{
       name: "primitive",

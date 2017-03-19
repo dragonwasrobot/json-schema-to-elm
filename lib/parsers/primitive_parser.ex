@@ -17,8 +17,8 @@ defmodule JS2E.Parsers.PrimitiveParser do
   @doc ~S"""
   Parses a JSON schema primitive type into an `JS2E.Types.PrimitiveType`.
   """
-  @spec parse(map, URI.t, TypePath.t, String.t) :: Types.typeDictionary
-  def parse(schema_node, id, path, name) do
+  @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
+  def parse(schema_node, _parent_id, id, path, name) do
     Logger.debug "Parsing '#{inspect path}' as primitive type"
 
     type = schema_node["type"]

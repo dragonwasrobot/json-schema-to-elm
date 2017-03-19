@@ -13,7 +13,7 @@ defmodule JS2ETest.Parsers.UnionParser do
       }
       """
       |> Poison.decode!()
-      |> UnionParser.parse(nil, ["#", "union"], "union")
+      |> UnionParser.parse(nil, nil, ["#", "union"], "union")
 
     expected_union_type = %UnionType{
       name: "union",

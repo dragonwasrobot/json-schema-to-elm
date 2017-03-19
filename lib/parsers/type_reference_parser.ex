@@ -17,8 +17,8 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   @doc ~S"""
   Parses a JSON schema type reference into an `JS2E.Types.TypeReference`.
   """
-  @spec parse(map, URI.t, TypePath.t, String.t) :: Types.typeDictionary
-  def parse(schema_node, id, path, name) do
+  @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
+  def parse(schema_node, _parent_id, id, path, name) do
     Logger.debug "parsing '#{inspect path}' as TypeReference"
 
     ref_type_path =

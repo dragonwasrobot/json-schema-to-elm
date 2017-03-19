@@ -13,7 +13,7 @@ defmodule JS2ETest.Parsers.TypeReferenceParser do
       }
       """
       |> Poison.decode!()
-      |> TypeReferenceParser.parse(nil, ["#", "typeRef"], "typeRef")
+      |> TypeReferenceParser.parse(nil, nil, ["#", "typeRef"], "typeRef")
 
     expected_type_reference = %TypeReference{
       name: "typeRef",
