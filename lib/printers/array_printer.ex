@@ -14,7 +14,7 @@ defmodule JS2E.Printers.ArrayPrinter do
     Types.schemaDictionary
   ) :: String.t
   def print_type(%ArrayType{name: _name,
-                            path: _type_path,
+                            path: _path,
                             items: _items_path}, _type_dict, _schema_dict) do
     ""
   end
@@ -25,7 +25,7 @@ defmodule JS2E.Printers.ArrayPrinter do
     Types.schemaDictionary
   ) :: String.t
   def print_decoder(%ArrayType{name: name,
-                               path: _type_path,
+                               path: _path,
                                items: items_path}, type_dict, schema_dict) do
 
     items_type =
