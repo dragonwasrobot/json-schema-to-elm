@@ -11,6 +11,10 @@ defmodule JS2E.Parser do
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.SchemaDefinition
 
+  @type nodeParser :: (
+    map, URI.t, URI.t, TypePath.t, String.t -> Types.typeDictionary
+  )
+
   @supported_versions ["http://json-schema.org/draft-04/schema"]
 
   @spec parse_schema_file(String.t) :: Types.schemaDictionary
@@ -89,32 +93,19 @@ defmodule JS2E.Parser do
     Logger.debug "Parsing type with name: #{name}, " <>
       "path: #{path}, and value: #{inspect schema_node}"
 
-    node_type_to_parser_dict = %{
-      "array" => &ArrayParser.parse/5,
-      "enum" => &EnumParser.parse/5,
-      "object" => &ObjectParser.parse/5,
-      "primitive" => &PrimitiveParser.parse/5,
-      "one_of" => &OneOfParser.parse/5,
-      "union" => &UnionParser.parse/5,
-      "ref" => &TypeReferenceParser.parse/5,
-      "definitions" => &DefinitionsParser.parse/5
-    }
+    node_parser = determine_node_parser(schema_node)
+    Logger.debug "node_parser: #{inspect node_parser}"
 
-    node_type = determine_node_type(schema_node)
-    Logger.debug "node_type: #{node_type}"
-
-    if Map.has_key?(node_type_to_parser_dict, node_type) do
-      parser = node_type_to_parser_dict[node_type]
+    if node_parser != nil do
 
       id = determine_id(schema_node, parent_id)
       parent_id = determine_parent_id(id, parent_id)
       type_path = TypePath.add_child(path, name)
+      node_parser.(schema_node, parent_id, id, type_path, name)
 
-      parser.(schema_node, parent_id, id, type_path, name)
     else
-      Logger.error "Could not determine type of node:\n#{inspect schema_node}"
+      Logger.error "Could not determine parser for node: #{inspect schema_node}"
     end
-
   end
 
   @spec determine_id(map, URI.t) :: (URI.t | nil)
@@ -144,22 +135,22 @@ defmodule JS2E.Parser do
     end
   end
 
-  @spec determine_node_type(map) :: String.t
-  defp determine_node_type(schema_node) do
+  @spec determine_node_parser(map) :: (nodeParser | nil)
+  defp determine_node_parser(schema_node) do
 
     predicate_node_type_pairs = [
-      {&ref_type?/1, "ref"},
-      {&enum_type?/1, "enum"},
-      {&union_type?/1, "union"},
-      {&one_of_type?/1, "one_of"},
-      {&object_type?/1, "object"},
-      {&array_type?/1, "array"},
-      {&primitive_type?/1, "primitive"},
-      {&definitions?/1, "definitions"}
+      {&ref_type?/1, &TypeReferenceParser.parse/5},
+      {&enum_type?/1, &EnumParser.parse/5},
+      {&union_type?/1, &UnionParser.parse/5},
+      {&one_of_type?/1, &OneOfParser.parse/5},
+      {&object_type?/1, &ObjectParser.parse/5},
+      {&array_type?/1, &ArrayParser.parse/5},
+      {&primitive_type?/1, &PrimitiveParser.parse/5},
+      {&definitions?/1, &DefinitionsParser.parse/5}
     ]
 
     predicate_node_type_pairs
-    |> Enum.find({nil, "unknown"}, fn {pred?, _node_type} ->
+    |> Enum.find({nil, nil}, fn {pred?, _node_parser} ->
       pred?.(schema_node)
     end)
     |> elem(1)
