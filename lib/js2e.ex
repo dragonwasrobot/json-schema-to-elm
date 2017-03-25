@@ -4,9 +4,9 @@ defmodule JS2E do
   """
 
   require Logger
-  alias JS2E.{Parser, Printer, Types}
+  alias JS2E.{Parser, Printer}
 
-  @spec generate([String.t], String.t) :: :ok | {:error, atom}
+  @spec generate([String.t], String.t) :: :ok
   def generate(json_schema_paths, module_name) do
 
     schema_dict = Parser.parse_schema_files(json_schema_paths)

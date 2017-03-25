@@ -25,7 +25,7 @@ defmodule JS2E.Parser do
     |> Enum.reduce(%{}, fn (json_schema_path, schema_dict) ->
 
       json_schema_path
-      |> Parser.parse_schema_file
+      |> parse_schema_file
       |> Map.merge(schema_dict)
     end)
   end

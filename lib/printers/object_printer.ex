@@ -19,7 +19,13 @@ defmodule JS2E.Printers.ObjectPrinter do
                              required: required}, type_dict, schema_dict) do
 
     indent = Util.indent
-    type_name = Util.upcase_first name
+
+    type_name = if name == "#" do
+      "Root"
+    else
+      Util.upcase_first name
+    end
+
     fields = print_fields(properties, required, type_dict, schema_dict)
 
     """
@@ -82,7 +88,14 @@ defmodule JS2E.Printers.ObjectPrinter do
       end
 
     else
-      Util.upcase_first property_type.name
+
+      property_type_name = property_type.name
+      if property_type_name == "#" do
+        "Root"
+      else
+        Util.upcase_first property_type_name
+      end
+
     end
   end
 
@@ -98,8 +111,18 @@ defmodule JS2E.Printers.ObjectPrinter do
     type_dict, schema_dict) do
 
     indent = Util.indent
-    decoder_name = Util.downcase_first name
-    type_name = Util.upcase_first name
+
+    decoder_name = if name == "#" do
+      "root"
+    else
+      Util.downcase_first name
+    end
+
+    type_name = if name == "#" do
+      "Root"
+    else
+      Util.upcase_first name
+    end
 
     decoder_properties = print_decoder_properties(
       properties, required, type_dict, schema_dict)
@@ -171,7 +194,14 @@ defmodule JS2E.Printers.ObjectPrinter do
       end
 
     else
-      "#{property_type.name}Decoder"
+
+      property_type_name = property_type.name
+      if property_type_name == "#" do
+        "rootDecoder"
+      else
+        "#{property_type_name}Decoder"
+      end
+
     end
   end
 

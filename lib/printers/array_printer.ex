@@ -38,11 +38,11 @@ defmodule JS2E.Printers.ArrayPrinter do
     decoder_name = Util.downcase_first "#{name}Decoder"
     indent = Util.indent()
 
-    """
-    #{decoder_name} : Decoder (List #{items_type_name})
-    #{decoder_name} =
-    #{indent}list #{items_decoder_name}
-    """
+  """
+  #{decoder_name} : Decoder (List #{items_type_name})
+  #{decoder_name} =
+  #{indent}list #{items_decoder_name}
+  """
   end
 
   @spec determine_decoder_name(Types.typeDefinition) :: String.t
@@ -63,7 +63,13 @@ defmodule JS2E.Printers.ArrayPrinter do
       end
 
     else
-      "#{items_type.name}Decoder"
+      items_type_name = items_type.name
+
+      if items_type_name == "#" do
+        "rootDecoder"
+      else
+        "#{items_type_name}Decoder"
+      end
     end
   end
 
@@ -85,7 +91,14 @@ defmodule JS2E.Printers.ArrayPrinter do
       end
 
     else
-      Util.upcase_first items_type.name
+      items_type_name = items_type.name
+
+      if items_type_name == "#" do
+        "Root"
+      else
+        Util.upcase_first items_type_name
+      end
+
     end
   end
 
