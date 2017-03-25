@@ -3,7 +3,7 @@ defmodule JS2.Mixfile do
 
   def project do
     [app: :js2e,
-     version: "0.1.0",
+     version: "1.0.0",
      elixir: "~> 1.4",
      deps: deps(),
      dialyzer: [plt_add_deps: :project],

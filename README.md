@@ -4,9 +4,13 @@ Generates Elm types and JSON decoders from JSON schema specifications.
 
 ## Installation
 
-Download the archive `js2e-1.0.0.ez`.
+This project requires that you already have [elixir](http://elixir-lang.org/)
+and its build tool `mix` installed, this can be done with `brew install elixir`
+or similar.
 
-Install with `mix archive.install js2e-1.0.0.ez`.
+- Clone this repository: `git@github.com:dragonwasrobot/json-schema-to-elm.git`
+- Build a mix archive: `mix archive.build`
+- Install the archive: `mix archive.install js2e-1.0.0.ez`
 
 ## Usage
 
@@ -15,7 +19,8 @@ See `mix help elm.gen` for usage instructions.
 A proper description of which properties are mandatory are how the generator
 works is still in progress, but feel free to take a look at the `examples`
 folder which contains an example of a pair of JSON schemas and their
-corresponding Elm output.
+corresponding Elm output. Likewise, representations of each of the different
+JSON schema types are described in the `lib/types` folder.
 
 ## Build
 
