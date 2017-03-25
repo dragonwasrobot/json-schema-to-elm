@@ -1,5 +1,5 @@
 defmodule JS2E.Parsers.UnionParser do
-  @moduledoc """
+  @moduledoc ~S"""
   Parses a JSON schema union type:
 
       {

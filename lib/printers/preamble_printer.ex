@@ -65,7 +65,7 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   @spec print_other_imports(
     Types.typeDictionary,
-    String.t,
+    URI.t,
     String.t,
     Types.schemaDictionary
   ) :: String.t
@@ -90,16 +90,15 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   @spec create_dependency_map(
     [TypeReference.t],
-    String.t,
+    URI.t,
     Types.schemaDictionary
   ) :: %{required(String.t) => TypeReference.t}
   defp create_dependency_map(type_refs, schema_id, schema_dict) do
-    schema_uri = URI.parse(schema_id)
 
     type_refs
     |> Enum.reduce(%{}, fn (type_ref, dependency_map) ->
       type_ref
-      |> resolve_dependency(dependency_map, schema_uri, schema_dict)
+      |> resolve_dependency(dependency_map, schema_id, schema_dict)
     end)
   end
 

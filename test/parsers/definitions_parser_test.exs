@@ -6,7 +6,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
 
   test "parse definitions" do
 
-    type_dict =
+    schema_dict =
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -27,7 +27,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       |> Parser.parse_schema()
 
     expected_root_type_reference = %ArrayType{
-      name: "",
+      name: "#",
       path: ["#"],
       items: ["#", "items"]}
 
@@ -40,14 +40,14 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       path: ["#", "definitions", "positiveInteger"],
       type: "integer"}
 
-    assert type_dict == %{
+    assert schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
         title: "",
-        id: "http://example.com/root.json",
+        id: URI.parse("http://example.com/root.json"),
         types: %{
           "#" => expected_root_type_reference,
-          "http://example.com/root.json" => expected_root_type_reference,
+          "http://example.com/root.json#" => expected_root_type_reference,
           "#/items" => expected_type_reference,
           "#/definitions/positiveInteger" => expected_primitive_type}}
     }

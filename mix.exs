@@ -6,6 +6,7 @@ defmodule JS2.Mixfile do
      version: "0.1.0",
      elixir: "~> 1.4",
      deps: deps(),
+     dialyzer: [plt_add_deps: :project],
 
      # Docs
      name: "JS2E",
@@ -21,7 +22,7 @@ defmodule JS2.Mixfile do
     [{:poison, "~> 3.0"},
      {:ex_doc, "~> 0.14", only: :dev, runtime: false},
      {:credo, "~> 0.5", only: [:dev, :test]},
-     {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
+     {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
      {:apex, "~>1.0.0"}
     ]
   end

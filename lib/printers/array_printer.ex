@@ -4,7 +4,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   """
 
   require Logger
-  alias JS2E.{Printer, TypePath, Types}
+  alias JS2E.{Printer, Types}
   alias JS2E.Printers.Util
   alias JS2E.Types.ArrayType
 
@@ -48,7 +48,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_decoder_name(Types.typeDefinition) :: String.t
   defp determine_decoder_name(items_type) do
 
-    if items_type.__struct__ == PrimitiveType do
+    if Util.get_string_name(items_type) == "PrimitiveType" do
       items_type_value = items_type.type
 
       cond do
@@ -70,7 +70,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_type_name(Types.typeDefinition) :: String.t
   defp determine_type_name(items_type) do
 
-    if items_type.__struct__ == PrimitiveType do
+    if Util.get_string_name(items_type) == "PrimitiveType" do
       items_type_value = items_type.type
 
       cond do

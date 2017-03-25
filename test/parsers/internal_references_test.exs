@@ -6,7 +6,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
 
   test "parse internal references" do
 
-    type_dict =
+    schema_dict =
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -67,12 +67,12 @@ defmodule JS2ETest.Parsers.InternalReferences do
       path: ["#", "definitions", "C"],
       type: "integer"}
 
-    assert type_dict == %{
+    assert schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
         description: "Demonstrates the different types of internal references",
         title: "Internal references",
-        id: "http://example.com/root.json",
+        id: URI.parse("http://example.com/root.json"),
         types: %{
           "#" => expected_root_type_reference,
           "http://example.com/root.json#" => expected_root_type_reference,

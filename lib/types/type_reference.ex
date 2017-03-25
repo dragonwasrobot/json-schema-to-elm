@@ -29,6 +29,8 @@ defmodule JS2E.Types.TypeReference do
 
   """
 
+  alias JS2E.Types
+
   @type t :: %__MODULE__{name: String.t,
                          path: Types.typeIdentifier}
 

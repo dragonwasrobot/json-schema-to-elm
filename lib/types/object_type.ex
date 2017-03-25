@@ -55,8 +55,7 @@ defmodule JS2E.Types.ObjectType do
 
   """
 
-  alias JS2E.TypePath
-  alias JS2E.Types
+  alias JS2E.{TypePath, Types}
 
   @type t :: %__MODULE__{name: String.t,
                          path: TypePath.t,

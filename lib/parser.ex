@@ -32,7 +32,7 @@ defmodule JS2E.Parser do
       exit(:bad_version)
     end
 
-    schema_id = Map.fetch!(schema_root_node, "id")
+    {:ok, schema_id} = parse_schema_id(schema_root_node)
     title = Map.get(schema_root_node, "title", "")
     description = Map.get(schema_root_node, "description")
 
@@ -50,37 +50,49 @@ defmodule JS2E.Parser do
       |> Map.merge(definitions, handle_conflict)
       |> Map.merge(root, handle_conflict)
 
-    %{schema_id =>
+    %{to_string(schema_id) =>
       %SchemaDefinition{id: schema_id,
                         title: title,
                         description: description,
                         types: types}}
   end
 
+  @spec parse_schema_id(any) :: {:ok, URI.t} | {:error, String.t}
+  defp parse_schema_id(%{"id" => schema_id}) when is_binary(schema_id) do
+    {:ok, URI.parse(schema_id)}
+  end
+  defp parse_schema_id(_) do
+    {:error, "JSON schema has no 'id' property"}
+  end
+
   @spec parse_definitions(map, URI.t) :: Types.typeDictionary
   defp parse_definitions(schema_root_node, schema_id) do
     if definitions?(schema_root_node) do
-      schema_root_node |> DefinitionsParser.parse(schema_id, nil, ["#"], "")
+      schema_root_node
+      |> DefinitionsParser.parse(schema_id, nil, ["#"], "")
     else
       %{}
     end
   end
 
   @spec parse_root_object(map, URI.t, String.t) :: Types.typeDictionary
-  defp parse_root_object(schema_root_node, schema_id, title) do
+  defp parse_root_object(schema_root_node, schema_id, _title) do
+
+    type_path = TypePath.from_string("#")
+    name = "#"
 
     cond do
       ref_type?(schema_root_node) ->
-        root_id = schema_id <> "#"
-        TypeReferenceParser.parse(schema_root_node, nil, root_id, ["#"], "#")
+        schema_root_node
+        |> TypeReferenceParser.parse(schema_id, schema_id, type_path, name)
 
       object_type?(schema_root_node) ->
-        type_path = TypePath.from_string("#")
-        parse_type(schema_root_node, schema_id, type_path, title)
+        schema_root_node
+        |> parse_type(schema_id, [], name)
 
       array_type?(schema_root_node) ->
-        type_path = TypePath.from_string("#")
-        parse_type(schema_root_node, schema_id, type_path, title)
+        schema_root_node
+        |> parse_type(schema_id, [], name)
 
       true ->
         Logger.debug "Found no valid root object"

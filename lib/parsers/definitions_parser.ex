@@ -20,11 +20,19 @@ defmodule JS2E.Parsers.DefinitionsParser do
   @doc ~S"""
   Parses a JSON schema 'definitions' property into a map of types.
   """
-  @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
+  @spec parse(
+    map,
+    URI.t,
+    URI.t | nil,
+    TypePath.t,
+    String.t
+  ) :: Types.typeDictionary
   def parse(schema_node, parent_id, _id, path, _name) do
     Logger.debug "Parsing '#{inspect path}' as definitions"
 
-    child_path = path |> TypePath.add_child("definitions")
+    child_path =
+      path
+      |> TypePath.add_child("definitions")
 
     definitions_type_dict =
       schema_node

@@ -5,20 +5,20 @@ defmodule JS2E.TypePath do
 
   @type t :: [String.t]
 
-  @spec from_string(String.t) :: TypePath.t
+  @spec from_string(String.t) :: t
   def from_string(string) do
     string
     |> String.split("/")
     |> Enum.filter(fn segment -> segment != "" end)
   end
 
-  @spec to_string(TypePath.t) :: String.t
+  @spec to_string(t) :: String.t
   def to_string(segments) do
     segments
     |> Enum.join("/")
   end
 
-  @spec add_child(TypePath.t, String.t) :: TypePath.t
+  @spec add_child(t, String.t) :: t
   def add_child(segments, segment) do
     if segment != "" do
       segments ++ [segment]

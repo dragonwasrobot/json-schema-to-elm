@@ -64,7 +64,7 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  @spec print_field_name(String.t) :: String.t
+  @spec print_field_name(Types.typeDefinition) :: String.t
   defp print_field_name(property_type) do
 
     if primitive_type?(property_type) do
