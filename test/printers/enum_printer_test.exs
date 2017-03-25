@@ -12,7 +12,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
     enum_type_program =
       %EnumType{
         name: "color",
-        path: "#/definitions/color",
+        path: ["#", "definitions", "color"],
         type: "string",
         values: ["none", "green", "yellow", "red"]}
         |> EnumPrinter.print_type(type_dict, %{})
@@ -36,7 +36,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
     enum_type_program =
       %EnumType{
         name: "temperature",
-        path: "#/definitions/temperature",
+        path: ["#", "definitions", "temperature"],
         type: "number",
         values: [-0.618, 1.618, 3.14, 7.73]}
         |> EnumPrinter.print_type(type_dict, %{})
@@ -60,7 +60,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
     enum_decoder_program =
       %EnumType{
         name: "color",
-        path: "#/definitions/color",
+        path: ["#", "definitions", "color"],
         type: "string",
         values: ["none", "green", "yellow", "red"]}
         |> EnumPrinter.print_decoder(type_dict, %{})
@@ -96,7 +96,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
     enum_decoder_program =
       %EnumType{
         name: "temperature",
-        path: "#/definitions/temperature",
+        path: ["#", "definitions", "temperature"],
         type: "number",
         values: [-0.618, 1.618, 3.14, 7.73]}
         |> EnumPrinter.print_decoder(type_dict, %{})

@@ -27,4 +27,9 @@ defmodule JS2E.TypePath do
     end
   end
 
+  @spec type_path?(any) :: boolean
+  def type_path?(path) do
+    is_list(path) && Enum.fetch!(path, 0) == "#"
+  end
+
 end

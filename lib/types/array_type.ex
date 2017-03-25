@@ -25,7 +25,7 @@ defmodule JS2E.Types.ArrayType do
 
       %ArrayType{name: "rectangles",
                  path: ["#", "rectangles"],
-                 items: "#/rectangles/items"}
+                 items: ["#", "rectangles", "items"]}
 
   Elm code generated:
 
@@ -45,7 +45,7 @@ defmodule JS2E.Types.ArrayType do
 
   @type t :: %__MODULE__{name: String.t,
                          path: TypePath.t,
-                         items: String.t}
+                         items: TypePath.t}
 
   defstruct [:name, :path, :items]
 end

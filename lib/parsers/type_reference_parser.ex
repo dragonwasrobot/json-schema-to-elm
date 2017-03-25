@@ -21,16 +21,25 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   def parse(schema_node, _parent_id, id, path, name) do
     Logger.debug "parsing '#{inspect path}' as TypeReference"
 
-    ref_type_path =
+    ref_path =
       schema_node
       |> Map.get("$ref")
-      |> TypePath.from_string
+      |> to_type_identifier
 
-    type_reference = %TypeReference{name: name, path: ref_type_path}
+    type_reference = %TypeReference{name: name, path: ref_path}
     Logger.debug "Parsed type reference: #{inspect type_reference}"
 
     type_reference
     |> Util.create_type_dict(path, id)
+  end
+
+  @spec to_type_identifier(String.t) :: Types.typeIdentifier
+  defp to_type_identifier(path) do
+    if URI.parse(path).scheme != nil do
+      path |> URI.parse
+    else
+      path |> TypePath.from_string
+    end
   end
 
 end

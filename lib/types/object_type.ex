@@ -25,9 +25,10 @@ defmodule JS2E.Types.ObjectType do
       %ObjectType{name: "circle",
                   path: ["#", "circle"],
                   required: ["color", "radius"],
-                  properties: %{"color" => "#/circle/properties/color",
-                                "title" => "#/circle/properties/title",
-                                "radius" => "#/circle/properties/radius"}}
+                  properties: %{
+                      "color" => ["#", "circle", "properties", "color"],
+                      "title" => ["#", "circle", "properties", "title"],
+                      "radius" => ["#", "circle", "properties", "radius"]}}
 
   Elm code generated:
 

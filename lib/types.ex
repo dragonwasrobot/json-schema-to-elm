@@ -4,6 +4,7 @@ defmodule JS2E.Types do
   intermediate representations of JSON schema types.
   """
 
+  alias JS2E.TypePath
   alias JS2E.Types.{ArrayType, EnumType, PrimitiveType,
                     ObjectType, OneOfType, UnionType,
                     TypeReference, SchemaDefinition}
@@ -18,7 +19,8 @@ defmodule JS2E.Types do
     TypeReference.t
   )
 
-  @type propertyDictionary :: %{required(String.t) => String.t}
+  @type typeIdentifier :: (TypePath.t | URI.t | String.t)
+  @type propertyDictionary :: %{required(String.t) => typeIdentifier}
   @type typeDictionary :: %{required(String.t) => typeDefinition}
   @type schemaDictionary :: %{required(String.t) => SchemaDefinition.t}
   @type fileDictionary :: %{required(String.t) => String.t}

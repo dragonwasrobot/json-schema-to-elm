@@ -30,7 +30,6 @@ defmodule JS2E.Printers.ArrayPrinter do
 
     items_type =
       items_path
-      |> TypePath.to_string
       |> Printer.resolve_type(type_dict, schema_dict)
 
     items_decoder_name = determine_decoder_name(items_type)

@@ -40,7 +40,6 @@ defmodule JS2E.Printers.OneOfPrinter do
     print_type_clause = fn type_path ->
       clause_type =
         type_path
-        |> TypePath.to_string
         |> Printer.resolve_type(type_dict, schema_dict)
 
       type_value = Util.upcase_first clause_type.name
@@ -90,8 +89,8 @@ defmodule JS2E.Printers.OneOfPrinter do
     print_decoder_clause = fn type_path ->
       clause_type =
         type_path
-        |> TypePath.to_string
         |> Printer.resolve_type(type_dict, schema_dict)
+
       "#{clause_type.name}Decoder"
     end
 

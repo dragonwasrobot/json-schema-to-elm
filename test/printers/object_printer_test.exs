@@ -10,18 +10,18 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     type_dict = %{
       "#/properties/color" =>
       %EnumType{name: "color",
-                path: "#/properties/color",
+                path: ["#", "properties", "color"],
                 type: "string",
                 values: ["none", "green", "yellow", "red"]},
 
       "#/properties/title" =>
         %PrimitiveType{name: "title",
-                       path: "#/properties/title",
+                       path: ["#", "properties", "title"],
                        type: "string"},
 
       "#/properties/radius" =>
         %PrimitiveType{name: "radius",
-                       path: "#/properties/radius",
+                       path: ["#", "properties", "radius"],
                        type: "number"}
     }
 
@@ -31,9 +31,9 @@ defmodule JS2ETest.Printers.ObjectPrinter do
         path: "#",
         required: ["color", "radius"],
         properties: %{
-          "color" => "#/properties/color",
-          "title" => "#/properties/title",
-          "radius" => "#/properties/radius"}
+          "color" => ["#", "properties", "color"],
+          "title" => ["#", "properties", "title"],
+          "radius" => ["#", "properties", "radius"]}
       }
       |> ObjectPrinter.print_type(type_dict, %{})
 
@@ -54,18 +54,18 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     type_dict = %{
       "#/properties/color" =>
       %EnumType{name: "color",
-                path: "#/properties/color",
+                path: ["#", "properties", "color"],
                 type: "string",
                 values: ["none", "green", "yellow", "red"]},
 
       "#/properties/title" =>
         %PrimitiveType{name: "title",
-                       path: "#/properties/title",
+                       path: ["#", "properties", "title"],
                        type: "string"},
 
       "#/properties/radius" =>
         %PrimitiveType{name: "radius",
-                       path: "#/properties/radius",
+                       path: ["#", "properties", "radius"],
                        type: "number"}
     }
 
@@ -75,9 +75,9 @@ defmodule JS2ETest.Printers.ObjectPrinter do
         path: "#",
         required: ["color", "radius"],
         properties: %{
-          "color" => "#/properties/color",
-          "title" => "#/properties/title",
-          "radius" => "#/properties/radius"}
+          "color" => ["#", "properties", "color"],
+          "title" => ["#", "properties", "title"],
+          "radius" => ["#", "properties", "radius"]}
       }
       |> ObjectPrinter.print_decoder(type_dict, %{})
 

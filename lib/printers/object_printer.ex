@@ -135,7 +135,10 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp print_decoder_property({property_name, property_path},
     required, type_dict, schema_dict) do
 
-    property_type = Printer.resolve_type(property_path, type_dict, schema_dict)
+    property_type =
+      property_path
+      |> Printer.resolve_type(type_dict, schema_dict)
+
     decoder_name = print_decoder_name(property_type)
 
     cond do
