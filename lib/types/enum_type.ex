@@ -59,7 +59,7 @@ defmodule JS2E.Types.EnumType do
 
   - Usage
 
-      |> custom (field "color" string |> andThen colorDecoder)
+      |> required "color" (string |> andThen colorDecoder)
 
   """
 

@@ -117,11 +117,13 @@ defmodule JS2ETest.Printers.ExternalReferences do
       import Json.Decode as Decode
           exposing
               ( int
+              , float
               , string
               , succeed
               , fail
               , list
               , map
+              , maybe
               , field
               , at
               , andThen
@@ -156,7 +158,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
       circleDecoder =
           decode Circle
               |> optional "center" (nullable pointDecoder) Nothing
-              |> optional "color" (nullable colorDecoder) Nothing
+              |> optional "color" (string |> andThen colorDecoder |> maybe) Nothing
               |> optional "radius" (nullable float) Nothing
       """
 
@@ -172,11 +174,13 @@ defmodule JS2ETest.Printers.ExternalReferences do
       import Json.Decode as Decode
           exposing
               ( int
+              , float
               , string
               , succeed
               , fail
               , list
               , map
+              , maybe
               , field
               , at
               , andThen

@@ -43,7 +43,7 @@ defmodule JS2E.Types.OneOfType do
 
   - Usage
 
-  |> custom (field "shape" shapeDecoder)
+  |> required "shape" shapeDecoder
 
   """
 

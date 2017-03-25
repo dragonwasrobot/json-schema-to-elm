@@ -164,15 +164,36 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     decoder_name = print_decoder_name(property_type)
 
-    cond do
-      union_type?(property_type) ->
-        print_custom_clause(property_name, decoder_name)
+    is_required = property_name in required
 
-      property_name in required ->
-        print_required_clause(property_name, decoder_name)
+    cond do
+      union_type?(property_type) || one_of_type?(property_type) ->
+        print_union_clause(property_name, decoder_name, is_required)
+
+      enum_type?(property_type) ->
+        property_type_decoder =
+          property_type.type
+          |> determine_primitive_type_decoder()
+
+        print_enum_clause(property_name, property_type_decoder,
+          decoder_name, is_required)
 
       true ->
-        print_optional_clause(property_name, decoder_name)
+        print_normal_clause(property_name, decoder_name, is_required)
+    end
+  end
+
+  @spec determine_primitive_type_decoder(String.t) :: String.t
+  defp determine_primitive_type_decoder(property_type_value) do
+    case property_type_value do
+      "integer" ->
+        "int"
+
+      "number" ->
+        "float"
+
+      _ ->
+        property_type_value
     end
   end
 
@@ -180,19 +201,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp print_decoder_name(property_type) do
 
     if primitive_type?(property_type) do
-      property_type_value = property_type.type
-
-      case property_type_value do
-        "integer" ->
-          "int"
-
-        "number" ->
-          "float"
-
-        _ ->
-          property_type_value
-      end
-
+      determine_primitive_type_decoder(property_type.type)
     else
 
       property_type_name = property_type.name
@@ -209,26 +218,62 @@ defmodule JS2E.Printers.ObjectPrinter do
     Util.get_string_name(type) == "PrimitiveType"
   end
 
+  defp enum_type?(type) do
+    Util.get_string_name(type) == "EnumType"
+  end
+
+  defp one_of_type?(type) do
+    Util.get_string_name(type) == "OneOfType"
+  end
+
   defp union_type?(type) do
     Util.get_string_name(type) == "UnionType"
   end
 
-  defp print_custom_clause(property_name, decoder_name) do
+  defp print_union_clause(property_name, decoder_name, is_required) do
     double_indent = Util.indent(2)
-    "#{double_indent}|> " <>
-      "custom (field \"#{property_name}\" #{decoder_name})"
+
+    if is_required do
+      "#{double_indent}|> " <>
+        "required \"#{property_name}\" #{decoder_name}"
+
+    else
+      "#{double_indent}|> " <>
+        "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+    end
   end
 
-  defp print_required_clause(property_name, decoder_name) do
+  defp print_enum_clause(
+    property_name,
+    property_type_decoder,
+    decoder_name,
+    is_required) do
+
     double_indent = Util.indent(2)
-    "#{double_indent}|> " <>
-      "required \"#{property_name}\" #{decoder_name}"
+
+    if is_required do
+      "#{double_indent}|> " <>
+        "required \"#{property_name}\" (#{property_type_decoder} |> " <>
+        "andThen #{decoder_name})"
+
+    else
+      "#{double_indent}|> " <>
+        "optional \"#{property_name}\" (#{property_type_decoder} |> " <>
+        "andThen #{decoder_name} |> maybe) Nothing"
+    end
   end
 
-  defp print_optional_clause(property_name, decoder_name) do
+  defp print_normal_clause(property_name, decoder_name, is_required) do
     double_indent = Util.indent(2)
-    "#{double_indent}|> " <>
-      "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+
+    if is_required do
+      "#{double_indent}|> " <>
+        "required \"#{property_name}\" #{decoder_name}"
+
+    else
+      "#{double_indent}|> " <>
+        "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+    end
   end
 
 end

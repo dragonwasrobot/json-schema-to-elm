@@ -31,11 +31,13 @@ defmodule JS2E.Printers.PreamblePrinter do
     import Json.Decode as Decode
         exposing
             ( int
+            , float
             , string
             , succeed
             , fail
             , list
             , map
+            , maybe
             , field
             , at
             , andThen

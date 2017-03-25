@@ -86,7 +86,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     circleDecoder : Decoder Circle
     circleDecoder =
         decode Circle
-            |> required "color" colorDecoder
+            |> required "color" (string |> andThen colorDecoder)
             |> required "radius" float
             |> optional "title" (nullable string) Nothing
     """

@@ -34,7 +34,7 @@ defmodule JS2E.Types.UnionType do
 
   - Usage
 
-      |> custom (field "favoriteNumber" favoriteNumberDecoder)
+    |> required "favoriteNumber" favoriteNumberDecoder
 
   """
 

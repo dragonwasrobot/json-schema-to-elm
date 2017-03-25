@@ -6,6 +6,10 @@ defmodule JS2.Mixfile do
      version: "1.0.0",
      elixir: "~> 1.4",
      deps: deps(),
+     build_embedded: Mix.env == :prod,
+     start_permanent: Mix.env == :prod,
+
+     # Dialyxir
      dialyzer: [plt_add_deps: :project],
 
      # Docs

@@ -14,5 +14,6 @@
         "color": {
             "$ref": "http://example.com/definitions.json#color"
         }
-    }
+    },
+    "required": ["center", "radius"]
 }
