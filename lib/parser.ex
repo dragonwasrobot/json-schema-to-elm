@@ -15,7 +15,20 @@ defmodule JS2E.Parser do
     map, URI.t, URI.t, TypePath.t, String.t -> Types.typeDictionary
   )
 
-  @supported_versions ["http://json-schema.org/draft-04/schema"]
+  @supported_versions [
+    "http://json-schema.org/draft-04/schema"
+  ]
+
+  @spec parse_schema_files([String.t]) :: Types.schemaDictionary
+  def parse_schema_files(json_schema_paths) do
+    json_schema_paths
+    |> Enum.reduce(%{}, fn (json_schema_path, schema_dict) ->
+
+      json_schema_path
+      |> Parser.parse_schema_file
+      |> Map.merge(schema_dict)
+    end)
+  end
 
   @spec parse_schema_file(String.t) :: Types.schemaDictionary
   def parse_schema_file(json_schema_path) do
