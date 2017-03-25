@@ -21,14 +21,3 @@ works is still in progress, but feel free to take a look at the `examples`
 folder which contains an example of a pair of JSON schemas and their
 corresponding Elm output. Likewise, representations of each of the different
 JSON schema types are described in the `lib/types` folder.
-
-## Build
-
-Run `mix archive.build` to create a new version of the `js2e` ez-archive.
-
-Upgrading to a new version
-
-Run `mix archive` to see installed archives.
-
-Use `mix archive.uninstall` the previous version when use `mix archive.install`
-to install the new version.
