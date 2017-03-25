@@ -1,0 +1,18 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Circle",
+    "id": "http://example.com/circle.json",
+    "description": "Schema for a circle shape",
+    "type": "object",
+    "properties": {
+        "center": {
+            "$ref": "http://example.com/definitions.json#point"
+        },
+        "radius": {
+            "type": "number"
+        },
+        "color": {
+            "$ref": "http://example.com/definitions.json#color"
+        }
+    }
+}

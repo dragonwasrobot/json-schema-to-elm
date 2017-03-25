@@ -12,6 +12,11 @@ Install with `mix archive.install js2e-1.0.0.ez`.
 
 See `mix help elm.gen` for usage instructions.
 
+A proper description of which properties are mandatory are how the generator
+works is still in progress, but feel free to take a look at the `examples`
+folder which contains an example of a pair of JSON schemas and their
+corresponding Elm output.
+
 ## Build
 
 Run `mix archive.build` to create a new version of the `js2e` ez-archive.
