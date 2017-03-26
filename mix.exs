@@ -9,6 +9,12 @@ defmodule JS2.Mixfile do
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
 
+     # Packaging
+     escript: [
+       main_module: JS2E,
+       name: "js2e"
+     ],
+
      # Dialyxir
      dialyzer: [plt_add_deps: :project],
 
