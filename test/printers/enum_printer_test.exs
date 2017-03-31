@@ -125,4 +125,70 @@ defmodule JS2ETest.Printers.EnumPrinter do
     assert enum_decoder_program == expected_enum_decoder_program
   end
 
+  test "print enum encoder with string values" do
+
+    type_dict = %{}
+
+    enum_encoder_program =
+      %EnumType{
+        name: "color",
+        path: ["#", "definitions", "color"],
+        type: "string",
+        values: ["none", "green", "yellow", "red"]}
+        |> EnumPrinter.print_encoder(type_dict, %{})
+
+    expected_enum_encoder_program =
+    """
+    encodeColor : Color -> Value
+    encodeColor color =
+        case color of
+            None ->
+                string "none"
+
+            Green ->
+                string "green"
+
+            Yellow ->
+                string "yellow"
+
+            Red ->
+                string "red"
+    """
+
+    assert enum_encoder_program == expected_enum_encoder_program
+  end
+
+  test "print enum encoder with number values" do
+
+    type_dict = %{}
+
+    enum_encoder_program =
+      %EnumType{
+        name: "temperature",
+        path: ["#", "definitions", "temperature"],
+        type: "number",
+        values: [-0.618, 1.618, 3.14, 7.73]}
+        |> EnumPrinter.print_encoder(type_dict, %{})
+
+    expected_enum_encoder_program =
+    """
+    encodeTemperature : Temperature -> Value
+    encodeTemperature temperature =
+        case temperature of
+            FloatNeg0_618 ->
+                float -0.618
+
+            Float1_618 ->
+                float 1.618
+
+            Float3_14 ->
+                float 3.14
+
+            Float7_73 ->
+                float 7.73
+    """
+
+    assert enum_encoder_program == expected_enum_encoder_program
+  end
+
 end
