@@ -49,9 +49,34 @@ defmodule JS2E.Types.ObjectType do
               |> optional "title" (nullable string) Nothing
               |> required "radius" float
 
-  - Usage
+  - Decoder usage
 
       |> required "circle" circleDecoder
+
+  - Encoder definition
+
+      encodeCircle : Circle -> Value
+      encodeCircle circle =
+          let
+              color =
+                  [ ("color", encodeColor circle.color ) ]
+
+              title =
+                  case circle.title of
+                      Just title ->
+                         [ ( "title", string title ) ]
+
+                      Nothing ->
+                         []
+
+              radius =
+                  [ ( "radius", float circle.radius ) ]
+          in
+              object <| color ++ title ++ radius
+
+  - Encoder usage
+
+      encodeCircle circle
 
   """
 

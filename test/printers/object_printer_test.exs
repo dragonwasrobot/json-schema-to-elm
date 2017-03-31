@@ -94,4 +94,62 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     assert object_decoder_program == expected_object_decoder_program
   end
 
+  test "print object encoder" do
+
+    type_dict = %{
+      "#/properties/color" =>
+      %EnumType{name: "color",
+                path: ["#", "properties", "color"],
+                type: "string",
+                values: ["none", "green", "yellow", "red"]},
+
+      "#/properties/title" =>
+        %PrimitiveType{name: "title",
+                       path: ["#", "properties", "title"],
+                       type: "string"},
+
+      "#/properties/radius" =>
+        %PrimitiveType{name: "radius",
+                       path: ["#", "properties", "radius"],
+                       type: "number"}
+    }
+
+    object_encoder_program =
+      %ObjectType{
+        name: "circle",
+        path: "#",
+        required: ["color", "radius"],
+        properties: %{
+          "color" => ["#", "properties", "color"],
+          "title" => ["#", "properties", "title"],
+          "radius" => ["#", "properties", "radius"]}
+      }
+      |> ObjectPrinter.print_encoder(type_dict, %{})
+
+    expected_object_encoder_program =
+    """
+    encodeCircle : Circle -> Value
+    encodeCircle circle =
+        let
+            color =
+                [ ( "color", encodeColor circle.color ) ]
+
+            radius =
+                [ ( "radius", float circle.radius ) ]
+
+            title =
+                case circle.title of
+                    Just title ->
+                        [ ( "title", string title ) ]
+
+                    Nothing ->
+                        []
+        in
+            object <|
+                color ++ radius ++ title
+    """
+
+    assert object_encoder_program == expected_object_encoder_program
+  end
+
 end
