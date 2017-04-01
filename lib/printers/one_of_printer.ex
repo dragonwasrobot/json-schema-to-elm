@@ -98,4 +98,82 @@ defmodule JS2E.Printers.OneOfPrinter do
     |> Enum.map_join("\n#{indent}      , ", print_decoder_clause)
   end
 
+  @spec print_encoder(
+    Types.typeDefinition,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  def print_encoder(%OneOfType{name: name,
+                              path: _path,
+                              types: types}, type_dict, schema_dict) do
+
+    declaration = print_encoder_declaration(name)
+    cases = print_encoder_cases(types, name, type_dict, schema_dict)
+
+    declaration <> cases
+  end
+
+  @spec print_encoder_declaration(String.t) :: String.t
+  defp print_encoder_declaration(name) do
+    indent = Util.indent
+    type_name = Util.upcase_first name
+    encoder_name = "encode#{type_name}"
+
+    """
+    #{encoder_name} : #{type_name} -> Value
+    #{encoder_name} #{name} =
+    #{indent}case #{name} of
+    """
+  end
+
+  @spec print_encoder_cases(
+    [String.t],
+    String.t,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  defp print_encoder_cases(types, name, type_dict, schema_dict) do
+    double_indent = Util.indent 2
+    triple_indent = Util.indent 3
+
+    Enum.map_join(types, "\n", fn type ->
+
+      {printed_elm_value, printed_json_value} =
+        print_encoder_clause(type, name, type_dict, schema_dict)
+
+      "#{double_indent}#{printed_elm_value} ->\n" <>
+        "#{triple_indent}#{printed_json_value}\n"
+    end)
+  end
+
+  @spec print_encoder_clause(
+    String.t,
+    String.t,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: {String.t, String.t}
+  defp print_encoder_clause(type_path, name, type_dict, schema_dict) do
+
+    type_name = Util.upcase_first name
+
+    print_type_clause = fn type_path ->
+      clause_type =
+        type_path
+        |> Printer.resolve_type(type_dict, schema_dict)
+
+      argument_name = clause_type.name
+      type_value = Util.upcase_first argument_name
+
+      type_prefix =
+        type_value
+        |> String.slice(0..1)
+        |> String.capitalize
+
+      {"#{type_name}_#{type_prefix} #{argument_name}",
+       "encode#{type_value} #{argument_name}"}
+    end
+
+    print_type_clause.(type_path)
+  end
+
 end

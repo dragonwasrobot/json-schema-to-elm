@@ -41,9 +41,24 @@ defmodule JS2E.Types.OneOfType do
                 |> andThen (succeed << ShapeRectangle)
               ]
 
-  - Usage
+  - Decoder usage
 
-  |> required "shape" shapeDecoder
+      |> required "shape" shapeDecoder
+
+  - Encoder definition
+
+      encodeShape : Shape -> Value
+      encodeShape shape =
+          case shape of
+              ShapeCircle circle ->
+                  encodeCircle circle
+
+              ShapeRectangle rectangle ->
+                  encodeRectangle rectangle
+
+  - Encoder usage
+
+      encodeShape shape
 
   """
 
