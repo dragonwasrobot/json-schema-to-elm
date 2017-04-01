@@ -32,9 +32,24 @@ defmodule JS2E.Types.UnionType do
               , int |> andThen (succeed << FavoriteNumber_I)
               ]
 
-  - Usage
+  - Decoder usage
 
     |> required "favoriteNumber" favoriteNumberDecoder
+
+  - Encoder definition
+
+      encodeFavoriteNumber : FavoriteNumber -> Value
+      encodeFavoriteNumber favoriteNumber =
+          case favoriteNumber of
+              FavoriteNumber_F floatValue ->
+                  float floatValue
+
+              FavoriteNumber_I intValue ->
+                  int intValue
+
+  - Encoder usage
+
+      encodeFavoriteNumber favoriteNumber
 
   """
 

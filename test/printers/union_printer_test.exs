@@ -98,4 +98,31 @@ defmodule JS2ETest.Printers.UnionPrinter do
     assert union_decoder_program == expected_union_decoder_program
   end
 
+  test "print union encoder" do
+
+    type_dict = %{}
+
+    union_encoder_program =
+      %UnionType{
+        name: "favoriteNumber",
+        path: ["#", "definitions", "favoriteNumber"],
+        types: ["number", "integer"]
+      }
+      |> UnionPrinter.print_encoder(type_dict, %{})
+
+    expected_union_encoder_program =
+    """
+    encodeFavoriteNumber : FavoriteNumber -> Value
+    encodeFavoriteNumber favoriteNumber =
+        case favoriteNumber of
+            FavoriteNumber_F floatValue ->
+                float floatValue
+
+            FavoriteNumber_I intValue ->
+                int intValue
+    """
+
+    assert union_encoder_program == expected_union_encoder_program
+  end
+
 end

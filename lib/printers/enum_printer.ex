@@ -153,14 +153,14 @@ defmodule JS2E.Printers.EnumPrinter do
                               type: type,
                               values: values}, _type_dict, _schema_dict) do
 
-    declaration = print_encoder_declaration(name, type)
+    declaration = print_encoder_declaration(name)
     cases = print_encoder_cases(values, type)
 
     declaration <> cases
   end
 
-  @spec print_encoder_declaration(String.t, String.t) :: String.t
-  defp print_encoder_declaration(name, type) do
+  @spec print_encoder_declaration(String.t) :: String.t
+  defp print_encoder_declaration(name) do
     indent = Util.indent
     type_name = Util.upcase_first name
     encoder_name = "encode#{type_name}"

@@ -134,4 +134,71 @@ defmodule JS2E.Printers.UnionPrinter do
     end
   end
 
+  @spec print_encoder(
+    Types.typeDefinition,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  def print_encoder(%UnionType{name: name,
+                              path: _path,
+                              types: types}, _type_dict, _schema_dict) do
+
+    declaration = print_encoder_declaration(name)
+    cases = print_encoder_cases(types, name)
+
+    declaration <> cases
+  end
+
+  @spec print_encoder_declaration(String.t) :: String.t
+  defp print_encoder_declaration(name) do
+    indent = Util.indent
+    type_name = Util.upcase_first name
+    encoder_name = "encode#{type_name}"
+
+    """
+    #{encoder_name} : #{type_name} -> Value
+    #{encoder_name} #{name} =
+    #{indent}case #{name} of
+    """
+  end
+
+  @spec print_encoder_cases([String.t], String.t) :: String.t
+  defp print_encoder_cases(types, name) do
+    double_indent = Util.indent 2
+    triple_indent = Util.indent 3
+
+    Enum.map_join(types, "\n", fn type ->
+
+      {printed_elm_value, printed_json_value} = print_encoder_clause(type, name)
+
+      "#{double_indent}#{printed_elm_value} ->\n" <>
+        "#{triple_indent}#{printed_json_value}\n"
+    end)
+  end
+
+  @spec print_encoder_clause(String.t, String.t) :: {String.t, String.t}
+  defp print_encoder_clause(type, name) do
+
+    {constructor_suffix, decoder_name} =
+      case type do
+        "boolean" ->
+          {"_B", "bool"}
+
+        "integer" ->
+          {"_I", "int"}
+
+        "number" ->
+          {"_F", "float"}
+
+        "string" ->
+          {"_S", "string"}
+      end
+
+    argument_name = "#{decoder_name}Value"
+
+    constructor_name = (Util.upcase_first name) <> constructor_suffix
+    {"#{constructor_name} #{argument_name}",
+     "#{decoder_name} #{argument_name}"}
+  end
+
 end
