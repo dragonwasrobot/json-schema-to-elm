@@ -24,18 +24,18 @@ defmodule JS2E.Printers.PreamblePrinter do
       |> print_other_imports(schema_id, prefix, schema_dict)
 
     """
-    module #{prefix}Decoders.#{title} exposing (..)
+    module #{prefix}#{title} exposing (..)
 
     -- #{description}
 
     import Json.Decode as Decode
         exposing
-            ( int
-            , float
+            ( float
+            , int
             , string
+            , list
             , succeed
             , fail
-            , list
             , map
             , maybe
             , field
@@ -51,6 +51,15 @@ defmodule JS2E.Printers.PreamblePrinter do
             , required
             , optional
             , custom
+            )
+    import Json.Encode as Encode
+        exposing
+            ( Value
+            , float
+            , int
+            , string
+            , list
+            , object
             )
     #{other_imports}
     """
@@ -164,7 +173,7 @@ defmodule JS2E.Printers.PreamblePrinter do
 
       string_result <>
     """
-    import #{prefix}Decoders.#{type_ref_schema_title}
+    import #{prefix}#{type_ref_schema_title}
         exposing
             ( #{type_ref_dependencies}
             )
@@ -184,8 +193,11 @@ defmodule JS2E.Printers.PreamblePrinter do
     resolved_type = type_path |> Printer.resolve_type(type_dict, schema_dict)
     resolved_type_name = Util.upcase_first resolved_type.name
     resolved_decoder_name = "#{resolved_type.name}Decoder"
+    resolved_encoder_name = "encode#{resolved_type_name}"
 
-    "#{resolved_type_name}\n#{indent}#{indent}, #{resolved_decoder_name}"
+    "#{resolved_type_name}" <>
+      "\n#{indent}#{indent}, #{resolved_decoder_name}" <>
+      "\n#{indent}#{indent}, #{resolved_encoder_name}"
   end
 
   @spec has_relative_path?(URI.t) :: boolean

@@ -30,9 +30,14 @@ defmodule JS2E.Types.PrimitiveType do
 
   Elm code generated:
 
-  - Usage
+  - Decoder usage
 
-      |> required "name" string
+      |> required "name" Decode.string
+
+  - Encoder usage
+
+      Encode.string name
+
   """
 
   alias JS2E.TypePath

@@ -86,9 +86,9 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     circleDecoder : Decoder Circle
     circleDecoder =
         decode Circle
-            |> required "color" (string |> andThen colorDecoder)
-            |> required "radius" float
-            |> optional "title" (nullable string) Nothing
+            |> required "color" (Decode.string |> andThen colorDecoder)
+            |> required "radius" Decode.float
+            |> optional "title" (nullable Decode.string) Nothing
     """
 
     assert object_decoder_program == expected_object_decoder_program
@@ -135,12 +135,12 @@ defmodule JS2ETest.Printers.ObjectPrinter do
                 [ ( "color", encodeColor circle.color ) ]
 
             radius =
-                [ ( "radius", float circle.radius ) ]
+                [ ( "radius", Encode.float circle.radius ) ]
 
             title =
                 case circle.title of
                     Just title ->
-                        [ ( "title", string title ) ]
+                        [ ( "title", Encode.string title ) ]
 
                     Nothing ->
                         []

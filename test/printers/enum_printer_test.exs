@@ -143,16 +143,16 @@ defmodule JS2ETest.Printers.EnumPrinter do
     encodeColor color =
         case color of
             None ->
-                string "none"
+                Encode.string "none"
 
             Green ->
-                string "green"
+                Encode.string "green"
 
             Yellow ->
-                string "yellow"
+                Encode.string "yellow"
 
             Red ->
-                string "red"
+                Encode.string "red"
     """
 
     assert enum_encoder_program == expected_enum_encoder_program
@@ -176,16 +176,16 @@ defmodule JS2ETest.Printers.EnumPrinter do
     encodeTemperature temperature =
         case temperature of
             FloatNeg0_618 ->
-                float -0.618
+                Encode.float -0.618
 
             Float1_618 ->
-                float 1.618
+                Encode.float 1.618
 
             Float3_14 ->
-                float 3.14
+                Encode.float 3.14
 
             Float7_73 ->
-                float 7.73
+                Encode.float 7.73
     """
 
     assert enum_encoder_program == expected_enum_encoder_program

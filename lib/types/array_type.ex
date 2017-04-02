@@ -33,11 +33,21 @@ defmodule JS2E.Types.ArrayType do
 
       rectanglesDecoder : Decoder (List Rectangle)
       rectanglesDecoder =
-          list rectangleDecoder
+          Decode.list rectangleDecoder
 
-  - Usage
+  - Decoder usage
 
       |> required "rectangles" rectanglesDecoder
+
+  - Encoder definition
+
+      encodeRectangles : List Rectangle -> Value
+      encodeRectangles rectangles =
+          Encode.list <| List.map encodeRectangle <| rectangles
+
+  - Encoder usage
+
+      encodeRectangles rectangles
 
   """
 

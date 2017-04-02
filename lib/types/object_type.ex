@@ -46,8 +46,8 @@ defmodule JS2E.Types.ObjectType do
       circleDecoder =
           decode Circle
               |> required "color" colorDecoder
-              |> optional "title" (nullable string) Nothing
-              |> required "radius" float
+              |> optional "title" (nullable Decode.string) Nothing
+              |> required "radius" Decode.float
 
   - Decoder usage
 
@@ -64,13 +64,13 @@ defmodule JS2E.Types.ObjectType do
               title =
                   case circle.title of
                       Just title ->
-                         [ ( "title", string title ) ]
+                         [ ( "title", Encode.string title ) ]
 
                       Nothing ->
                          []
 
               radius =
-                  [ ( "radius", float circle.radius ) ]
+                  [ ( "radius", Encode.float circle.radius ) ]
           in
               object <| color ++ title ++ radius
 

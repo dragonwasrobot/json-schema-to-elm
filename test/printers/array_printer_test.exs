@@ -44,10 +44,38 @@ defmodule JS2ETest.Printers.ArrayPrinter do
     """
     colorsDecoder : Decoder (List Color)
     colorsDecoder =
-        list colorDecoder
+        Decode.list colorDecoder
     """
 
     assert array_decoder_program == expected_array_decoder_program
+  end
+
+  test "print array encoder" do
+
+    type_dict = %{
+      "#/items" =>
+      %EnumType{name: "color",
+                path: ["#", "definitions", "color"],
+                type: "string",
+                values: ["none", "green", "yellow", "red"]}
+    }
+
+    array_encoder_program =
+      %ArrayType{
+        name: "colors",
+        path: ["#"],
+        items: ["#", "items"]
+      }
+      |> ArrayPrinter.print_encoder(type_dict, %{})
+
+    expected_array_encoder_program =
+    """
+    encodeColors : List Color -> Value
+    encodeColors colors =
+        Encode.list <| List.map encodeColor <| colors
+    """
+
+    assert array_encoder_program == expected_array_encoder_program
   end
 
 end

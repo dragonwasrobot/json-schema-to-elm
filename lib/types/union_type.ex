@@ -28,8 +28,8 @@ defmodule JS2E.Types.UnionType do
       favoriteNumberDecoder =
           oneOf
               [ null Nothing
-              , float |> andThen (succeed << FavoriteNumber_F)
-              , int |> andThen (succeed << FavoriteNumber_I)
+              , Decode.float |> andThen (succeed << FavoriteNumber_F)
+              , Decode.int |> andThen (succeed << FavoriteNumber_I)
               ]
 
   - Decoder usage
@@ -42,10 +42,10 @@ defmodule JS2E.Types.UnionType do
       encodeFavoriteNumber favoriteNumber =
           case favoriteNumber of
               FavoriteNumber_F floatValue ->
-                  float floatValue
+                  Encode.float floatValue
 
               FavoriteNumber_I intValue ->
-                  int intValue
+                  Encode.int intValue
 
   - Encoder usage
 

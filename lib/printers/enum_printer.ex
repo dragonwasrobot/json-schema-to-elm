@@ -191,13 +191,13 @@ defmodule JS2E.Printers.EnumPrinter do
   defp print_encoder_case(value, type) do
     case type do
       "string" ->
-        "string \"#{value}\""
+        "Encode.string \"#{value}\""
 
       "integer" ->
-        "int #{value}"
+        "Encode.int #{value}"
 
       "number" ->
-        "float #{value}"
+        "Encode.float #{value}"
 
       _ ->
         raise "Unknown or unsupported enum type: #{type}"

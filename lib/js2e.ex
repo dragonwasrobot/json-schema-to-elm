@@ -97,7 +97,6 @@ defmodule JS2E do
     end
 
     output_path
-    |> Path.join("Decoders")
     |> File.mkdir_p!()
 
     output_path

@@ -65,8 +65,8 @@ defmodule JS2ETest.Printers.UnionPrinter do
     """
     favoriteNumberDecoder : Decoder FavoriteNumber
     favoriteNumberDecoder =
-        oneOf [ float |> andThen (succeed << FavoriteNumber_F)
-              , int |> andThen (succeed << FavoriteNumber_I)
+        oneOf [ Decode.float |> andThen (succeed << FavoriteNumber_F)
+              , Decode.int |> andThen (succeed << FavoriteNumber_I)
               ]
     """
 
@@ -89,8 +89,8 @@ defmodule JS2ETest.Printers.UnionPrinter do
     """
     favoriteNumberDecoder : Decoder (Maybe FavoriteNumber)
     favoriteNumberDecoder =
-        oneOf [ float |> andThen (succeed << Just << FavoriteNumber_F)
-              , int |> andThen (succeed << Just << FavoriteNumber_I)
+        oneOf [ Decode.float |> andThen (succeed << Just << FavoriteNumber_F)
+              , Decode.int |> andThen (succeed << Just << FavoriteNumber_I)
               , null Nothing
               ]
     """
@@ -116,10 +116,10 @@ defmodule JS2ETest.Printers.UnionPrinter do
     encodeFavoriteNumber favoriteNumber =
         case favoriteNumber of
             FavoriteNumber_F floatValue ->
-                float floatValue
+                Encode.float floatValue
 
             FavoriteNumber_I intValue ->
-                int intValue
+                Encode.int intValue
     """
 
     assert union_encoder_program == expected_union_encoder_program

@@ -59,7 +59,7 @@ defmodule JS2E.Types.EnumType do
 
   - Decoder usage
 
-      |> required "color" (string |> andThen colorDecoder)
+      |> required "color" (Decode.string |> andThen colorDecoder)
 
   - Encoder definition
 
@@ -67,22 +67,22 @@ defmodule JS2E.Types.EnumType do
       encodeColor color =
           case color of
               None ->
-                  string "none"
+                  Encode.string "none"
 
               Green ->
-                  string "green"
+                  Encode.string "green"
 
               Orange ->
-                  string "orange"
+                  Encode.string "orange"
 
               Blue ->
-                  string "blue"
+                  Encode.string "blue"
 
               Yellow ->
-                  string "yellow"
+                  Encode.string "yellow"
 
               Red ->
-                  string "red"
+                  Encode.string "red"
 
   - Encoder usage
 

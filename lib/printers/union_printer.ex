@@ -113,16 +113,16 @@ defmodule JS2E.Printers.UnionPrinter do
     {constructor_suffix, decoder_name} =
       case type do
         "boolean" ->
-          {"_B", "bool"}
+          {"_B", "Decode.bool"}
 
         "integer" ->
-          {"_I", "int"}
+          {"_I", "Decode.int"}
 
         "number" ->
-          {"_F", "float"}
+          {"_F", "Decode.float"}
 
         "string" ->
-          {"_S", "string"}
+          {"_S", "Decode.string"}
       end
 
     constructor_name = type_name <> constructor_suffix
@@ -179,22 +179,20 @@ defmodule JS2E.Printers.UnionPrinter do
   @spec print_encoder_clause(String.t, String.t) :: {String.t, String.t}
   defp print_encoder_clause(type, name) do
 
-    {constructor_suffix, decoder_name} =
+    {constructor_suffix, decoder_name, argument_name} =
       case type do
         "boolean" ->
-          {"_B", "bool"}
+          {"_B", "Encode.bool", "boolValue"}
 
         "integer" ->
-          {"_I", "int"}
+          {"_I", "Encode.int", "intValue"}
 
         "number" ->
-          {"_F", "float"}
+          {"_F", "Encode.float", "floatValue"}
 
         "string" ->
-          {"_S", "string"}
+          {"_S", "Encode.string", "stringValue"}
       end
-
-    argument_name = "#{decoder_name}Value"
 
     constructor_name = (Util.upcase_first name) <> constructor_suffix
     {"#{constructor_name} #{argument_name}",

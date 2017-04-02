@@ -184,13 +184,13 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp determine_primitive_type_decoder(property_type_value) do
     case property_type_value do
       "integer" ->
-        "int"
+        "Decode.int"
 
       "number" ->
-        "float"
+        "Decode.float"
 
       _ ->
-        property_type_value
+        "Decode.#{property_type_value}"
     end
   end
 
@@ -409,6 +409,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       #{quadruple_indent}Nothing ->
       #{quintuple_indent}[]
       """
+      |> String.trim_trailing()
     end
   end
 
@@ -416,13 +417,13 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp determine_primitive_type_encoder(property_type_value) do
     case property_type_value do
       "integer" ->
-        "int"
+        "Encode.int"
 
       "number" ->
-        "float"
+        "Encode.float"
 
       _ ->
-        property_type_value
+        "Encode.#{property_type_value}"
     end
   end
 

@@ -29,4 +29,15 @@ defmodule JS2E.Printers.PrimitivePrinter do
     ""
   end
 
+  @spec print_encoder(
+    Types.typeDefinition,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  def print_encoder(%PrimitiveType{name: _name,
+                                   path: _path,
+                                   type: _type}, _type_dict, _schema_dict) do
+    ""
+  end
+
 end
