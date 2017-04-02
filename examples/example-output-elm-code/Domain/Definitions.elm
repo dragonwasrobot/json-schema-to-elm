@@ -101,6 +101,4 @@ encodePoint point =
         y =
             [ ( "y", Encode.float point.y ) ]
     in
-        object <|
-            x
-                ++ y
+        object <| x ++ y

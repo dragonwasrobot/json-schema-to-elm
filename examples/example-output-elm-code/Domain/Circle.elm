@@ -78,7 +78,4 @@ encodeRoot root =
         radius =
             [ ( "radius", Encode.float root.radius ) ]
     in
-        object <|
-            center
-                ++ color
-                ++ radius
+        object <| center ++ color ++ radius

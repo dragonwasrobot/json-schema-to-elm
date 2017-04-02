@@ -162,9 +162,7 @@ encodePoint point =
         y =
             [ ( "y", Encode.float point.y ) ]
     in
-        object <|
-            x
-                ++ y
+        object <| x ++ y
 ```
 
 which contains an Elm type for the `color` and `point` definitions along with
