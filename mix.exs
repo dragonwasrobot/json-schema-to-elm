@@ -3,9 +3,10 @@ defmodule JS2.Mixfile do
 
   def project do
     [app: :js2e,
-     version: "1.0.0",
+     version: "2.0.0",
      elixir: "~> 1.4",
      deps: deps(),
+     aliases: aliases(),
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
 
@@ -36,4 +37,11 @@ defmodule JS2.Mixfile do
      {:apex, "~>1.0.0"}
     ]
   end
+
+  defp aliases do
+    [
+      "build": ["deps.get", "compile", "escript.build"]
+    ]
+  end
+
 end
