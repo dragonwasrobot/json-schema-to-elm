@@ -57,9 +57,36 @@ defmodule JS2E.Types.EnumType do
               _ ->
                   fail <| "Unknown color type: " ++ color
 
-  - Usage
+  - Decoder usage
 
-      |> required "color" (string |> andThen colorDecoder)
+      |> required "color" (Decode.string |> andThen colorDecoder)
+
+  - Encoder definition
+
+      encodeColor : Color -> Value
+      encodeColor color =
+          case color of
+              None ->
+                  Encode.string "none"
+
+              Green ->
+                  Encode.string "green"
+
+              Orange ->
+                  Encode.string "orange"
+
+              Blue ->
+                  Encode.string "blue"
+
+              Yellow ->
+                  Encode.string "yellow"
+
+              Red ->
+                  Encode.string "red"
+
+  - Encoder usage
+
+      encodeColor color
 
   """
 

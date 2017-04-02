@@ -71,7 +71,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
                           "center" => ["#", "center"],
                           "color" => ["#", "color"],
                           "radius" => ["#", "radius"]},
-                        required: []},
+                        required: ["center", "radius"]},
 
             "#/center" =>
               %TypeReference{
@@ -95,33 +95,33 @@ defmodule JS2ETest.Printers.ExternalReferences do
                             "center" => ["#", "center"],
                             "color" => ["#", "color"],
                             "radius" => ["#", "radius"]},
-                          required: []}
+                          required: ["center", "radius"]}
           }
         }
     }
 
     module_prefix = "Domain"
-    elm_decoder_program = Printer.print_schemas(
+    elm_program = Printer.print_schemas(
       schema_representations, module_prefix)
 
-    Logger.debug "#{inspect elm_decoder_program}"
+    Logger.debug "#{inspect elm_program}"
 
-    circle_decoder_program = elm_decoder_program["./Domain/Decoders/Circle.elm"]
+    circle_program = elm_program["./Domain/Circle.elm"]
 
-    assert circle_decoder_program ==
+    assert circle_program ==
       """
-      module Domain.Decoders.Circle exposing (..)
+      module Domain.Circle exposing (..)
 
       -- Schema for a circle shape
 
       import Json.Decode as Decode
           exposing
-              ( int
-              , float
+              ( float
+              , int
               , string
+              , list
               , succeed
               , fail
-              , list
               , map
               , maybe
               , field
@@ -138,47 +138,79 @@ defmodule JS2ETest.Printers.ExternalReferences do
               , optional
               , custom
               )
-      import Domain.Decoders.Definitions
+      import Json.Encode as Encode
+          exposing
+              ( Value
+              , float
+              , int
+              , string
+              , list
+              , object
+              )
+      import Domain.Definitions
           exposing
               ( Color
               , colorDecoder
+              , encodeColor
               , Point
               , pointDecoder
+              , encodePoint
               )
 
 
       type alias Circle =
-          { center : Maybe Point
+          { center : Point
           , color : Maybe Color
-          , radius : Maybe Float
+          , radius : Float
           }
 
 
       circleDecoder : Decoder Circle
       circleDecoder =
           decode Circle
-              |> optional "center" (nullable pointDecoder) Nothing
-              |> optional "color" (string |> andThen colorDecoder |> maybe) Nothing
-              |> optional "radius" (nullable float) Nothing
+              |> required "center" pointDecoder
+              |> optional "color" (Decode.string |> andThen colorDecoder |> maybe) Nothing
+              |> required "radius" Decode.float
+
+
+      encodeCircle : Circle -> Value
+      encodeCircle circle =
+          let
+              center =
+                  [ ( "center", encodePoint circle.center ) ]
+
+              color =
+                  case circle.color of
+                      Just color ->
+                          [ ( "color", encodeColor color ) ]
+
+                      Nothing ->
+                          []
+
+              radius =
+                  [ ( "radius", Encode.float circle.radius ) ]
+          in
+              object <|
+                  center ++ color ++ radius
       """
 
-    definitions_decoder_program =
-      elm_decoder_program["./Domain/Decoders/Definitions.elm"]
+    definitions_program =
+      elm_program["./Domain/Definitions.elm"]
 
-    assert definitions_decoder_program ==
+    assert definitions_program ==
       """
-      module Domain.Decoders.Definitions exposing (..)
+      module Domain.Definitions exposing (..)
 
       -- Schema for common types
 
       import Json.Decode as Decode
           exposing
-              ( int
-              , float
+              ( float
+              , int
               , string
+              , list
               , succeed
               , fail
-              , list
               , map
               , maybe
               , field
@@ -194,6 +226,15 @@ defmodule JS2ETest.Printers.ExternalReferences do
               , required
               , optional
               , custom
+              )
+      import Json.Encode as Encode
+          exposing
+              ( Value
+              , float
+              , int
+              , string
+              , list
+              , object
               )
 
 
@@ -232,8 +273,37 @@ defmodule JS2ETest.Printers.ExternalReferences do
       pointDecoder : Decoder Point
       pointDecoder =
           decode Point
-              |> required "x" float
-              |> required "y" float
+              |> required "x" Decode.float
+              |> required "y" Decode.float
+
+
+      encodeColor : Color -> Value
+      encodeColor color =
+          case color of
+              Red ->
+                  Encode.string "red"
+
+              Yellow ->
+                  Encode.string "yellow"
+
+              Green ->
+                  Encode.string "green"
+
+              Blue ->
+                  Encode.string "blue"
+
+
+      encodePoint : Point -> Value
+      encodePoint point =
+          let
+              x =
+                  [ ( "x", Encode.float point.x ) ]
+
+              y =
+                  [ ( "y", Encode.float point.y ) ]
+          in
+              object <|
+                  x ++ y
       """
   end
 

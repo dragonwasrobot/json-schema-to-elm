@@ -4,8 +4,8 @@ defmodule JS2E.Printers.PreamblePrinter do
   """
 
   require Logger
+  import JS2E.Printers.Util
   alias JS2E.{Printer, Types}
-  alias JS2E.Printers.Util
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
   @spec print_preamble(
@@ -24,18 +24,18 @@ defmodule JS2E.Printers.PreamblePrinter do
       |> print_other_imports(schema_id, prefix, schema_dict)
 
     """
-    module #{prefix}Decoders.#{title} exposing (..)
+    module #{prefix}#{title} exposing (..)
 
     -- #{description}
 
     import Json.Decode as Decode
         exposing
-            ( int
-            , float
+            ( float
+            , int
             , string
+            , list
             , succeed
             , fail
-            , list
             , map
             , maybe
             , field
@@ -51,6 +51,15 @@ defmodule JS2E.Printers.PreamblePrinter do
             , required
             , optional
             , custom
+            )
+    import Json.Encode as Encode
+        exposing
+            ( Value
+            , float
+            , int
+            , string
+            , list
+            , object
             )
     #{other_imports}
     """
@@ -82,7 +91,7 @@ defmodule JS2E.Printers.PreamblePrinter do
   defp get_type_references(type_dict) do
     type_dict
     |> Enum.reduce([], fn ({_path, type}, types) ->
-      if Util.get_string_name(type) == "TypeReference" do
+      if get_string_name(type) == "TypeReference" do
         [type | types]
       else
         types
@@ -147,7 +156,6 @@ defmodule JS2E.Printers.PreamblePrinter do
     Types.schemaDictionary
   ) :: String.t
   defp print_dependencies(dependency_map, prefix, type_dict, schema_dict) do
-    indent = Util.indent()
 
     dependency_map
     |> Enum.reduce("", fn({schema_id, type_refs}, string_result) ->
@@ -158,13 +166,13 @@ defmodule JS2E.Printers.PreamblePrinter do
       type_ref_dependencies =
         type_refs
         |> Enum.sort(&(&2.name < &1.name))
-        |> Enum.map_join("\n#{indent}#{indent}, ", fn type_ref ->
+        |> Enum.map_join("\n#{indent(2)}, ", fn type_ref ->
         print_import(type_ref, type_dict, schema_dict)
       end)
 
       string_result <>
     """
-    import #{prefix}Decoders.#{type_ref_schema_title}
+    import #{prefix}#{type_ref_schema_title}
         exposing
             ( #{type_ref_dependencies}
             )
@@ -178,14 +186,16 @@ defmodule JS2E.Printers.PreamblePrinter do
     Types.schemaDictionary
   ) :: String.t
   defp print_import(type_ref, type_dict, schema_dict) do
-    indent = Util.indent()
 
     type_path = type_ref.path
     resolved_type = type_path |> Printer.resolve_type(type_dict, schema_dict)
-    resolved_type_name = Util.upcase_first resolved_type.name
+    resolved_type_name = upcase_first resolved_type.name
     resolved_decoder_name = "#{resolved_type.name}Decoder"
+    resolved_encoder_name = "encode#{resolved_type_name}"
 
-    "#{resolved_type_name}\n#{indent}#{indent}, #{resolved_decoder_name}"
+    "#{resolved_type_name}" <>
+      "\n#{indent(2)}, #{resolved_decoder_name}" <>
+      "\n#{indent(2)}, #{resolved_encoder_name}"
   end
 
   @spec has_relative_path?(URI.t) :: boolean

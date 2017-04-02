@@ -21,12 +21,6 @@ defmodule JS2E.Types.TypeReference do
       %TypeReference{name: "self",
                      path: ["#", "definitions", "link"]}
 
-  Elm code generated:
-
-  - Usage
-
-      |> required "self" string
-
   """
 
   alias JS2E.Types

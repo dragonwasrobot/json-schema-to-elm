@@ -4,8 +4,8 @@ defmodule JS2E.Printers.ObjectPrinter do
   """
 
   require Logger
+  import JS2E.Printers.Util
   alias JS2E.{Printer, Types}
-  alias JS2E.Printers.Util
   alias JS2E.Types.ObjectType
 
   @spec print_type(
@@ -18,20 +18,18 @@ defmodule JS2E.Printers.ObjectPrinter do
                              properties: properties,
                              required: required}, type_dict, schema_dict) do
 
-    indent = Util.indent
-
     type_name = if name == "#" do
       "Root"
     else
-      Util.upcase_first name
+      upcase_first name
     end
 
     fields = print_fields(properties, required, type_dict, schema_dict)
 
     """
     type alias #{type_name} =
-    #{indent}{#{fields}
-    #{indent}}
+    #{indent()}{#{fields}
+    #{indent()}}
     """
   end
 
@@ -42,11 +40,10 @@ defmodule JS2E.Printers.ObjectPrinter do
     Types.schemaDictionary
   ) :: String.t
   defp print_fields(properties, required, type_dict, schema_dict) do
-    indent = Util.indent
 
     properties
     |> Enum.map(&(print_type_property(&1, required, type_dict, schema_dict)))
-    |> Enum.join("\n#{indent},")
+    |> Enum.join("\n#{indent()},")
   end
 
   @spec print_type_property(
@@ -84,7 +81,7 @@ defmodule JS2E.Printers.ObjectPrinter do
           "Float"
 
         _ ->
-          Util.upcase_first property_type_value
+          upcase_first property_type_value
       end
 
     else
@@ -93,7 +90,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       if property_type_name == "#" do
         "Root"
       else
-        Util.upcase_first property_type_name
+        upcase_first property_type_name
       end
 
     end
@@ -110,28 +107,24 @@ defmodule JS2E.Printers.ObjectPrinter do
                                 required: required},
     type_dict, schema_dict) do
 
-    indent = Util.indent
-
-    decoder_name = if name == "#" do
-      "root"
-    else
-      Util.downcase_first name
-    end
-
-    type_name = if name == "#" do
-      "Root"
-    else
-      Util.upcase_first name
-    end
+    decoder_declaration = print_decoder_declaration(name)
 
     decoder_properties = print_decoder_properties(
       properties, required, type_dict, schema_dict)
 
+    decoder_declaration <> decoder_properties <> "\n"
+  end
+
+  @spec print_decoder_declaration(String.t) :: String.t
+  defp print_decoder_declaration(name) do
+
+    decoder_name = if name == "#", do: "root", else: downcase_first name
+    type_name = if name == "#", do: "Root", else: upcase_first name
+
     """
     #{decoder_name}Decoder : Decoder #{type_name}
     #{decoder_name}Decoder =
-    #{indent}decode #{type_name}
-    #{decoder_properties}
+    #{indent()}decode #{type_name}
     """
   end
 
@@ -144,8 +137,8 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp print_decoder_properties(properties, required, type_dict, schema_dict) do
 
     properties
-    |> Enum.map_join("\n", fn property_name ->
-      print_decoder_property(property_name, required, type_dict, schema_dict)
+    |> Enum.map_join("\n", fn property ->
+      print_decoder_property(property, required, type_dict, schema_dict)
     end)
   end
 
@@ -168,18 +161,18 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     cond do
       union_type?(property_type) || one_of_type?(property_type) ->
-        print_union_clause(property_name, decoder_name, is_required)
+        print_decoder_union_clause(property_name, decoder_name, is_required)
 
       enum_type?(property_type) ->
         property_type_decoder =
           property_type.type
           |> determine_primitive_type_decoder()
 
-        print_enum_clause(property_name, property_type_decoder,
+        print_decoder_enum_clause(property_name, property_type_decoder,
           decoder_name, is_required)
 
       true ->
-        print_normal_clause(property_name, decoder_name, is_required)
+        print_decoder_normal_clause(property_name, decoder_name, is_required)
     end
   end
 
@@ -187,13 +180,13 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp determine_primitive_type_decoder(property_type_value) do
     case property_type_value do
       "integer" ->
-        "int"
+        "Decode.int"
 
       "number" ->
-        "float"
+        "Decode.float"
 
       _ ->
-        property_type_value
+        "Decode.#{property_type_value}"
     end
   end
 
@@ -215,64 +208,204 @@ defmodule JS2E.Printers.ObjectPrinter do
   end
 
   defp primitive_type?(type) do
-    Util.get_string_name(type) == "PrimitiveType"
+    get_string_name(type) == "PrimitiveType"
   end
 
   defp enum_type?(type) do
-    Util.get_string_name(type) == "EnumType"
+    get_string_name(type) == "EnumType"
   end
 
   defp one_of_type?(type) do
-    Util.get_string_name(type) == "OneOfType"
+    get_string_name(type) == "OneOfType"
   end
 
   defp union_type?(type) do
-    Util.get_string_name(type) == "UnionType"
+    get_string_name(type) == "UnionType"
   end
 
-  defp print_union_clause(property_name, decoder_name, is_required) do
-    double_indent = Util.indent(2)
+  defp print_decoder_union_clause(property_name, decoder_name, is_required) do
 
     if is_required do
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "required \"#{property_name}\" #{decoder_name}"
 
     else
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
     end
   end
 
-  defp print_enum_clause(
+  defp print_decoder_enum_clause(
     property_name,
     property_type_decoder,
     decoder_name,
     is_required) do
 
-    double_indent = Util.indent(2)
-
     if is_required do
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "required \"#{property_name}\" (#{property_type_decoder} |> " <>
         "andThen #{decoder_name})"
 
     else
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "optional \"#{property_name}\" (#{property_type_decoder} |> " <>
         "andThen #{decoder_name} |> maybe) Nothing"
     end
   end
 
-  defp print_normal_clause(property_name, decoder_name, is_required) do
-    double_indent = Util.indent(2)
+  defp print_decoder_normal_clause(property_name, decoder_name, is_required) do
 
     if is_required do
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "required \"#{property_name}\" #{decoder_name}"
 
     else
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+    end
+  end
+
+  @spec print_encoder(
+    Types.typeDefinition,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  def print_encoder(%ObjectType{name: name,
+                                path: _path,
+                                properties: properties,
+                                required: required},
+    type_dict, schema_dict) do
+
+    type_name = if name == "#", do: "Root", else: upcase_first name
+    argument_name = downcase_first type_name
+
+    encoder_declaration = print_encoder_declaration(name)
+
+    encoder_properties = print_encoder_properties(
+      properties, required, argument_name, type_dict, schema_dict)
+
+    encoder_declaration <> encoder_properties
+  end
+
+  @spec print_encoder_declaration(String.t) :: String.t
+  defp print_encoder_declaration(name) do
+
+    type_name = if name == "#", do: "Root", else: upcase_first name
+    encoder_name = "encode#{type_name}"
+    argument_name = downcase_first type_name
+
+    """
+    #{encoder_name} : #{type_name} -> Value
+    #{encoder_name} #{argument_name} =
+    #{indent()}let
+    """
+  end
+
+  @spec print_encoder_properties(
+    Types.propertyDictionary,
+    [String.t],
+    String.t,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  defp print_encoder_properties(properties, required, argument_name,
+    type_dict, schema_dict) do
+
+    encoder_properties =
+      properties
+      |> Enum.map_join("\n", fn property ->
+      print_encoder_property(property, required, argument_name,
+        type_dict, schema_dict)
+    end)
+
+    object_properties =
+        properties
+        |> Enum.map_join(" ++ ", fn {property_name, _} -> property_name end)
+
+    String.trim_trailing(encoder_properties) <> "\n" <>
+    """
+    #{indent()}in
+    #{indent(2)}object <|
+    #{indent(3)}#{object_properties}
+    """
+  end
+
+  @spec print_encoder_property(
+    {String.t, String.t},
+    [String.t],
+    String.t,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  defp print_encoder_property({property_name, property_path}, required,
+    argument_name, type_dict, schema_dict) do
+
+    property_type =
+      property_path
+      |> Printer.resolve_type(type_dict, schema_dict)
+
+    encoder_name = print_encoder_name(property_type)
+
+    is_required = property_name in required
+
+    encode_clause =
+      print_encoder_clause(property_name, encoder_name,
+        argument_name, is_required)
+
+    "#{indent(2)}#{property_name} =\n#{encode_clause}\n"
+  end
+
+  defp print_encoder_name(property_type) do
+
+    if primitive_type?(property_type) do
+      determine_primitive_type_encoder(property_type.type)
+    else
+
+      property_type_name = property_type.name
+      if property_type_name == "#" do
+        "encodeRoot"
+      else
+        "encode#{upcase_first property_type_name}"
+      end
+
+    end
+  end
+
+  @spec print_encoder_clause(String.t, String.t, String.t, boolean) :: String.t
+  defp print_encoder_clause(
+    property_name,
+    encoder_name,
+    argument_name,
+    is_required) do
+
+    property_key = "#{argument_name}.#{property_name}"
+
+    if is_required do
+      "#{indent(3)}[ ( \"#{property_name}\", #{encoder_name} #{property_key} ) ]"
+    else
+      """
+      #{indent(3)}case #{property_key} of
+      #{indent(4)}Just #{property_name} ->
+      #{indent(5)}[ ( "#{property_name}", #{encoder_name} #{property_name} ) ]
+
+      #{indent(4)}Nothing ->
+      #{indent(5)}[]
+      """
+      |> String.trim_trailing()
+    end
+  end
+
+  @spec determine_primitive_type_encoder(String.t) :: String.t
+  defp determine_primitive_type_encoder(property_type_value) do
+    case property_type_value do
+      "integer" ->
+        "Encode.int"
+
+      "number" ->
+        "Encode.float"
+
+      _ ->
+        "Encode.#{property_type_value}"
     end
   end
 

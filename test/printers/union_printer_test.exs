@@ -65,8 +65,8 @@ defmodule JS2ETest.Printers.UnionPrinter do
     """
     favoriteNumberDecoder : Decoder FavoriteNumber
     favoriteNumberDecoder =
-        oneOf [ float |> andThen (succeed << FavoriteNumber_F)
-              , int |> andThen (succeed << FavoriteNumber_I)
+        oneOf [ Decode.float |> andThen (succeed << FavoriteNumber_F)
+              , Decode.int |> andThen (succeed << FavoriteNumber_I)
               ]
     """
 
@@ -89,13 +89,40 @@ defmodule JS2ETest.Printers.UnionPrinter do
     """
     favoriteNumberDecoder : Decoder (Maybe FavoriteNumber)
     favoriteNumberDecoder =
-        oneOf [ float |> andThen (succeed << Just << FavoriteNumber_F)
-              , int |> andThen (succeed << Just << FavoriteNumber_I)
+        oneOf [ Decode.float |> andThen (succeed << Just << FavoriteNumber_F)
+              , Decode.int |> andThen (succeed << Just << FavoriteNumber_I)
               , null Nothing
               ]
     """
 
     assert union_decoder_program == expected_union_decoder_program
+  end
+
+  test "print union encoder" do
+
+    type_dict = %{}
+
+    union_encoder_program =
+      %UnionType{
+        name: "favoriteNumber",
+        path: ["#", "definitions", "favoriteNumber"],
+        types: ["number", "integer"]
+      }
+      |> UnionPrinter.print_encoder(type_dict, %{})
+
+    expected_union_encoder_program =
+    """
+    encodeFavoriteNumber : FavoriteNumber -> Value
+    encodeFavoriteNumber favoriteNumber =
+        case favoriteNumber of
+            FavoriteNumber_F floatValue ->
+                Encode.float floatValue
+
+            FavoriteNumber_I intValue ->
+                Encode.int intValue
+    """
+
+    assert union_encoder_program == expected_union_encoder_program
   end
 
 end

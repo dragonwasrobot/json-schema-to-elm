@@ -97,7 +97,6 @@ defmodule JS2E do
     end
 
     output_path
-    |> Path.join("Decoders")
     |> File.mkdir_p!()
 
     output_path
@@ -107,9 +106,9 @@ defmodule JS2E do
   def generate(json_schema_paths, module_name) do
 
     schema_dict = Parser.parse_schema_files(json_schema_paths)
-    printed_decoders = Printer.print_schemas(schema_dict, module_name)
+    printed_schemas = Printer.print_schemas(schema_dict, module_name)
 
-    printed_decoders
+    printed_schemas
     |> Enum.each(fn{file_path, file_content} ->
       {:ok, file} = File.open file_path, [:write]
       IO.binwrite file, file_content

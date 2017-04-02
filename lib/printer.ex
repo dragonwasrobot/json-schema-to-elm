@@ -20,9 +20,9 @@ defmodule JS2E.Printer do
       title = schema_def.title
 
       if module_name != "" do
-        "./#{module_name}/Decoders/#{title}.elm"
+        "./#{module_name}/#{title}.elm"
       else
-        "./Decoders/#{title}.elm"
+        "./#{title}.elm"
       end
     end
 
@@ -59,12 +59,17 @@ defmodule JS2E.Printer do
     decoders = values
     |> Enum.map_join("\n\n", &(print_decoder(&1, type_dict, schema_dict)))
 
+    encoders = values
+    |> Enum.map_join("\n\n", &(print_encoder(&1, type_dict, schema_dict)))
+
     """
     #{String.trim(preamble)}
     \n
     #{String.trim(types)}
     \n
     #{String.trim(decoders)}
+    \n
+    #{String.trim(encoders)}
     """
   end
 
@@ -133,12 +138,31 @@ defmodule JS2E.Printer do
     end
   end
 
-  @spec determine_schema_id(URI.t) :: String.t
-  defp determine_schema_id(identifier) do
-    identifier
-    |> URI.parse
-    |> URI.merge("#")
-    |> to_string
+  @spec print_encoder(
+    Types.typeDefinition,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  def print_encoder(type_def, type_dict, schema_dict) do
+
+    type_to_printer_dict = %{
+      "ArrayType" => &ArrayPrinter.print_encoder/3,
+      "EnumType" => &EnumPrinter.print_encoder/3,
+      "ObjectType" => &ObjectPrinter.print_encoder/3,
+      "PrimitiveType" => &PrimitivePrinter.print_encoder/3,
+      "OneOfType" => &OneOfPrinter.print_encoder/3,
+      "UnionType" => &UnionPrinter.print_encoder/3,
+      "TypeReference" => &TypeReferencePrinter.print_encoder/3
+    }
+
+    struct_name = Util.get_string_name(type_def)
+
+    if Map.has_key?(type_to_printer_dict, struct_name) do
+      printer = type_to_printer_dict[struct_name]
+      printer.(type_def, type_dict, schema_dict)
+    else
+      Logger.error "Error(print_encoder) unknown type: #{inspect struct_name}"
+    end
   end
 
   @spec resolve_type(
@@ -176,7 +200,14 @@ defmodule JS2E.Printer do
     else
       type
     end
+  end
 
+  @spec determine_schema_id(URI.t) :: String.t
+  defp determine_schema_id(identifier) do
+    identifier
+    |> URI.parse
+    |> URI.merge("#")
+    |> to_string
   end
 
 end

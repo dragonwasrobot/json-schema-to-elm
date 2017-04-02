@@ -1,6 +1,7 @@
 # JSON schema to Elm
 
-Generates Elm types and JSON decoders from JSON schema specifications.
+Generates Elm types, JSON decoders and JSON encoders from JSON schema
+specifications.
 
 ## Installation
 
@@ -9,16 +10,12 @@ and its build tool `mix` installed, this can be done with `brew install elixir`
 or similar.
 
 - Clone this repository: `git clone git@github.com:dragonwasrobot/json-schema-to-elm.git`
-- Compile the project: `MIX_ENV=prod mix deps.get && mix compile`
-- Build an executable: `MIX_ENV=prod mix escript.build`
+- Build an executable: `MIX_ENV=prod mix build`
 - An executable, `js2e`, has now been created in your current working directory.
-
-For further help, look up the documentation on how
-to [install escripts](https://hexdocs.pm/mix/Mix.Tasks.Escript.Install.html).
 
 ## Usage
 
-See `./js2e` for usage instructions.
+Run `./js2e` for usage instructions.
 
 A proper description of which properties are mandatory are how the generator
 works is still in progress, but feel free to take a look at the `examples`
