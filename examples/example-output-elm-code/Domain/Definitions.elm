@@ -1,15 +1,17 @@
-module Domain.Decoders.Definitions exposing (..)
+module Domain.Definitions exposing (..)
 
 -- Schema for common types
 
 import Json.Decode as Decode
     exposing
-        ( int
+        ( float
+        , int
         , string
+        , list
         , succeed
         , fail
-        , list
         , map
+        , maybe
         , field
         , at
         , andThen
@@ -23,6 +25,15 @@ import Json.Decode.Pipeline
         , required
         , optional
         , custom
+        )
+import Json.Encode as Encode
+    exposing
+        ( Value
+        , float
+        , int
+        , string
+        , list
+        , object
         )
 
 
@@ -61,5 +72,35 @@ colorDecoder color =
 pointDecoder : Decoder Point
 pointDecoder =
     decode Point
-        |> required "x" float
-        |> required "y" float
+        |> required "x" Decode.float
+        |> required "y" Decode.float
+
+
+encodeColor : Color -> Value
+encodeColor color =
+    case color of
+        Red ->
+            Encode.string "red"
+
+        Yellow ->
+            Encode.string "yellow"
+
+        Green ->
+            Encode.string "green"
+
+        Blue ->
+            Encode.string "blue"
+
+
+encodePoint : Point -> Value
+encodePoint point =
+    let
+        x =
+            [ ( "x", Encode.float point.x ) ]
+
+        y =
+            [ ( "y", Encode.float point.y ) ]
+    in
+        object <|
+            x
+                ++ y
