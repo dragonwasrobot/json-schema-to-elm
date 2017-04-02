@@ -4,8 +4,8 @@ defmodule JS2E.Printers.ObjectPrinter do
   """
 
   require Logger
+  import JS2E.Printers.Util
   alias JS2E.{Printer, Types}
-  alias JS2E.Printers.Util
   alias JS2E.Types.ObjectType
 
   @spec print_type(
@@ -18,20 +18,18 @@ defmodule JS2E.Printers.ObjectPrinter do
                              properties: properties,
                              required: required}, type_dict, schema_dict) do
 
-    indent = Util.indent
-
     type_name = if name == "#" do
       "Root"
     else
-      Util.upcase_first name
+      upcase_first name
     end
 
     fields = print_fields(properties, required, type_dict, schema_dict)
 
     """
     type alias #{type_name} =
-    #{indent}{#{fields}
-    #{indent}}
+    #{indent()}{#{fields}
+    #{indent()}}
     """
   end
 
@@ -42,11 +40,10 @@ defmodule JS2E.Printers.ObjectPrinter do
     Types.schemaDictionary
   ) :: String.t
   defp print_fields(properties, required, type_dict, schema_dict) do
-    indent = Util.indent
 
     properties
     |> Enum.map(&(print_type_property(&1, required, type_dict, schema_dict)))
-    |> Enum.join("\n#{indent},")
+    |> Enum.join("\n#{indent()},")
   end
 
   @spec print_type_property(
@@ -84,7 +81,7 @@ defmodule JS2E.Printers.ObjectPrinter do
           "Float"
 
         _ ->
-          Util.upcase_first property_type_value
+          upcase_first property_type_value
       end
 
     else
@@ -93,7 +90,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       if property_type_name == "#" do
         "Root"
       else
-        Util.upcase_first property_type_name
+        upcase_first property_type_name
       end
 
     end
@@ -120,15 +117,14 @@ defmodule JS2E.Printers.ObjectPrinter do
 
   @spec print_decoder_declaration(String.t) :: String.t
   defp print_decoder_declaration(name) do
-    indent = Util.indent
 
-    decoder_name = if name == "#", do: "root", else: Util.downcase_first name
-    type_name = if name == "#", do: "Root", else: Util.upcase_first name
+    decoder_name = if name == "#", do: "root", else: downcase_first name
+    type_name = if name == "#", do: "Root", else: upcase_first name
 
     """
     #{decoder_name}Decoder : Decoder #{type_name}
     #{decoder_name}Decoder =
-    #{indent}decode #{type_name}
+    #{indent()}decode #{type_name}
     """
   end
 
@@ -212,30 +208,29 @@ defmodule JS2E.Printers.ObjectPrinter do
   end
 
   defp primitive_type?(type) do
-    Util.get_string_name(type) == "PrimitiveType"
+    get_string_name(type) == "PrimitiveType"
   end
 
   defp enum_type?(type) do
-    Util.get_string_name(type) == "EnumType"
+    get_string_name(type) == "EnumType"
   end
 
   defp one_of_type?(type) do
-    Util.get_string_name(type) == "OneOfType"
+    get_string_name(type) == "OneOfType"
   end
 
   defp union_type?(type) do
-    Util.get_string_name(type) == "UnionType"
+    get_string_name(type) == "UnionType"
   end
 
   defp print_decoder_union_clause(property_name, decoder_name, is_required) do
-    double_indent = Util.indent(2)
 
     if is_required do
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "required \"#{property_name}\" #{decoder_name}"
 
     else
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
     end
   end
@@ -246,29 +241,26 @@ defmodule JS2E.Printers.ObjectPrinter do
     decoder_name,
     is_required) do
 
-    double_indent = Util.indent(2)
-
     if is_required do
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "required \"#{property_name}\" (#{property_type_decoder} |> " <>
         "andThen #{decoder_name})"
 
     else
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "optional \"#{property_name}\" (#{property_type_decoder} |> " <>
         "andThen #{decoder_name} |> maybe) Nothing"
     end
   end
 
   defp print_decoder_normal_clause(property_name, decoder_name, is_required) do
-    double_indent = Util.indent(2)
 
     if is_required do
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "required \"#{property_name}\" #{decoder_name}"
 
     else
-      "#{double_indent}|> " <>
+      "#{indent(2)}|> " <>
         "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
     end
   end
@@ -284,8 +276,8 @@ defmodule JS2E.Printers.ObjectPrinter do
                                 required: required},
     type_dict, schema_dict) do
 
-    type_name = if name == "#", do: "Root", else: Util.upcase_first name
-    argument_name = Util.downcase_first type_name
+    type_name = if name == "#", do: "Root", else: upcase_first name
+    argument_name = downcase_first type_name
 
     encoder_declaration = print_encoder_declaration(name)
 
@@ -297,16 +289,15 @@ defmodule JS2E.Printers.ObjectPrinter do
 
   @spec print_encoder_declaration(String.t) :: String.t
   defp print_encoder_declaration(name) do
-    indent = Util.indent
 
-    type_name = if name == "#", do: "Root", else: Util.upcase_first name
+    type_name = if name == "#", do: "Root", else: upcase_first name
     encoder_name = "encode#{type_name}"
-    argument_name = Util.downcase_first type_name
+    argument_name = downcase_first type_name
 
     """
     #{encoder_name} : #{type_name} -> Value
     #{encoder_name} #{argument_name} =
-    #{indent}let
+    #{indent()}let
     """
   end
 
@@ -319,10 +310,6 @@ defmodule JS2E.Printers.ObjectPrinter do
   ) :: String.t
   defp print_encoder_properties(properties, required, argument_name,
     type_dict, schema_dict) do
-
-    indent = Util.indent
-    double_indent = Util.indent(2)
-    triple_indent = Util.indent(3)
 
     encoder_properties =
       properties
@@ -337,9 +324,9 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     String.trim_trailing(encoder_properties) <> "\n" <>
     """
-    #{indent}in
-    #{double_indent}object <|
-    #{triple_indent}#{object_properties}
+    #{indent()}in
+    #{indent(2)}object <|
+    #{indent(3)}#{object_properties}
     """
   end
 
@@ -352,7 +339,6 @@ defmodule JS2E.Printers.ObjectPrinter do
   ) :: String.t
   defp print_encoder_property({property_name, property_path}, required,
     argument_name, type_dict, schema_dict) do
-    double_indent = Util.indent(2)
 
     property_type =
       property_path
@@ -366,7 +352,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       print_encoder_clause(property_name, encoder_name,
         argument_name, is_required)
 
-    "#{double_indent}#{property_name} =\n#{encode_clause}\n"
+    "#{indent(2)}#{property_name} =\n#{encode_clause}\n"
   end
 
   defp print_encoder_name(property_type) do
@@ -379,7 +365,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       if property_type_name == "#" do
         "encodeRoot"
       else
-        "encode#{Util.upcase_first property_type_name}"
+        "encode#{upcase_first property_type_name}"
       end
 
     end
@@ -392,22 +378,18 @@ defmodule JS2E.Printers.ObjectPrinter do
     argument_name,
     is_required) do
 
-    triple_indent = Util.indent(3)
-    quadruple_indent = Util.indent(4)
-    quintuple_indent = Util.indent(5)
-
     property_key = "#{argument_name}.#{property_name}"
 
     if is_required do
-      "#{triple_indent}[ ( \"#{property_name}\", #{encoder_name} #{property_key} ) ]"
+      "#{indent(3)}[ ( \"#{property_name}\", #{encoder_name} #{property_key} ) ]"
     else
       """
-      #{triple_indent}case #{property_key} of
-      #{quadruple_indent}Just #{property_name} ->
-      #{quintuple_indent}[ ( "#{property_name}", #{encoder_name} #{property_name} ) ]
+      #{indent(3)}case #{property_key} of
+      #{indent(4)}Just #{property_name} ->
+      #{indent(5)}[ ( "#{property_name}", #{encoder_name} #{property_name} ) ]
 
-      #{quadruple_indent}Nothing ->
-      #{quintuple_indent}[]
+      #{indent(4)}Nothing ->
+      #{indent(5)}[]
       """
       |> String.trim_trailing()
     end
