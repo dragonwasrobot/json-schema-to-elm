@@ -1,9 +1,9 @@
-defmodule JS2E.Parsers.OneOfParser do
+defmodule JS2E.Parsers.AnyOfParser do
   @moduledoc ~S"""
-  Parses a JSON schema oneOf type:
+  Parses a JSON schema anyOf type:
 
       {
-        "oneOf": [
+        "anyOf": [
           {
             "type": "object",
             "properties": {
@@ -25,39 +25,39 @@ defmodule JS2E.Parsers.OneOfParser do
         ]
       }
 
-  Into an `JS2E.Types.OneOfType`.
+  Into an `JS2E.Types.AnyOfType`.
   """
 
   require Logger
   alias JS2E.{Types, TypePath, Parser}
   alias JS2E.Parsers.Util
-  alias JS2E.Types.OneOfType
+  alias JS2E.Types.AnyOfType
 
   @doc ~S"""
-  Parses a JSON schema oneOf type into an `JS2E.Types.OneOfType`.
+  Parses a JSON schema anyOf type into an `JS2E.Types.AnyOfType`.
   """
   @spec parse(map, URI.t, URI.t, TypePath.t, String.t)
   :: Types.typeDictionary
   def parse(schema_node, parent_id, id, path, name) do
-    Logger.debug "Parsing '#{inspect path}' as oneOf type"
+    Logger.debug "Parsing '#{inspect path}' as anyOf type"
 
     descendants_types_dict =
       schema_node
-      |> Map.get("oneOf")
+      |> Map.get("anyOf")
       |> create_descendants_type_dict(parent_id, path)
     Logger.debug "Descendants types dict: #{inspect descendants_types_dict}"
 
-    one_of_types =
+    any_of_types =
       descendants_types_dict
       |> create_types_list(path)
-    Logger.debug "OneOf types: #{inspect one_of_types}"
+    Logger.debug "AnyOf types: #{inspect any_of_types}"
 
-    one_of_type = %OneOfType{name: name,
+    any_of_type = %AnyOfType{name: name,
                              path: path,
-                             types: one_of_types}
-    Logger.debug "Parsed oneOf type: #{inspect one_of_type}"
+                             types: any_of_types}
+    Logger.debug "Parsed anyOf type: #{inspect any_of_type}"
 
-    one_of_type
+    any_of_type
     |> Util.create_type_dict(path, id)
     |> Map.merge(descendants_types_dict)
   end
