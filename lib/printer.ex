@@ -7,9 +7,9 @@ defmodule JS2E.Printer do
   require Logger
   alias JS2E.{TypePath, Types}
   alias JS2E.Printers.{ArrayPrinter, EnumPrinter, ObjectPrinter,
-                       AnyOfPrinter, OneOfPrinter, PrimitivePrinter,
-                       UnionPrinter, PreamblePrinter, TypeReferencePrinter,
-                       Util}
+                       AllOfPrinter, AnyOfPrinter, OneOfPrinter,
+                       PrimitivePrinter, UnionPrinter, PreamblePrinter,
+                       TypeReferencePrinter, Util}
   alias JS2E.Types.{PrimitiveType, TypeReference, SchemaDefinition}
 
   @primitive_types ["boolean", "null", "string", "number", "integer"]
@@ -98,6 +98,7 @@ defmodule JS2E.Printer do
       "EnumType" => &EnumPrinter.print_type/3,
       "ObjectType" => &ObjectPrinter.print_type/3,
       "PrimitiveType" => &PrimitivePrinter.print_type/3,
+      "AllOfType" => &AllOfPrinter.print_type/3,
       "AnyOfType" => &AnyOfPrinter.print_type/3,
       "OneOfType" => &OneOfPrinter.print_type/3,
       "UnionType" => &UnionPrinter.print_type/3,
@@ -125,6 +126,7 @@ defmodule JS2E.Printer do
       "EnumType" => &EnumPrinter.print_decoder/3,
       "ObjectType" => &ObjectPrinter.print_decoder/3,
       "PrimitiveType" => &PrimitivePrinter.print_decoder/3,
+      "AllOfType" => &AllOfPrinter.print_decoder/3,
       "AnyOfType" => &AnyOfPrinter.print_decoder/3,
       "OneOfType" => &OneOfPrinter.print_decoder/3,
       "UnionType" => &UnionPrinter.print_decoder/3,
@@ -153,6 +155,7 @@ defmodule JS2E.Printer do
       "EnumType" => &EnumPrinter.print_encoder/3,
       "ObjectType" => &ObjectPrinter.print_encoder/3,
       "PrimitiveType" => &PrimitivePrinter.print_encoder/3,
+      "AllOfType" => &AllOfPrinter.print_encoder/3,
       "AnyOfType" => &AnyOfPrinter.print_encoder/3,
       "OneOfType" => &OneOfPrinter.print_encoder/3,
       "UnionType" => &UnionPrinter.print_encoder/3,

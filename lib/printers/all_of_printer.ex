@@ -1,19 +1,19 @@
-defmodule JS2E.Printers.AnyOfPrinter do
+defmodule JS2E.Printers.AllOfPrinter do
   @moduledoc """
-  A printer for printing an 'any of' type decoder.
+  A printer for printing an 'all of' type decoder.
   """
 
   require Logger
   import JS2E.Printers.Util
   alias JS2E.{Printer, TypePath, Types}
-  alias JS2E.Types.AnyOfType
+  alias JS2E.Types.AllOfType
 
   @spec print_type(
     Types.typeDefinition,
     Types.typeDictionary,
     Types.schemaDictionary
   ) :: String.t
-  def print_type(%AnyOfType{name: name,
+  def print_type(%AllOfType{name: name,
                             path: _path,
                             types: types}, type_dict, schema_dict) do
 
@@ -53,7 +53,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
 
     field_name = downcase_first type_name
 
-    " #{field_name} : Maybe #{type_name}"
+    " #{field_name} : #{type_name}"
   end
 
   @spec print_type_name(Types.typeDefinition) :: String.t
@@ -83,7 +83,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
     Types.typeDictionary,
     Types.schemaDictionary
   ) :: String.t
-  def print_decoder(%AnyOfType{name: name,
+  def print_decoder(%AllOfType{name: name,
                                path: _path,
                                types: type_paths},
     type_dict, schema_dict) do
@@ -194,8 +194,8 @@ defmodule JS2E.Printers.AnyOfPrinter do
   end
 
   defp print_decoder_union_clause(property_name, decoder_name) do
-      "#{indent(2)}|> " <>
-      "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+    "#{indent(2)}|> " <>
+      "required \"#{property_name}\" #{decoder_name}"
   end
 
   defp print_decoder_enum_clause(
@@ -204,13 +204,13 @@ defmodule JS2E.Printers.AnyOfPrinter do
     decoder_name) do
 
     "#{indent(2)}|> " <>
-      "optional \"#{property_name}\" (#{property_type_decoder} |> " <>
-      "andThen #{decoder_name} |> maybe) Nothing"
+      "required \"#{property_name}\" (#{property_type_decoder} |> " <>
+      "andThen #{decoder_name})"
   end
 
   defp print_decoder_normal_clause(property_name, decoder_name) do
     "#{indent(2)}|> " <>
-      "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+      "required \"#{property_name}\" #{decoder_name}"
   end
 
   @spec print_encoder(
@@ -218,7 +218,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
     Types.typeDictionary,
     Types.schemaDictionary
   ) :: String.t
-  def print_encoder(%AnyOfType{name: name,
+  def print_encoder(%AllOfType{name: name,
                                path: _path,
                                types: type_paths},
     type_dict, schema_dict) do
@@ -319,14 +319,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
 
     property_key = "#{argument_name}.#{property_name}"
 
-    """
-    #{indent(3)}case #{property_key} of
-    #{indent(4)}Just #{property_name} ->
-    #{indent(5)}#{encoder_name} #{property_name}
-
-    #{indent(4)}Nothing ->
-    #{indent(5)}[]
-    """
+    "#{indent(3)}#{encoder_name} #{property_key}"
     |> String.trim_trailing()
   end
 

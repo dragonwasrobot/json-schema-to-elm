@@ -5,9 +5,9 @@ defmodule JS2E.Parser do
   """
 
   require Logger
-  alias JS2E.Parsers.{ArrayParser, UnionParser, PrimitiveParser,
-                      DefinitionsParser, AnyOfParser, OneOfParser,
-                      ObjectParser, EnumParser, TypeReferenceParser}
+  alias JS2E.Parsers.{ArrayParser, ObjectParser, EnumParser, PrimitiveParser,
+                      DefinitionsParser, AllOfParser, AnyOfParser, OneOfParser,
+                      UnionParser, TypeReferenceParser}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.SchemaDefinition
 
@@ -167,6 +167,7 @@ defmodule JS2E.Parser do
       {&ref_type?/1, &TypeReferenceParser.parse/5},
       {&enum_type?/1, &EnumParser.parse/5},
       {&union_type?/1, &UnionParser.parse/5},
+      {&all_of_type?/1, &AllOfParser.parse/5},
       {&any_of_type?/1, &AnyOfParser.parse/5},
       {&one_of_type?/1, &OneOfParser.parse/5},
       {&object_type?/1, &ObjectParser.parse/5},
@@ -214,6 +215,11 @@ defmodule JS2E.Parser do
   @spec enum_type?(map) :: boolean
   defp enum_type?(schema_node) do
     Map.has_key?(schema_node, "enum")
+  end
+
+  @spec all_of_type?(map) :: boolean
+  defp all_of_type?(schema_node) do
+    Map.get(schema_node, "allOf")
   end
 
   @spec any_of_type?(map) :: boolean

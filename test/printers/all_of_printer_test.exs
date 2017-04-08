@@ -1,11 +1,11 @@
-defmodule JS2ETest.Printers.AnyOfPrinter do
+defmodule JS2ETest.Printers.AllOfPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{AnyOfType, ObjectType, TypeReference}
-  alias JS2E.Printers.AnyOfPrinter
+  alias JS2E.Types.{AllOfType, ObjectType, TypeReference}
+  alias JS2E.Printers.AllOfPrinter
 
-  test "print 'any of' type value" do
+  test "print 'all of' type value" do
 
     type_dict = %{
       "#/shape/0" =>
@@ -31,27 +31,27 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
                                   "radius" => ["#", "properties", "radius"]}}
     }
 
-    any_of_type_program =
-      %AnyOfType{
+    all_of_type_program =
+      %AllOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "shape", "0"],
                 ["#", "shape", "1"]]
       }
-      |> AnyOfPrinter.print_type(type_dict, %{})
+      |> AllOfPrinter.print_type(type_dict, %{})
 
-    expected_any_of_type_program =
+    expected_all_of_type_program =
       """
       type alias Shape =
-          { square : Maybe Square
-          , circle : Maybe Circle
+          { square : Square
+          , circle : Circle
           }
       """
 
-    assert any_of_type_program == expected_any_of_type_program
+    assert all_of_type_program == expected_all_of_type_program
   end
 
-  test "print 'any of' decoder" do
+  test "print 'all of' decoder" do
 
     type_dict = %{
       "#/definitions/square" =>
@@ -69,28 +69,28 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
                                   "radius" => ["#", "properties", "radius"]}}
     }
 
-    any_of_decoder_program =
-      %AnyOfType{
+    all_of_decoder_program =
+      %AllOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AnyOfPrinter.print_decoder(type_dict, %{})
+      |> AllOfPrinter.print_decoder(type_dict, %{})
 
-    expected_any_of_decoder_program =
+    expected_all_of_decoder_program =
     """
     shapeDecoder : Decoder Shape
     shapeDecoder =
         decode Shape
-            |> optional "square" (nullable squareDecoder) Nothing
-            |> optional "circle" (nullable circleDecoder) Nothing
+            |> required "square" squareDecoder
+            |> required "circle" circleDecoder
     """
 
-    assert any_of_decoder_program == expected_any_of_decoder_program
+    assert all_of_decoder_program == expected_all_of_decoder_program
   end
 
-  test "print 'any of' encoder" do
+  test "print 'all of' encoder" do
 
     type_dict = %{
       "#/definitions/square" =>
@@ -108,41 +108,31 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
                                   "radius" => ["#", "properties", "radius"]}}
     }
 
-    any_of_encoder_program =
-      %AnyOfType{
+    all_of_encoder_program =
+      %AllOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AnyOfPrinter.print_encoder(type_dict, %{})
+      |> AllOfPrinter.print_encoder(type_dict, %{})
 
-    expected_any_of_encoder_program =
+    expected_all_of_encoder_program =
     """
     encodeShape : Shape -> Value
     encodeShape shape =
         let
             square =
-                case shape.square of
-                    Just square ->
-                        encodeSquare square
-
-                    Nothing ->
-                        []
+                encodeSquare shape.square
 
             circle =
-                case shape.circle of
-                    Just circle ->
-                        encodeCircle circle
-
-                    Nothing ->
-                        []
+                encodeCircle shape.circle
         in
             object <|
                 square ++ circle
     """
 
-    assert any_of_encoder_program == expected_any_of_encoder_program
+    assert all_of_encoder_program == expected_all_of_encoder_program
   end
 
 end
