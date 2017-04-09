@@ -164,7 +164,7 @@ defmodule JS2E.Printers.EnumPrinter do
     """
   end
 
-  @spec print_encoder_cases(String.t, String.t) :: String.t
+  @spec print_encoder_cases([String.t | number], String.t) :: String.t
   defp print_encoder_cases(values, type) do
 
     Enum.map_join(values, "\n", fn value ->
@@ -177,7 +177,7 @@ defmodule JS2E.Printers.EnumPrinter do
     end)
   end
 
-  @spec print_encoder_case(String.t, String.t) :: String.t
+  @spec print_encoder_case(String.t | number, String.t) :: String.t
   defp print_encoder_case(value, type) do
     case type do
       "string" ->

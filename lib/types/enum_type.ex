@@ -26,8 +26,8 @@ defmodule JS2E.Types.EnumType do
       %EnumType{name: "color",
                 path: ["#", "color"],
                 type: "string",
-                enum: ["none", "green", "orange",
-                       "blue", "yellow", "red"]}
+                values: ["none", "green", "orange",
+                         "blue", "yellow", "red"]}
 
   Elm code generated:
 
