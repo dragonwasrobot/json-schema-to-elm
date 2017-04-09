@@ -74,4 +74,24 @@ defmodule JS2E.Printers.Util do
     |> List.last
   end
 
+  @spec primitive_type?(struct) :: boolean
+  def primitive_type?(type) do
+    get_string_name(type) == "PrimitiveType"
+  end
+
+  @spec enum_type?(struct) :: boolean
+  def enum_type?(type) do
+    get_string_name(type) == "EnumType"
+  end
+
+  @spec one_of_type?(struct) :: boolean
+  def one_of_type?(type) do
+    get_string_name(type) == "OneOfType"
+  end
+
+  @spec union_type?(struct) :: boolean
+  def union_type?(type) do
+    get_string_name(type) == "UnionType"
+  end
+
 end

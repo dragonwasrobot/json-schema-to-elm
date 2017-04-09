@@ -6,6 +6,7 @@ defmodule JS2E.Printers.AllOfPrinter do
   require Logger
   import JS2E.Printers.Util
   alias JS2E.{Printer, TypePath, Types}
+  alias JS2E.Printers.XofUtil
   alias JS2E.Types.AllOfType
 
   @spec print_type(
@@ -177,22 +178,6 @@ defmodule JS2E.Printers.AllOfPrinter do
     end
   end
 
-  defp primitive_type?(type) do
-    get_string_name(type) == "PrimitiveType"
-  end
-
-  defp enum_type?(type) do
-    get_string_name(type) == "EnumType"
-  end
-
-  defp one_of_type?(type) do
-    get_string_name(type) == "OneOfType"
-  end
-
-  defp union_type?(type) do
-    get_string_name(type) == "UnionType"
-  end
-
   defp print_decoder_union_clause(property_name, decoder_name) do
     "#{indent(2)}|> " <>
       "required \"#{property_name}\" #{decoder_name}"
@@ -226,115 +211,21 @@ defmodule JS2E.Printers.AllOfPrinter do
     type_name = upcase_first name
     argument_name = downcase_first type_name
 
-    encoder_declaration = print_encoder_declaration(name)
+    encoder_declaration = XofUtil.print_encoder_declaration(name)
 
-    encoder_properties = print_encoder_properties(
-      type_paths, argument_name, type_dict, schema_dict)
+    encoder_properties = XofUtil.print_encoder_properties(type_paths,
+      argument_name, type_dict, schema_dict, &print_encoder_clause/3)
 
     encoder_declaration <> encoder_properties
   end
 
-  @spec print_encoder_declaration(String.t) :: String.t
-  defp print_encoder_declaration(name) do
-
-    type_name = upcase_first name
-    encoder_name = "encode#{type_name}"
-    argument_name = downcase_first type_name
-
-    """
-    #{encoder_name} : #{type_name} -> Value
-    #{encoder_name} #{argument_name} =
-    #{indent()}let
-    """
-  end
-
-  @spec print_encoder_properties(
-    [TypePath.t],
-    String.t,
-    Types.typeDictionary,
-    Types.schemaDictionary
-  ) :: String.t
-  defp print_encoder_properties(type_paths, argument_name,
-    type_dict, schema_dict) do
-
-    encoder_properties =
-      type_paths
-      |> Enum.map_join("\n", fn type_path ->
-      print_encoder_property(type_path, argument_name, type_dict, schema_dict)
-    end)
-
-    object_properties =
-        type_paths
-        |> Enum.map_join(" ++ ", fn type_path ->
-      resolved_type =
-        Printer.resolve_type(type_path, type_dict, schema_dict)
-      resolved_type.name
-    end)
-
-    String.trim_trailing(encoder_properties) <> "\n" <>
-    """
-    #{indent()}in
-    #{indent(2)}object <|
-    #{indent(3)}#{object_properties}
-    """
-  end
-
-  @spec print_encoder_property(
-    TypePath.t,
-    String.t,
-    Types.typeDictionary,
-    Types.schemaDictionary
-  ) :: String.t
-  defp print_encoder_property(type_path, argument_name,
-    type_dict, schema_dict) do
-
-    property_type =
-      type_path
-      |> Printer.resolve_type(type_dict, schema_dict)
-    property_name = property_type.name
-
-    encoder_name = print_encoder_name(property_type)
-
-    encode_clause =
-      print_encoder_clause(property_name, encoder_name, argument_name)
-
-    "#{indent(2)}#{property_name} =\n#{encode_clause}\n"
-  end
-
-  defp print_encoder_name(property_type) do
-
-    if primitive_type?(property_type) do
-      determine_primitive_type_encoder(property_type.type)
-    else
-      property_type_name = property_type.name
-      "encode#{upcase_first property_type_name}"
-    end
-  end
-
   @spec print_encoder_clause(String.t, String.t, String.t) :: String.t
-  defp print_encoder_clause(
-    property_name,
-    encoder_name,
-    argument_name) do
+  defp print_encoder_clause(property_name, encoder_name, argument_name) do
 
     property_key = "#{argument_name}.#{property_name}"
 
     "#{indent(3)}#{encoder_name} #{property_key}"
     |> String.trim_trailing()
-  end
-
-  @spec determine_primitive_type_encoder(String.t) :: String.t
-  defp determine_primitive_type_encoder(property_type_value) do
-    case property_type_value do
-      "integer" ->
-        "Encode.int"
-
-      "number" ->
-        "Encode.float"
-
-      _ ->
-        "Encode.#{property_type_value}"
-    end
   end
 
 end

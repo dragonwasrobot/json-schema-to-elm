@@ -207,24 +207,7 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  defp primitive_type?(type) do
-    get_string_name(type) == "PrimitiveType"
-  end
-
-  defp enum_type?(type) do
-    get_string_name(type) == "EnumType"
-  end
-
-  defp one_of_type?(type) do
-    get_string_name(type) == "OneOfType"
-  end
-
-  defp union_type?(type) do
-    get_string_name(type) == "UnionType"
-  end
-
   defp print_decoder_union_clause(property_name, decoder_name, is_required) do
-
     if is_required do
       "#{indent(2)}|> " <>
         "required \"#{property_name}\" #{decoder_name}"
@@ -254,7 +237,6 @@ defmodule JS2E.Printers.ObjectPrinter do
   end
 
   defp print_decoder_normal_clause(property_name, decoder_name, is_required) do
-
     if is_required do
       "#{indent(2)}|> " <>
         "required \"#{property_name}\" #{decoder_name}"
