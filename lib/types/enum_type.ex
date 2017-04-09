@@ -98,4 +98,13 @@ defmodule JS2E.Types.EnumType do
                          values: [(String.t | number)]}
 
   defstruct [:name, :path, :type, :values]
+
+  @spec new(String.t, TypePath.t, String.t, [(String.t | number)]) :: t
+  def new(name, path, type, values) do
+    %__MODULE__{name: name,
+                path: path,
+                type: type,
+                values: values}
+  end
+
 end

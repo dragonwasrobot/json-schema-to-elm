@@ -182,9 +182,7 @@ defmodule JS2E.Printer do
 
     type = cond do
       identifier in @primitive_types ->
-        %PrimitiveType{name: identifier,
-                       path: identifier,
-                       type: identifier}
+        PrimitiveType.new(identifier, identifier, identifier)
 
       TypePath.type_path?(identifier) ->
         type_dict[TypePath.to_string(identifier)]

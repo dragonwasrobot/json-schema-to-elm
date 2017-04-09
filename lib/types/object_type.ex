@@ -88,4 +88,13 @@ defmodule JS2E.Types.ObjectType do
                          required: [String.t]}
 
   defstruct [:name, :path, :properties, :required]
+
+  @spec new(String.t, TypePath.t, Types.propertyDictionary, [String.t]) :: t
+  def new(name, path, properties, required) do
+    %__MODULE__{name: name,
+                path: path,
+                properties: properties,
+                required: required}
+  end
+
 end

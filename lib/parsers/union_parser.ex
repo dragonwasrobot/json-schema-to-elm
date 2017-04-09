@@ -22,9 +22,7 @@ defmodule JS2E.Parsers.UnionParser do
     Logger.debug "Parsing '#{inspect path}' as union type"
 
     types = schema_node["type"]
-    union_type = %UnionType{name: name,
-                            path: path,
-                            types: types}
+    union_type = UnionType.new(name, path, types)
     Logger.debug "Parsed union type: #{inspect union_type}"
 
     union_type

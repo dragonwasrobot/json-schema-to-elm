@@ -64,10 +64,7 @@ defmodule JS2E.Parser do
       |> Map.merge(root, handle_conflict)
 
     %{to_string(schema_id) =>
-      %SchemaDefinition{id: schema_id,
-                        title: title,
-                        description: description,
-                        types: types}}
+      SchemaDefinition.new(schema_id, title, description, types)}
   end
 
   @spec parse_schema_id(any) :: {:ok, URI.t} | {:error, String.t}

@@ -45,10 +45,7 @@ defmodule JS2E.Parsers.ObjectParser do
       descendants_type_dict, path)
     Logger.debug "Property ref dict: #{inspect property_type_ref_dict}"
 
-    object_type = %ObjectType{name: name,
-                              path: path,
-                              required: required,
-                              properties: property_type_ref_dict}
+    object_type = ObjectType.new(name, path, property_type_ref_dict, required)
     Logger.debug "Parsed object type: #{inspect object_type}"
 
     object_type

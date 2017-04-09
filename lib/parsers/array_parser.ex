@@ -34,9 +34,7 @@ defmodule JS2E.Parsers.ArrayParser do
       |> Map.get("items")
       |> Parser.parse_type(parent_id, path, "items")
 
-    array_type = %ArrayType{name: name,
-                            path: path,
-                            items: items_abs_path}
+    array_type = ArrayType.new(name, path, items_abs_path)
     Logger.debug "Parsed array type: #{inspect array_type}"
 
     array_type

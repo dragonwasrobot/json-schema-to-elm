@@ -24,11 +24,7 @@ defmodule JS2E.Parsers.EnumParser do
 
     type = schema_node["type"]
     enum_values = schema_node["enum"]
-    enum_type = %EnumType{name: name,
-                          path: path,
-                          type: type,
-                          values: enum_values}
-
+    enum_type = EnumType.new(name, path, type, enum_values)
     Logger.debug "Parsed enum type: #{inspect enum_type}"
 
     enum_type

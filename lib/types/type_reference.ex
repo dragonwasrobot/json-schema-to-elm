@@ -29,4 +29,11 @@ defmodule JS2E.Types.TypeReference do
                          path: Types.typeIdentifier}
 
   defstruct [:name, :path]
+
+  @spec new(String.t, Types.typeIdentifier) :: t
+  def new(name, path) do
+    %__MODULE__{name: name,
+                path: path}
+  end
+
 end

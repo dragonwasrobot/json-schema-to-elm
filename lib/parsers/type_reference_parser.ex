@@ -32,7 +32,7 @@ defmodule JS2E.Parsers.TypeReferenceParser do
       |> Map.get("$ref")
       |> to_type_identifier
 
-    type_reference = %TypeReference{name: name, path: ref_path}
+    type_reference = TypeReference.new(name, ref_path)
     Logger.debug "Parsed type reference: #{inspect type_reference}"
 
     type_reference

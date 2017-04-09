@@ -47,4 +47,12 @@ defmodule JS2E.Types.PrimitiveType do
                          type: String.t}
 
   defstruct [:name, :path, :type]
+
+  @spec new(String.t, TypePath.t, String.t) :: t
+  def new(name, path, type) do
+    %__MODULE__{name: name,
+                path: path,
+                type: type}
+  end
+
 end

@@ -52,9 +52,7 @@ defmodule JS2E.Parsers.AnyOfParser do
       |> create_types_list(path)
     Logger.debug "AnyOf types: #{inspect any_of_types}"
 
-    any_of_type = %AnyOfType{name: name,
-                             path: path,
-                             types: any_of_types}
+    any_of_type = AnyOfType.new(name, path, any_of_types)
     Logger.debug "Parsed anyOf type: #{inspect any_of_type}"
 
     any_of_type

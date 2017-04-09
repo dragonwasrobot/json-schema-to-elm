@@ -52,9 +52,7 @@ defmodule JS2E.Parsers.OneOfParser do
       |> create_types_list(path)
     Logger.debug "OneOf types: #{inspect one_of_types}"
 
-    one_of_type = %OneOfType{name: name,
-                             path: path,
-                             types: one_of_types}
+    one_of_type = OneOfType.new(name, path, one_of_types)
     Logger.debug "Parsed oneOf type: #{inspect one_of_type}"
 
     one_of_type

@@ -69,4 +69,12 @@ defmodule JS2E.Types.AnyOfType do
                          types: [TypePath.t]}
 
   defstruct [:name, :path, :types]
+
+  @spec new(String.t, TypePath.t, [TypePath.t]) :: t
+  def new(name, path, types) do
+    %__MODULE__{name: name,
+                path: path,
+                types: types}
+  end
+
 end

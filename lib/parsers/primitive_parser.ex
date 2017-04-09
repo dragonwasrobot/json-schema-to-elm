@@ -22,10 +22,7 @@ defmodule JS2E.Parsers.PrimitiveParser do
     Logger.debug "Parsing '#{inspect path}' as primitive type"
 
     type = schema_node["type"]
-    primitive_type = %PrimitiveType{name: name,
-                                    path: path,
-                                    type: type}
-
+    primitive_type = PrimitiveType.new(name, path, type)
     Logger.debug "Parsed primitive type: #{inspect primitive_type}"
 
     primitive_type
