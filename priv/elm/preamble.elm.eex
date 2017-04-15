@@ -1,0 +1,40 @@
+module <%= prefix %><%= title %> exposing (..)
+
+-- <%= description %>
+
+import Json.Decode as Decode
+    exposing
+        ( float
+        , int
+        , string
+        , list
+        , succeed
+        , fail
+        , map
+        , maybe
+        , field
+        , at
+        , andThen
+        , oneOf
+        , nullable
+        , Decoder
+        )
+import Json.Decode.Pipeline
+    exposing
+        ( decode
+        , required
+        , optional
+        , custom
+        )
+import Json.Encode as Encode
+    exposing
+        ( Value
+        , float
+        , int
+        , string
+        , list
+        , object
+        )
+<%= for import <- imports do %><%#
+%><%= import_template(prefix, import) %><%#
+%><% end %>
