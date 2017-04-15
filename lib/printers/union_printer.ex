@@ -32,13 +32,13 @@ defmodule JS2E.Printers.UnionPrinter do
                             types: types}, _type_dict, _schema_dict) do
 
     type_name = upcase_first name
-    clauses = print_type_clauses(types, name)
+    clauses = create_type_clauses(types, name)
 
     type_template(type_name, clauses)
   end
 
-  @spec print_type_clauses([TypePath.t], String.t) :: [map]
-  defp print_type_clauses(types, name) do
+  @spec create_type_clauses([TypePath.t], String.t) :: [map]
+  defp create_type_clauses(types, name) do
 
     type_name = upcase_first name
 
@@ -86,7 +86,7 @@ defmodule JS2E.Printers.UnionPrinter do
       type_name
     end)
 
-    clauses = print_clause_decoders(types, type_name)
+    clauses = create_clause_decoders(types, type_name)
 
     clause_string = if nullable? do
       "<%= clause.decoder_name %> " <>
@@ -101,18 +101,18 @@ defmodule JS2E.Printers.UnionPrinter do
       clauses, clause_template)
   end
 
-  @spec print_clause_decoders([String.t], String.t) :: [map]
-  defp print_clause_decoders(types, type_name) do
+  @spec create_clause_decoders([String.t], String.t) :: [map]
+  defp create_clause_decoders(types, type_name) do
 
     types
     |> Enum.filter(fn type -> type != "null" end)
     |> Enum.map(fn type ->
-      print_clause_decoder(type, type_name)
+      create_clause_decoder(type, type_name)
     end)
   end
 
-  @spec print_clause_decoder(String.t, String.t) :: map
-  defp print_clause_decoder(type, type_name) do
+  @spec create_clause_decoder(String.t, String.t) :: map
+  defp create_clause_decoder(type, type_name) do
 
     {constructor_suffix, decoder_name} =
       case type do
