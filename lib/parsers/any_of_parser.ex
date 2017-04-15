@@ -30,7 +30,7 @@ defmodule JS2E.Parsers.AnyOfParser do
 
   require Logger
   import JS2E.Parsers.Util
-  alias JS2E.{Types, TypePath, Parser}
+  alias JS2E.{Types, TypePath}
   alias JS2E.Types.AnyOfType
 
   @doc ~S"""

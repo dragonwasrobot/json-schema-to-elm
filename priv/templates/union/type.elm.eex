@@ -1,0 +1,8 @@
+type <%= type_name %>
+    = <%= for {clause, idx} <- Enum.with_index(clauses) do %><%#
+    %><%= if idx == 0 do %><%#
+    %><%= clause.name %> <%= clause.type %><%#
+    %><% else %>
+    | <%= clause.name %> <%= clause.type %><%#
+    %><% end %><%#
+    %><% end %>

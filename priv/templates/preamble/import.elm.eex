@@ -1,7 +1,7 @@
 import <%= prefix %><%= import.title %>
     exposing
         ( <%= for {dep, idx} <- Enum.with_index(import.dependencies) do %><%#
-          %><%= if idx == 0 do %><%#
+        %><%= if idx == 0 do %><%#
         %><%= dep.type_name %>
         , <%= dep.decoder_name %>
         , <%= dep.encoder_name %><%#
@@ -9,6 +9,6 @@ import <%= prefix %><%= import.title %>
         , <%= dep.type_name %>
         , <%= dep.decoder_name %>
         , <%= dep.encoder_name %><%#
-          %><% end %><%#
+        %><% end %><%#
         %><% end %>
         )

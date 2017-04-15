@@ -3,9 +3,9 @@ defmodule JS2E.Printers.PreamblePrinter do
   A printer for printing a 'preamble' for a module.
   """
 
-  @templates_location Application.app_dir(:js2e) <> "/priv/elm/"
-  @preamble_location @templates_location <> "preamble.elm.eex"
-  @import_location @templates_location <> "import.elm.eex"
+  @templates_location Application.get_env(:js2e, :templates_location)
+  @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
+  @import_location Path.join(@templates_location, "preamble/import.elm.eex")
 
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util

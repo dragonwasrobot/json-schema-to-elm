@@ -58,6 +58,14 @@ defmodule JS2E.Printers.Util do
   end
 
   @doc ~S"""
+  Remove excessive newlines of a string.
+  """
+  @spec trim_newlines(String.t) :: String.t
+  def trim_newlines(str) do
+    String.trim(str) <> "\n"
+  end
+
+  @doc ~S"""
   Get the string shortname of the given struct.
 
   ## Examples

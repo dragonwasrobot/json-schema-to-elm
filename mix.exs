@@ -1,4 +1,4 @@
-defmodule JS2.Mixfile do
+defmodule JS2E.Mixfile do
   use Mix.Project
 
   def project do

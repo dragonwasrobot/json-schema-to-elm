@@ -3,10 +3,24 @@ defmodule JS2E.Printers.UnionPrinter do
   A printer for printing an 'object' type decoder.
   """
 
-  require Logger
+  @templates_location Application.get_env(:js2e, :templates_location)
+  @type_location Path.join(@templates_location, "union/type.elm.eex")
+  @decoder_location Path.join(@templates_location, "union/decoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "union/encoder.elm.eex")
+
+  require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.UnionType
+
+  EEx.function_from_file(:defp, :type_template, @type_location,
+    [:type_name, :clauses])
+
+  EEx.function_from_file(:defp, :decoder_template, @decoder_location,
+    [:decoder_name, :decoder_type, :nullable?, :clauses, :clause_template])
+
+  EEx.function_from_file(:defp, :encoder_template, @encoder_location,
+    [:encoder_name, :type_name, :argument_name, :cases])
 
   @spec print_type(
     Types.typeDefinition,
@@ -20,39 +34,37 @@ defmodule JS2E.Printers.UnionPrinter do
     type_name = upcase_first name
     clauses = print_type_clauses(types, name)
 
-    """
-    type #{type_name}
-    #{indent()}= #{clauses}
-    """
+    type_template(type_name, clauses)
   end
 
-  @spec print_type_clauses([TypePath.t], String.t) :: String.t
+  @spec print_type_clauses([TypePath.t], String.t) :: [map]
   defp print_type_clauses(types, name) do
 
     type_name = upcase_first name
 
     to_clause = fn type ->
       case type do
-        "null" ->
-          ""
-
         "boolean" ->
-          "#{type_name}_B Bool"
+          %{name: "#{type_name}_B",
+            type: "Bool"}
 
         "integer" ->
-          "#{type_name}_I Int"
+          %{name: "#{type_name}_I",
+            type: "Int"}
 
         "number" ->
-          "#{type_name}_F Float"
+          %{name: "#{type_name}_F",
+            type: "Float"}
 
         "string" ->
-          "#{type_name}_S String"
+          %{name: "#{type_name}_S",
+            type: "String"}
       end
     end
 
     types
-    |> Enum.filter(fn x -> x != "null" end)
-    |> Enum.map_join("\n#{indent()}| ", to_clause)
+    |> Enum.filter(&(&1 != "null"))
+    |> Enum.map(to_clause)
   end
 
   @spec print_decoder(
@@ -67,43 +79,40 @@ defmodule JS2E.Printers.UnionPrinter do
     type_name = upcase_first name
     nullable? = "null" in types
 
+    decoder_name = "#{name}Decoder"
     decoder_type = (if nullable? do
       "(Maybe #{type_name})"
     else
       type_name
     end)
 
-    clause_decoders = print_clause_decoders(types, type_name, nullable?)
+    clauses = print_clause_decoders(types, type_name)
 
-    """
-    #{name}Decoder : Decoder #{decoder_type}
-    #{name}Decoder =
-    #{indent()}oneOf [ #{clause_decoders}
-    #{indent()}      ]
-    """
+    clause_string = if nullable? do
+      "<%= clause.decoder_name %> " <>
+        "|> andThen (succeed << Just << <%= clause.constructor_name %>)"
+    else
+      "<%= clause.decoder_name %> " <>
+        "|> andThen (succeed << <%= clause.constructor_name %>)"
+    end
+    clause_template = &(EEx.eval_string(clause_string, [clause: &1]))
+
+    decoder_template(decoder_name, decoder_type, nullable?,
+      clauses, clause_template)
   end
 
-  @spec print_clause_decoders([String.t], String.t, boolean) :: String.t
-  defp print_clause_decoders(types, type_name, nullable?) do
-
-    add_null_clause = fn printed_clause_decoders ->
-      if nullable? do
-        printed_clause_decoders <> "\n#{indent()}      , null Nothing"
-      else
-        printed_clause_decoders
-      end
-    end
+  @spec print_clause_decoders([String.t], String.t) :: [map]
+  defp print_clause_decoders(types, type_name) do
 
     types
     |> Enum.filter(fn type -> type != "null" end)
-    |> Enum.map_join("\n#{indent()}      , ", fn type ->
-      print_clause_decoder(type, nullable?, type_name)
+    |> Enum.map(fn type ->
+      print_clause_decoder(type, type_name)
     end)
-    |> add_null_clause.()
   end
 
-  @spec print_clause_decoder(String.t, boolean, String.t) :: String.t
-  defp print_clause_decoder(type, nullable?, type_name) do
+  @spec print_clause_decoder(String.t, String.t) :: map
+  defp print_clause_decoder(type, type_name) do
 
     {constructor_suffix, decoder_name} =
       case type do
@@ -122,11 +131,8 @@ defmodule JS2E.Printers.UnionPrinter do
 
     constructor_name = type_name <> constructor_suffix
 
-    if nullable? do
-      "#{decoder_name} |> andThen (succeed << Just << #{constructor_name})"
-    else
-      "#{decoder_name} |> andThen (succeed << #{constructor_name})"
-    end
+    %{decoder_name: decoder_name,
+      constructor_name: constructor_name}
   end
 
   @spec print_encoder(
@@ -138,39 +144,25 @@ defmodule JS2E.Printers.UnionPrinter do
                               path: _path,
                               types: types}, _type_dict, _schema_dict) do
 
-    declaration = print_encoder_declaration(name)
-    cases = print_encoder_cases(types, name)
-
-    declaration <> cases
-  end
-
-  @spec print_encoder_declaration(String.t) :: String.t
-  defp print_encoder_declaration(name) do
     type_name = upcase_first name
     encoder_name = "encode#{type_name}"
+    cases = create_encoder_cases(types, name)
 
-    """
-    #{encoder_name} : #{type_name} -> Value
-    #{encoder_name} #{name} =
-    #{indent()}case #{name} of
-    """
+    template = encoder_template(encoder_name, type_name, name, cases)
+    trim_newlines(template)
   end
 
-  @spec print_encoder_cases([String.t], String.t) :: String.t
-  defp print_encoder_cases(types, name) do
-    Enum.map_join(types, "\n", fn type ->
-
-      {printed_elm_value, printed_json_value} = print_encoder_clause(type, name)
-
-      "#{indent(2)}#{printed_elm_value} ->\n" <>
-        "#{indent(3)}#{printed_json_value}\n"
+  @spec create_encoder_cases([String.t], String.t) :: [map]
+  defp create_encoder_cases(types, name) do
+    types |> Enum.map(fn type ->
+      create_encoder_clause(type, name)
     end)
   end
 
-  @spec print_encoder_clause(String.t, String.t) :: {String.t, String.t}
-  defp print_encoder_clause(type, name) do
+  @spec create_encoder_clause(String.t, String.t) :: map
+  defp create_encoder_clause(type, name) do
 
-    {constructor_suffix, decoder_name, argument_name} =
+    {constructor_suffix, encoder_name, argument_name} =
       case type do
         "boolean" ->
           {"_B", "Encode.bool", "boolValue"}
@@ -186,8 +178,9 @@ defmodule JS2E.Printers.UnionPrinter do
       end
 
     constructor_name = (upcase_first name) <> constructor_suffix
-    {"#{constructor_name} #{argument_name}",
-     "#{decoder_name} #{argument_name}"}
+
+    %{constructor: "#{constructor_name} #{argument_name}",
+      encoder: "#{encoder_name} #{argument_name}"}
   end
 
 end
