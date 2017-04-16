@@ -3,8 +3,8 @@
     decode <%= type_name %><%#
         %><%= for clause <- clauses do %><%#
         %><%= if  Map.has_key?(clause, :property_decoder) do %>
-        |> optional "<%= clause.property_name %>" (<%= clause.property_decoder %> |> andThen <%= clause.decoder %> |> maybe) Nothing<%#
+        |> required "<%= clause.property_name %>" (<%= clause.property_decoder %> |> andThen <%= clause.decoder %>)<%#
         %><% else %>
-        |> optional "<%= clause.property_name %>" (nullable <%= clause.decoder_name %>) Nothing<%#
+        |> required "<%= clause.property_name %>" <%= clause.decoder_name %><%#
         %><% end %><%#
         %><% end %>

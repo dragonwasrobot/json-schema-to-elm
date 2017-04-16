@@ -98,9 +98,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
 
     decoder_name = "#{name}Decoder"
     type_name = upcase_first name
-
-    clauses = create_decoder_clauses(
-      type_paths, type_dict, schema_dict)
+    clauses = create_decoder_clauses(type_paths, type_dict, schema_dict)
 
     decoder_template(decoder_name, type_name, clauses)
   end
@@ -175,21 +173,20 @@ defmodule JS2E.Printers.AnyOfPrinter do
   end
 
   defp create_decoder_union_clause(property_name, decoder_name) do
-    %{prop_name: property_name,
+    %{property_name: property_name,
       decoder_name: decoder_name}
   end
 
   defp create_decoder_enum_clause(property_name,
-    property_type_decoder,
-    decoder_name) do
+    property_type_decoder, decoder_name) do
 
-    %{prop_name: property_name,
-      prop_decoder: property_type_decoder,
+    %{property_name: property_name,
+      property_decoder: property_type_decoder,
       decoder_name: decoder_name}
   end
 
   defp create_decoder_normal_clause(property_name, decoder_name) do
-    %{prop_name: property_name,
+    %{property_name: property_name,
     decoder_name: decoder_name}
   end
 
@@ -207,18 +204,15 @@ defmodule JS2E.Printers.AnyOfPrinter do
     encoder_name = "encode#{type_name}"
     argument_name = downcase_first type_name
 
-    properties = create_encoder_properties(type_paths,
-      argument_name, type_dict, schema_dict)
+    properties = create_encoder_properties(type_paths, type_dict, schema_dict)
 
     template = encoder_template(encoder_name, type_name,
       argument_name, properties)
     trim_newlines(template)
   end
 
-  defp create_encoder_properties(type_paths, argument_name,
-    type_dict, schema_dict) do
+  defp create_encoder_properties(type_paths, type_dict, schema_dict) do
 
-    properties =
       type_paths
       |> Enum.map(fn type_path ->
       Printer.resolve_type(type_path, type_dict, schema_dict)
