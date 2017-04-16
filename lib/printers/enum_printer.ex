@@ -3,10 +3,24 @@ defmodule JS2E.Printers.EnumPrinter do
   Prints the Elm type, JSON decoder and JSON eecoder for a JSON schema 'enum'.
   """
 
-  require Logger
+  @templates_location Application.get_env(:js2e, :templates_location)
+  @type_location Path.join(@templates_location, "enum/type.elm.eex")
+  @decoder_location Path.join(@templates_location, "enum/decoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "enum/encoder.elm.eex")
+
+  require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.Types
   alias JS2E.Types.EnumType
+
+  EEx.function_from_file(:defp, :type_template, @type_location,
+    [:type_name, :clauses])
+
+  EEx.function_from_file(:defp, :decoder_template, @decoder_location,
+    [:decoder_name, :decoder_type, :argument_name, :argument_type, :cases])
+
+  EEx.function_from_file(:defp, :encoder_template, @encoder_location,
+    [:encoder_name, :argument_name, :argument_type, :cases])
 
   @spec print_type(
     Types.typeDefinition,
@@ -18,17 +32,10 @@ defmodule JS2E.Printers.EnumPrinter do
                            type: type,
                            values: values}, _type_dict, _schema_dict) do
 
-    values =
-      values
-      |> Enum.map(&(print_elm_value(&1, type)))
-      |> Enum.join("\n#{indent()}| ")
-
     type_name = upcase_first name
+    clauses = values |> Enum.map(&(create_elm_value(&1, type)))
 
-    """
-    type #{type_name}
-    #{indent()}= #{values}
-    """
+    type_template(type_name, clauses)
   end
 
   @spec print_decoder(
@@ -41,28 +48,16 @@ defmodule JS2E.Printers.EnumPrinter do
                               type: type,
                               values: values}, _type_dict, _schema_dict) do
 
-    declaration = print_decoder_declaration(name, type)
-    cases = print_decoder_cases(values, type)
-    default_case = print_decoder_default_case(name)
+    decoder_name = "#{downcase_first name}Decoder"
+    argument_type = create_type_value type
+    decoder_type = upcase_first name
+    cases = create_decoder_cases(values, type)
 
-    declaration <> cases <> "\n" <> default_case
+    decoder_template(decoder_name, decoder_type, name, argument_type, cases)
   end
 
-  @spec print_decoder_declaration(String.t, String.t) :: String.t
-  defp print_decoder_declaration(name, type) do
-
-    type_name = upcase_first name
-    decoder_name = downcase_first name
-    type_value = print_type_value type
-
-    """
-    #{decoder_name}Decoder : #{type_value} -> Decoder #{type_name}
-    #{decoder_name}Decoder #{name} =
-    #{indent()}case #{name} of
-    """
-  end
-
-  defp print_type_value(type) do
+  @spec create_type_value(String.t) :: String.t
+  defp create_type_value(type) do
     case type do
       "string" ->
         "String"
@@ -78,21 +73,20 @@ defmodule JS2E.Printers.EnumPrinter do
     end
   end
 
-  @spec print_decoder_cases([String.t], String.t) :: String.t
-  defp print_decoder_cases(values, type) do
+  @spec create_decoder_cases([String.t], String.t) :: [map]
+  defp create_decoder_cases(values, type) do
 
-    Enum.map_join(values, "\n", fn value ->
+    values |> Enum.map(fn value ->
+      raw_value = create_decoder_case(value, type)
+      parsed_value = create_elm_value(value, type)
 
-      printed_raw_value = print_decoder_case(value, type)
-      printed_parsed_value = print_elm_value(value, type)
-
-      "#{indent(2)}#{printed_raw_value} ->\n" <>
-        "#{indent(3)}succeed #{printed_parsed_value}\n"
+      %{raw_value: raw_value,
+        parsed_value: parsed_value}
     end)
   end
 
-  @spec print_decoder_case(String.t, String.t) :: String.t
-  defp print_decoder_case(value, type) do
+  @spec create_decoder_case(String.t, String.t) :: String.t
+  defp create_decoder_case(value, type) do
     case type do
       "string" ->
         "\"#{value}\""
@@ -108,8 +102,56 @@ defmodule JS2E.Printers.EnumPrinter do
     end
   end
 
-  @spec print_elm_value(String.t, String.t) :: String.t
-  defp print_elm_value(value, type) do
+  @spec print_encoder(
+    Types.typeDefinition,
+    Types.typeDictionary,
+    Types.schemaDictionary
+  ) :: String.t
+  def print_encoder(%EnumType{name: name,
+                              path: _path,
+                              type: type,
+                              values: values}, _type_dict, _schema_dict) do
+
+    argument_type = upcase_first name
+    encoder_name = "encode#{argument_type}"
+    cases = create_encoder_cases(values, type)
+
+    template = encoder_template(encoder_name, name, argument_type, cases)
+    trim_newlines(template)
+  end
+
+  @spec create_encoder_cases([String.t | number], String.t) :: [map]
+  defp create_encoder_cases(values, type) do
+
+    values |> Enum.map(fn value ->
+
+      elm_value = create_elm_value(value, type)
+      json_value = create_encoder_case(value, type)
+
+      %{elm_value: elm_value,
+        json_value: json_value}
+    end)
+  end
+
+  @spec create_encoder_case(String.t | number, String.t) :: String.t
+  defp create_encoder_case(value, type) do
+    case type do
+      "string" ->
+        "Encode.string \"#{value}\""
+
+      "integer" ->
+        "Encode.int #{value}"
+
+      "number" ->
+        "Encode.float #{value}"
+
+      _ ->
+        raise "Unknown or unsupported enum type: #{type}"
+    end
+  end
+
+  @spec create_elm_value(String.t, String.t) :: String.t
+  defp create_elm_value(value, type) do
     case type do
       "string" ->
         upcase_first value
@@ -121,73 +163,6 @@ defmodule JS2E.Printers.EnumPrinter do
         "Float#{value}"
         |> String.replace(".", "_")
         |> String.replace("-", "Neg")
-
-      _ ->
-        raise "Unknown or unsupported enum type: #{type}"
-    end
-  end
-
-  @spec print_decoder_default_case(String.t) :: String.t
-  defp print_decoder_default_case(name) do
-
-    """
-    #{indent(2)}_ ->
-    #{indent(3)}fail <| "Unknown #{name} type: " ++ #{name}
-    """
-  end
-
-  @spec print_encoder(
-    Types.typeDefinition,
-    Types.typeDictionary,
-    Types.schemaDictionary
-  ) :: String.t
-  def print_encoder(%EnumType{name: name,
-                              path: _path,
-                              type: type,
-                              values: values}, _type_dict, _schema_dict) do
-
-    declaration = print_encoder_declaration(name)
-    cases = print_encoder_cases(values, type)
-
-    declaration <> cases
-  end
-
-  @spec print_encoder_declaration(String.t) :: String.t
-  defp print_encoder_declaration(name) do
-    type_name = upcase_first name
-    encoder_name = "encode#{type_name}"
-
-    """
-    #{encoder_name} : #{type_name} -> Value
-    #{encoder_name} #{name} =
-    #{indent()}case #{name} of
-    """
-  end
-
-  @spec print_encoder_cases([String.t | number], String.t) :: String.t
-  defp print_encoder_cases(values, type) do
-
-    Enum.map_join(values, "\n", fn value ->
-
-      printed_elm_value = print_elm_value(value, type)
-      printed_json_value = print_encoder_case(value, type)
-
-      "#{indent(2)}#{printed_elm_value} ->\n" <>
-        "#{indent(3)}#{printed_json_value}\n"
-    end)
-  end
-
-  @spec print_encoder_case(String.t | number, String.t) :: String.t
-  defp print_encoder_case(value, type) do
-    case type do
-      "string" ->
-        "Encode.string \"#{value}\""
-
-      "integer" ->
-        "Encode.int #{value}"
-
-      "number" ->
-        "Encode.float #{value}"
 
       _ ->
         raise "Unknown or unsupported enum type: #{type}"

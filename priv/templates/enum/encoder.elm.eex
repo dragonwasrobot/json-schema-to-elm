@@ -1,0 +1,7 @@
+<%= encoder_name %> : <%= argument_type %> -> Value
+<%= encoder_name %> <%= argument_name %> =
+    case <%= argument_name %> of<%#
+    %><%= for case <- cases do %>
+        <%= case.elm_value %> ->
+            <%= case.json_value %>
+<% end %>
