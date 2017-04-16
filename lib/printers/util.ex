@@ -76,7 +76,14 @@ defmodule JS2E.Printers.Util do
     if primitive_type?(type) do
       determine_primitive_type_encoder(type)
     else
-      "encode#{upcase_first type.name}"
+
+      type_name = type.name
+      if type_name == "#" do
+        "encodeRoot"
+      else
+        "encode#{upcase_first type_name}"
+      end
+
     end
   end
 

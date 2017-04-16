@@ -43,7 +43,8 @@ defmodule JS2E.Printers.AnyOfPrinter do
     Types.schemaDictionary
   ) :: [map]
   defp create_type_fields(types, type_dict, schema_dict) do
-    types |> Enum.map(&(create_type_field(&1, type_dict, schema_dict)))
+    types
+    |> Enum.map(&(create_type_field(&1, type_dict, schema_dict)))
   end
 
   @spec create_type_field(
