@@ -1,0 +1,3 @@
+<%= decoder_name %> : Decoder (List <%= items_type_name %>)
+<%= decoder_name %> =
+    Decode.list <%= items_decoder_name %>
