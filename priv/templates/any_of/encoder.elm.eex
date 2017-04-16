@@ -1,0 +1,14 @@
+<%= encoder_name %> : <%= type_name %> -> Value
+<%= encoder_name %> <%= argument_name %> =
+    let<%= for property <- properties do %>
+        <%= property.name %> =
+            case <%= argument_name %>.<%= property.name %> of
+                Just <%= property.name %> ->
+                    <%= property.encoder_name %> <%= property.name %>
+
+                Nothing ->
+                    []
+<% end %><%#
+%>    in
+        object <|
+            <%= Enum.map_join(properties, " ++ ", fn property -> property.name end) %>

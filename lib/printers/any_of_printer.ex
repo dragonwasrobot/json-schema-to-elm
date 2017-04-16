@@ -3,11 +3,24 @@ defmodule JS2E.Printers.AnyOfPrinter do
   A printer for printing an 'any of' type decoder.
   """
 
-  require Logger
+  @templates_location Application.get_env(:js2e, :templates_location)
+  @type_location Path.join(@templates_location, "any_of/type.elm.eex")
+  @decoder_location Path.join(@templates_location, "any_of/decoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "any_of/encoder.elm.eex")
+
+  require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{Printer, TypePath, Types}
-  alias JS2E.Printers.XofUtil
   alias JS2E.Types.AnyOfType
+
+  EEx.function_from_file(:defp, :type_template, @type_location,
+    [:type_name, :fields])
+
+  EEx.function_from_file(:defp, :decoder_template, @decoder_location,
+    [:decoder_name, :type_name, :clauses])
+
+  EEx.function_from_file(:defp, :encoder_template, @encoder_location,
+    [:encoder_name, :type_name, :argument_name, :properties])
 
   @spec print_type(
     Types.typeDefinition,
@@ -19,46 +32,40 @@ defmodule JS2E.Printers.AnyOfPrinter do
                             types: types}, type_dict, schema_dict) do
 
     type_name = upcase_first name
-    printed_types = print_types(types, type_dict, schema_dict)
+    fields = create_type_fields(types, type_dict, schema_dict)
 
-    """
-    type alias #{type_name} =
-    #{indent()}{#{printed_types}
-    #{indent()}}
-    """
+    type_template(type_name, fields)
   end
 
-  @spec print_types(
+  @spec create_type_fields(
     [TypePath.t],
     Types.typeDictionary,
     Types.schemaDictionary
-  ) :: String.t
-  defp print_types(types, type_dict, schema_dict) do
-
-    types
-    |> Enum.map(&(print_type_path(&1, type_dict, schema_dict)))
-    |> Enum.join("\n#{indent()},")
+  ) :: [map]
+  defp create_type_fields(types, type_dict, schema_dict) do
+    types |> Enum.map(&(create_type_field(&1, type_dict, schema_dict)))
   end
 
-  @spec print_type_path(
+  @spec create_type_field(
     TypePath.t,
     Types.typeDictionary,
     Types.schemaDictionary
-  ) :: String.t
-  defp print_type_path(type_path, type_dict, schema_dict) do
+  ) :: map
+  defp create_type_field(type_path, type_dict, schema_dict) do
 
-    type_name =
+    field_type =
       type_path
       |> Printer.resolve_type(type_dict, schema_dict)
-      |> print_type_name
+      |> create_type_name
 
-    field_name = downcase_first type_name
+    field_name = downcase_first field_type
 
-    " #{field_name} : Maybe #{type_name}"
+    %{name: field_name,
+      type: field_type}
   end
 
-  @spec print_type_name(Types.typeDefinition) :: String.t
-  defp print_type_name(property_type) do
+  @spec create_type_name(Types.typeDefinition) :: String.t
+  defp create_type_name(property_type) do
 
     if primitive_type?(property_type) do
       property_type_value = property_type.type
@@ -89,67 +96,56 @@ defmodule JS2E.Printers.AnyOfPrinter do
                                types: type_paths},
     type_dict, schema_dict) do
 
-    decoder_declaration = print_decoder_declaration(name)
-    decoder_properties = print_decoder_properties(
-      type_paths, type_dict, schema_dict)
-
-    decoder_declaration <> decoder_properties <> "\n"
-  end
-
-  @spec print_decoder_declaration(String.t) :: String.t
-  defp print_decoder_declaration(name) do
-
-    decoder_name = downcase_first name
+    decoder_name = "#{name}Decoder"
     type_name = upcase_first name
 
-    """
-    #{decoder_name}Decoder : Decoder #{type_name}
-    #{decoder_name}Decoder =
-    #{indent()}decode #{type_name}
-    """
+    clauses = create_decoder_clauses(
+      type_paths, type_dict, schema_dict)
+
+    decoder_template(decoder_name, type_name, clauses)
   end
 
-  @spec print_decoder_properties(
+  @spec create_decoder_clauses(
     [TypePath.t],
     Types.typeDictionary,
     Types.schemaDictionary
-  ) :: String.t
-  defp print_decoder_properties(type_paths, type_dict, schema_dict) do
+  ) :: [map]
+  defp create_decoder_clauses(type_paths, type_dict, schema_dict) do
 
     type_paths
-    |> Enum.map_join("\n", fn type_path ->
-      print_decoder_property(type_path, type_dict, schema_dict)
+    |> Enum.map(fn type_path ->
+      create_decoder_property(type_path, type_dict, schema_dict)
     end)
   end
 
-  @spec print_decoder_property(
+  @spec create_decoder_property(
     TypePath.t,
     Types.typeDictionary,
     Types.schemaDictionary
-  ) :: String.t
-  defp print_decoder_property(type_path, type_dict, schema_dict) do
+  ) :: map
+  defp create_decoder_property(type_path, type_dict, schema_dict) do
 
     property_type =
       type_path
       |> Printer.resolve_type(type_dict, schema_dict)
 
     property_name = property_type.name
-    decoder_name = print_decoder_name(property_type)
+    decoder_name = create_decoder_name(property_type)
 
     cond do
       union_type?(property_type) || one_of_type?(property_type) ->
-        print_decoder_union_clause(property_name, decoder_name)
+        create_decoder_union_clause(property_name, decoder_name)
 
       enum_type?(property_type) ->
         property_type_decoder =
           property_type.type
           |> determine_primitive_type_decoder()
 
-        print_decoder_enum_clause(
+        create_decoder_enum_clause(
           property_name, property_type_decoder, decoder_name)
 
       true ->
-        print_decoder_normal_clause(property_name, decoder_name)
+        create_decoder_normal_clause(property_name, decoder_name)
     end
   end
 
@@ -167,8 +163,8 @@ defmodule JS2E.Printers.AnyOfPrinter do
     end
   end
 
-  @spec print_decoder_name(Types.typeDefinition) :: String.t
-  defp print_decoder_name(property_type) do
+  @spec create_decoder_name(Types.typeDefinition) :: String.t
+  defp create_decoder_name(property_type) do
 
     if primitive_type?(property_type) do
       determine_primitive_type_decoder(property_type.type)
@@ -178,24 +174,23 @@ defmodule JS2E.Printers.AnyOfPrinter do
     end
   end
 
-  defp print_decoder_union_clause(property_name, decoder_name) do
-      "#{indent(2)}|> " <>
-      "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+  defp create_decoder_union_clause(property_name, decoder_name) do
+    %{prop_name: property_name,
+      decoder_name: decoder_name}
   end
 
-  defp print_decoder_enum_clause(
-    property_name,
+  defp create_decoder_enum_clause(property_name,
     property_type_decoder,
     decoder_name) do
 
-    "#{indent(2)}|> " <>
-      "optional \"#{property_name}\" (#{property_type_decoder} |> " <>
-      "andThen #{decoder_name} |> maybe) Nothing"
+    %{prop_name: property_name,
+      prop_decoder: property_type_decoder,
+      decoder_name: decoder_name}
   end
 
-  defp print_decoder_normal_clause(property_name, decoder_name) do
-    "#{indent(2)}|> " <>
-      "optional \"#{property_name}\" (nullable #{decoder_name}) Nothing"
+  defp create_decoder_normal_clause(property_name, decoder_name) do
+    %{prop_name: property_name,
+    decoder_name: decoder_name}
   end
 
   @spec print_encoder(
@@ -209,30 +204,30 @@ defmodule JS2E.Printers.AnyOfPrinter do
     type_dict, schema_dict) do
 
     type_name = upcase_first name
+    encoder_name = "encode#{type_name}"
     argument_name = downcase_first type_name
 
-    encoder_declaration = XofUtil.print_encoder_declaration(name)
+    properties = create_encoder_properties(type_paths,
+      argument_name, type_dict, schema_dict)
 
-    encoder_properties = XofUtil.print_encoder_properties(type_paths,
-      argument_name, type_dict, schema_dict, &print_encoder_clause/3)
-
-    encoder_declaration <> encoder_properties
+    template = encoder_template(encoder_name, type_name,
+      argument_name, properties)
+    trim_newlines(template)
   end
 
-  @spec print_encoder_clause(String.t, String.t, String.t) :: String.t
-  defp print_encoder_clause(property_name, encoder_name, argument_name) do
+  defp create_encoder_properties(type_paths, argument_name,
+    type_dict, schema_dict) do
 
-    property_key = "#{argument_name}.#{property_name}"
-
-    """
-    #{indent(3)}case #{property_key} of
-    #{indent(4)}Just #{property_name} ->
-    #{indent(5)}#{encoder_name} #{property_name}
-
-    #{indent(4)}Nothing ->
-    #{indent(5)}[]
-    """
-    |> String.trim_trailing()
+    properties =
+      type_paths
+      |> Enum.map(fn type_path ->
+      Printer.resolve_type(type_path, type_dict, schema_dict)
+    end)
+      |> Enum.reduce([], fn (property, properties) ->
+        encoder_name = create_encoder_name(property)
+        updated_property = Map.put(property, :encoder_name, encoder_name)
+        properties ++ [updated_property]
+      end)
   end
 
 end

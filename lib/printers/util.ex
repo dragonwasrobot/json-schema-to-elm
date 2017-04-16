@@ -66,6 +66,35 @@ defmodule JS2E.Printers.Util do
   end
 
   @doc ~S"""
+  Returns the encoder name given a JSON schema type definition.
+  """
+  @spec create_encoder_name(Types.typeDefinition) :: String.t
+  def create_encoder_name(type) do
+
+    if primitive_type?(type) do
+      determine_primitive_type_encoder(type)
+    else
+      "encode#{upcase_first type.name}"
+    end
+  end
+
+  @spec determine_primitive_type_encoder(PrimitiveType.t) :: String.t
+  defp determine_primitive_type_encoder(primitive_type) do
+    type_value = primitive_type.type
+
+    case type_value do
+      "integer" ->
+        "Encode.int"
+
+      "number" ->
+        "Encode.float"
+
+      _ ->
+        "Encode.#{type_value}"
+    end
+  end
+
+  @doc ~S"""
   Get the string shortname of the given struct.
 
   ## Examples
