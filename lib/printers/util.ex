@@ -3,6 +3,7 @@ defmodule JS2E.Printers.Util do
   A module containing utility function for JSON schema printers.
   """
 
+  alias JS2E.Types
   alias JS2E.Types.PrimitiveType
 
   @indent_size 4

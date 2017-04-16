@@ -2,9 +2,9 @@
 <%= decoder_name %> =
     oneOf [ <%= for {clause, idx} <- Enum.with_index(clauses) do %><%#
           %><%= if idx == 0 do %><%#
-          %><%= clause_template.(clause) %><%#
+          %><%= clause.decoder_name %> |> andThen (<%= clause.wrapper %> << <%= clause.constructor_name %>)<%#
           %><% else %>
-          , <%= clause_template.(clause) %><%#
+          , <%= clause.decoder_name %> |> andThen (<%= clause.wrapper %> << <%= clause.constructor_name %>)<%#
           %><% end %><%#
           %><% end %><%#
           %><%= if nullable? do %>

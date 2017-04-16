@@ -17,7 +17,7 @@ defmodule JS2E.Printers.UnionPrinter do
     [:type_name, :clauses])
 
   EEx.function_from_file(:defp, :decoder_template, @decoder_location,
-    [:decoder_name, :decoder_type, :nullable?, :clauses, :clause_template])
+    [:decoder_name, :decoder_type, :nullable?, :clauses])
 
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :type_name, :argument_name, :cases])
@@ -86,33 +86,23 @@ defmodule JS2E.Printers.UnionPrinter do
       type_name
     end)
 
-    clauses = create_clause_decoders(types, type_name)
+    clauses = create_clause_decoders(types, type_name, nullable?)
 
-    clause_string = if nullable? do
-      "<%= clause.decoder_name %> " <>
-        "|> andThen (succeed << Just << <%= clause.constructor_name %>)"
-    else
-      "<%= clause.decoder_name %> " <>
-        "|> andThen (succeed << <%= clause.constructor_name %>)"
-    end
-    clause_template = &(EEx.eval_string(clause_string, [clause: &1]))
-
-    decoder_template(decoder_name, decoder_type, nullable?,
-      clauses, clause_template)
+    decoder_template(decoder_name, decoder_type, nullable?, clauses)
   end
 
-  @spec create_clause_decoders([String.t], String.t) :: [map]
-  defp create_clause_decoders(types, type_name) do
+  @spec create_clause_decoders([String.t], String.t, boolean) :: [map]
+  defp create_clause_decoders(types, type_name, nullable?) do
 
     types
     |> Enum.filter(fn type -> type != "null" end)
     |> Enum.map(fn type ->
-      create_clause_decoder(type, type_name)
+      create_clause_decoder(type, type_name, nullable?)
     end)
   end
 
-  @spec create_clause_decoder(String.t, String.t) :: map
-  defp create_clause_decoder(type, type_name) do
+  @spec create_clause_decoder(String.t, String.t, boolean) :: map
+  defp create_clause_decoder(type, type_name, nullable?) do
 
     {constructor_suffix, decoder_name} =
       case type do
@@ -131,8 +121,10 @@ defmodule JS2E.Printers.UnionPrinter do
 
     constructor_name = type_name <> constructor_suffix
 
+    wrapper = if nullable? do "succeed << Just" else "succeed" end
     %{decoder_name: decoder_name,
-      constructor_name: constructor_name}
+      constructor_name: constructor_name,
+      wrapper: wrapper}
   end
 
   @spec print_encoder(

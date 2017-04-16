@@ -87,7 +87,7 @@ defmodule JS2E.Printers.OneOfPrinter do
     [TypePath.t],
     Types.typeDictionary,
     Types.schemaDictionary
-  ) :: String.t
+  ) :: [String.t]
   defp create_decoder_clauses(types, type_dict, schema_dict) do
 
     create_decoder_clause = fn type_path ->
