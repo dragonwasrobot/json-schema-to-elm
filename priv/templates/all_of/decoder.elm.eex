@@ -1,0 +1,10 @@
+<%= decoder_name %> : Decoder <%= type_name %>
+<%= decoder_name %> =
+    decode <%= type_name %><%#
+        %><%= for clause <- clauses do %><%#
+        %><%= if  Map.has_key?(clause, :property_decoder) do %>
+        |> required "<%= clause.property_name %>" (<%= clause.property_decoder %> |> andThen <%= clause.decoder %>)<%#
+        %><% else %>
+        |> required "<%= clause.property_name %>" <%= clause.decoder_name %><%#
+        %><% end %><%#
+        %><% end %>

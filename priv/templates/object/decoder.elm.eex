@@ -1,0 +1,6 @@
+<%= decoder_name %> : Decoder <%= type_name %>
+<%= decoder_name %> =
+    decode <%= type_name %><%#
+        %><%= for clause <- clauses do %>
+        |> <%= clause.option %> "<%= clause.property_name %>" <%= clause.decoder %><%#
+        %><% end %>

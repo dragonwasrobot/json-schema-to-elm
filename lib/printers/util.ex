@@ -3,6 +3,9 @@ defmodule JS2E.Printers.Util do
   A module containing utility function for JSON schema printers.
   """
 
+  alias JS2E.Types
+  alias JS2E.Types.PrimitiveType
+
   @indent_size 4
 
   @doc ~S"""
@@ -54,6 +57,50 @@ defmodule JS2E.Printers.Util do
         String.slice(string, 1..-1)
     else
       ""
+    end
+  end
+
+  @doc ~S"""
+  Remove excessive newlines of a string.
+  """
+  @spec trim_newlines(String.t) :: String.t
+  def trim_newlines(str) do
+    String.trim(str) <> "\n"
+  end
+
+  @doc ~S"""
+  Returns the encoder name given a JSON schema type definition.
+  """
+  @spec create_encoder_name(Types.typeDefinition) :: String.t
+  def create_encoder_name(type) do
+
+    if primitive_type?(type) do
+      determine_primitive_type_encoder(type)
+    else
+
+      type_name = type.name
+      if type_name == "#" do
+        "encodeRoot"
+      else
+        "encode#{upcase_first type_name}"
+      end
+
+    end
+  end
+
+  @spec determine_primitive_type_encoder(PrimitiveType.t) :: String.t
+  defp determine_primitive_type_encoder(primitive_type) do
+    type_value = primitive_type.type
+
+    case type_value do
+      "integer" ->
+        "Encode.int"
+
+      "number" ->
+        "Encode.float"
+
+      _ ->
+        "Encode.#{type_value}"
     end
   end
 

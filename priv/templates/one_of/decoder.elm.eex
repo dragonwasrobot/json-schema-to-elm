@@ -1,0 +1,10 @@
+<%= decoder_name %> : Decoder <%= decoder_type %>
+<%= decoder_name %> =
+    oneOf [ <%= for {clause_decoder, idx} <- Enum.with_index(clause_decoders) do %><%#
+          %><%= if idx == 0 do %><%#
+          %><%= clause_decoder %><%#
+          %><% else %>
+          , <%= clause_decoder %><%#
+          %><% end %><%#
+          %><% end %>
+          ]

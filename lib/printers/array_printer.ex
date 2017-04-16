@@ -3,10 +3,20 @@ defmodule JS2E.Printers.ArrayPrinter do
   A printer for printing an 'array' type decoder.
   """
 
-  require Logger
+  @templates_location Application.get_env(:js2e, :templates_location)
+  @decoder_location Path.join(@templates_location, "array/decoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "array/encoder.elm.eex")
+
+  require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{Printer, Types}
   alias JS2E.Types.ArrayType
+
+  EEx.function_from_file(:defp, :decoder_template, @decoder_location,
+    [:decoder_name, :items_type_name, :items_decoder_name])
+
+  EEx.function_from_file(:defp, :encoder_template, @encoder_location,
+    [:encoder_name, :argument_name, :items_type_name, :items_encoder_name])
 
   @spec print_type(
     Types.typeDefinition,
@@ -37,11 +47,7 @@ defmodule JS2E.Printers.ArrayPrinter do
 
     decoder_name = downcase_first "#{name}Decoder"
 
-  """
-  #{decoder_name} : Decoder (List #{items_type_name})
-  #{decoder_name} =
-  #{indent()}Decode.list #{items_decoder_name}
-  """
+    decoder_template(decoder_name, items_type_name, items_decoder_name)
   end
 
   @spec determine_decoder_name(Types.typeDefinition) :: String.t
@@ -119,11 +125,7 @@ defmodule JS2E.Printers.ArrayPrinter do
 
     encoder_name = "encode#{items_type_name}s"
 
-    """
-    #{encoder_name} : List #{items_type_name} -> Value
-    #{encoder_name} #{name} =
-    #{indent()}Encode.list <| List.map #{items_encoder_name} <| #{name}
-    """
+    encoder_template(encoder_name, name, items_type_name, items_encoder_name)
   end
 
   @spec determine_encoder_name(Types.typeDefinition) :: String.t
