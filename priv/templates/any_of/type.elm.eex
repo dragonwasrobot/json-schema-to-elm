@@ -1,9 +1,9 @@
 type alias <%= type_name %> =
     { <%= for {field, idx} <- Enum.with_index(fields) do %><%#
     %><%= if idx == 0 do %><%#
-    %><%= field.name %> : Maybe <%= field.type %><%#
+    %><%= field.name %> : <%= field.type %><%#
     %><% else %>
-    , <%= field.name %> : Maybe <%= field.type %><%#
+    , <%= field.name %> : <%= field.type %><%#
     %><% end %><%#
     %><% end %>
     }

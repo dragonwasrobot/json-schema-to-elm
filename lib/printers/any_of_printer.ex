@@ -62,7 +62,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
     field_name = downcase_first field_type
 
     %{name: field_name,
-      type: field_type}
+      type: "Maybe #{field_type}"}
   end
 
   @spec create_type_name(Types.typeDefinition) :: String.t
