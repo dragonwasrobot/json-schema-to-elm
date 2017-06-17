@@ -21,7 +21,16 @@ defmodule JS2E.Mixfile do
 
      # Docs
      name: "JS2E",
-     source_url: "https://github.com/dragonwasrobot/json-schema-to-elm/"
+     source_url: "https://github.com/dragonwasrobot/json-schema-to-elm/",
+
+     # Test coverage
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: [
+       "coveralls": :test,
+       "coveralls.detail": :test,
+       "coveralls.post": :test,
+       "coveralls.html": :test
+     ]
     ]
   end
 
@@ -30,11 +39,13 @@ defmodule JS2E.Mixfile do
   end
 
   defp deps do
-    [{:poison, "~> 3.0"},
-     {:ex_doc, "~> 0.14", only: :dev, runtime: false},
-     {:credo, "~> 0.5", only: [:dev, :test]},
-     {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-     {:apex, "~>1.0.0"}
+    [
+      {:apex, "~>1.0"},
+      {:excoveralls, "~> 0.7", only: :test},
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:dialyxir, "~> 0.5", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.14", only: :dev, runtime: false},
+      {:poison, "~> 3.0"}
     ]
   end
 

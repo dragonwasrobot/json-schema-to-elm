@@ -177,3 +177,13 @@ any of the definitions in `definitions.json`, e.g.
 
 then the corresponding Elm file output will import the definitions `Point`,
 `pointDecoder` and `encodePoint` from `Domain.Definitions`.
+
+## Tests
+
+Run the standard mix task
+
+    mix test
+
+for test coverage run
+
+    mix coveralls.html
