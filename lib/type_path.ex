@@ -70,7 +70,6 @@ defmodule JS2E.TypePath do
   end
 
   @doc ~S"""
-
   Returns true if the specified type can be treated as a `JS2E.TypePath`. Note
   that it also returns false if the specified type is a string representation of
   a `JS2E.TypePath`.
