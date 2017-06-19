@@ -191,7 +191,12 @@ defmodule JS2E.Printer do
         schema_id = determine_schema_id(identifier)
         schema = schema_dict[to_string(schema_id)]
         schema_type_dict = schema.types
-        schema_type_dict[to_string(identifier)]
+
+        if to_string(identifier) == schema_id do
+          schema_type_dict["#"]
+        else
+          schema_type_dict[to_string(identifier)]
+        end
 
       true ->
         Logger.error("Could not resolve '#{identifier}'")
