@@ -18,6 +18,11 @@ or similar.
 
 Run `./js2e` for usage instructions.
 
+> Note: The `js2e` tool only tries to resolve references for the file(s) you
+> pass it. So if you need to generate Elm code from more than one file you
+> have to pass it the enclosing directory of the relevant JSON schema files,
+> in order for it to be able to resolve the references correctly.
+
 A proper description of which properties are mandatory are how the generator
 works is still in progress, but feel free to take a look at the `examples`
 folder which contains an example of a pair of JSON schemas and their
