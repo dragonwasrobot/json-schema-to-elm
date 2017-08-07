@@ -4,7 +4,6 @@ defmodule JS2E.Printers.Util do
   """
 
   alias JS2E.Types
-  alias JS2E.Types.PrimitiveType
 
   @indent_size 4
 
@@ -13,7 +12,7 @@ defmodule JS2E.Printers.Util do
 
   ## Examples
 
-      iex> JS2E.Printers.Util.indent(2)
+      iex> indent(2)
       "        "
 
   """
@@ -27,7 +26,7 @@ defmodule JS2E.Printers.Util do
 
   ## Examples
 
-      iex> JS2E.Printers.Util.upcase_first("foobar")
+      iex> upcase_first("foobar")
       "Foobar"
 
   """
@@ -46,7 +45,7 @@ defmodule JS2E.Printers.Util do
 
   ## Examples
 
-      iex> JS2E.Printers.Util.downcase_first("Foobar")
+      iex> downcase_first("Foobar")
       "foobar"
 
   """
@@ -75,7 +74,8 @@ defmodule JS2E.Printers.Util do
   def create_encoder_name(type) do
 
     if primitive_type?(type) do
-      determine_primitive_type_encoder(type)
+      primitive_type_name = type.type
+      determine_primitive_type_encoder!(primitive_type_name)
     else
 
       type_name = type.name
@@ -88,19 +88,138 @@ defmodule JS2E.Printers.Util do
     end
   end
 
-  @spec determine_primitive_type_encoder(PrimitiveType.t) :: String.t
-  defp determine_primitive_type_encoder(primitive_type) do
-    type_value = primitive_type.type
+  @doc ~S"""
+  Converts the following primitive types: "string", "integer", "number",
+  and "boolean" into their Elm decoder equivalent. Raises an error otherwise.
 
-    case type_value do
+  ## Examples
+
+  iex> determine_primitive_type_decoder!("string")
+  "Decode.string"
+
+  iex> determine_primitive_type_decoder!("integer")
+  "Decode.int"
+
+  iex> determine_primitive_type_decoder!("number")
+  "Decode.float"
+
+  iex> determine_primitive_type_decoder!("boolean")
+  "Decode.bool"
+
+  iex> determine_primitive_type_decoder!("array")
+  ** (RuntimeError) Unknown or unsupported primitive type: 'array'
+
+  """
+  @spec determine_primitive_type_decoder!(String.t) :: String.t
+  def determine_primitive_type_decoder!(type_name) do
+
+    case type_name do
+      "string" ->
+        "Decode.string"
+
+      "integer" ->
+        "Decode.int"
+
+      "number" ->
+        "Decode.float"
+
+      "boolean" ->
+        "Decode.bool"
+
+      _ ->
+        raise "Unknown or unsupported primitive type: '#{type_name}'"
+    end
+  end
+
+  @doc ~S"""
+  Converts the following primitive types: "string", "integer", "number",
+  "boolean", and "null" into their Elm encoder equivalent. Raises an error
+  otherwise.
+
+  ## Examples
+
+  iex> determine_primitive_type_encoder!("string")
+  "Encode.string"
+
+  iex> determine_primitive_type_encoder!("integer")
+  "Encode.int"
+
+  iex> determine_primitive_type_encoder!("number")
+  "Encode.float"
+
+  iex> determine_primitive_type_encoder!("boolean")
+  "Encode.bool"
+
+  iex> determine_primitive_type_encoder!("null")
+  "Encode.null"
+
+  iex> determine_primitive_type_encoder!("array")
+  ** (RuntimeError) Unknown or unsupported primitive type: 'array'
+
+  """
+  @spec determine_primitive_type_encoder!(String.t) :: String.t
+  def determine_primitive_type_encoder!(type_name) do
+
+    case type_name do
+      "string" ->
+        "Encode.string"
+
       "integer" ->
         "Encode.int"
 
       "number" ->
         "Encode.float"
 
+      "boolean" ->
+        "Encode.bool"
+
+      "null" ->
+        "Encode.null"
+
       _ ->
-        "Encode.#{type_value}"
+        raise "Unknown or unsupported primitive type: '#{type_name}'"
+    end
+  end
+
+  @doc ~S"""
+  Converts the following primitive types: "string", "integer", "number",
+  and "boolean" into their Elm type equivalent. Raises and error otherwise.
+
+  ## Examples
+
+    iex> determine_primitive_type!("string")
+    "String"
+
+    iex> determine_primitive_type!("integer")
+    "Int"
+
+    iex> determine_primitive_type!("number")
+    "Float"
+
+    iex> determine_primitive_type!("boolean")
+    "Bool"
+
+    iex> determine_primitive_type!("array")
+    ** (RuntimeError) Unknown or unsupported primitive type: 'array'
+
+  """
+  @spec determine_primitive_type!(String.t) :: String.t
+  def determine_primitive_type!(type_name) do
+    case type_name do
+      "string" ->
+        "String"
+
+      "integer" ->
+        "Int"
+
+      "number" ->
+        "Float"
+
+      "boolean" ->
+        "Bool"
+
+      _ ->
+        raise "Unknown or unsupported primitive type: '#{type_name}'"
     end
   end
 
@@ -109,7 +228,10 @@ defmodule JS2E.Printers.Util do
 
   ## Examples
 
-      iex> JS2E.Printers.Util.get_string_name(%JS2E.Types.PrimitiveType{})
+      iex> primitive_type = %JS2E.Types.PrimitiveType{name: "foo",
+      ...>                                        path: ["#","foo"],
+      ...>                                        type: "string"}
+      ...> get_string_name(primitive_type)
       "PrimitiveType"
 
   """

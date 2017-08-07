@@ -33,7 +33,7 @@ defmodule JS2E.Printers.EnumPrinter do
                            values: values}, _type_dict, _schema_dict) do
 
     type_name = upcase_first name
-    clauses = values |> Enum.map(&(create_elm_value(&1, type)))
+    clauses = values |> Enum.map(&(create_elm_value!(&1, type)))
 
     type_template(type_name, clauses)
   end
@@ -69,7 +69,7 @@ defmodule JS2E.Printers.EnumPrinter do
         "Float"
 
       _ ->
-        raise "Unknown enum type: #{type}"
+        raise "Unknown or unsupported enum type: #{type}"
     end
   end
 
@@ -78,7 +78,7 @@ defmodule JS2E.Printers.EnumPrinter do
 
     values |> Enum.map(fn value ->
       raw_value = create_decoder_case(value, type)
-      parsed_value = create_elm_value(value, type)
+      parsed_value = create_elm_value!(value, type)
 
       %{raw_value: raw_value,
         parsed_value: parsed_value}
@@ -125,7 +125,7 @@ defmodule JS2E.Printers.EnumPrinter do
 
     values |> Enum.map(fn value ->
 
-      elm_value = create_elm_value(value, type)
+      elm_value = create_elm_value!(value, type)
       json_value = create_encoder_case(value, type)
 
       %{elm_value: elm_value,
@@ -145,13 +145,19 @@ defmodule JS2E.Printers.EnumPrinter do
       "number" ->
         "Encode.float #{value}"
 
+      "boolean" ->
+        "Encode.bool #{value}"
+
+      "null" ->
+        "Encode.null"
+
       _ ->
         raise "Unknown or unsupported enum type: #{type}"
     end
   end
 
-  @spec create_elm_value(String.t, String.t) :: String.t
-  defp create_elm_value(value, type) do
+  @spec create_elm_value!(String.t, String.t) :: String.t
+  defp create_elm_value!(value, type) do
     Logger.debug "Value: #{value}, Type: #{type}"
 
     case type do

@@ -87,11 +87,17 @@ defmodule JS2E.Printers.ObjectPrinter do
       property_type_value = property_type.type
 
       case property_type_value do
+        "string" ->
+          "String"
+
         "integer" ->
           "Int"
 
         "number" ->
           "Float"
+
+        "boolean" ->
+          "Bool"
 
         _ ->
           upcase_first property_type_value
@@ -175,7 +181,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       enum_type?(property_type) ->
         property_type_decoder =
           property_type.type
-          |> determine_primitive_type_decoder()
+          |> determine_primitive_type_decoder!()
 
         create_decoder_enum_clause(property_name, property_type_decoder,
           decoder_name, is_required)
@@ -185,25 +191,12 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  @spec determine_primitive_type_decoder(String.t) :: String.t
-  defp determine_primitive_type_decoder(property_type_value) do
-    case property_type_value do
-      "integer" ->
-        "Decode.int"
-
-      "number" ->
-        "Decode.float"
-
-      _ ->
-        "Decode.#{property_type_value}"
-    end
-  end
-
   @spec create_decoder_name(Types.typeDefinition) :: String.t
   defp create_decoder_name(property_type) do
 
     if primitive_type?(property_type) do
-      determine_primitive_type_decoder(property_type.type)
+      primitive_type_name = property_type.type
+      determine_primitive_type_decoder!(primitive_type_name)
     else
 
       property_type_name = property_type.name
