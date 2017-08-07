@@ -8,7 +8,7 @@ defmodule JS2E.Parser do
   alias JS2E.Parsers.{ArrayParser, ObjectParser, EnumParser, PrimitiveParser,
                       DefinitionsParser, AllOfParser, AnyOfParser, OneOfParser,
                       UnionParser, TypeReferenceParser}
-  alias JS2E.{TypePath, Types}
+  alias JS2E.{TypePath, Types, Predicates}
   alias JS2E.Types.SchemaDefinition
 
   @type nodeParser :: (
@@ -77,7 +77,7 @@ defmodule JS2E.Parser do
 
   @spec parse_definitions(map, URI.t) :: Types.typeDictionary
   defp parse_definitions(schema_root_node, schema_id) do
-    if definitions?(schema_root_node) do
+    if Predicates.definitions?(schema_root_node) do
       schema_root_node
       |> DefinitionsParser.parse(schema_id, nil, ["#"], "")
     else
@@ -92,15 +92,15 @@ defmodule JS2E.Parser do
     name = "#"
 
     cond do
-      ref_type?(schema_root_node) ->
+      Predicates.ref_type?(schema_root_node) ->
         schema_root_node
         |> TypeReferenceParser.parse(schema_id, schema_id, type_path, name)
 
-      object_type?(schema_root_node) ->
+      Predicates.object_type?(schema_root_node) ->
         schema_root_node
         |> parse_type(schema_id, [], name)
 
-      array_type?(schema_root_node) ->
+      Predicates.array_type?(schema_root_node) ->
         schema_root_node
         |> parse_type(schema_id, [], name)
 
@@ -161,16 +161,16 @@ defmodule JS2E.Parser do
   defp determine_node_parser(schema_node) do
 
     predicate_node_type_pairs = [
-      {&ref_type?/1, &TypeReferenceParser.parse/5},
-      {&enum_type?/1, &EnumParser.parse/5},
-      {&union_type?/1, &UnionParser.parse/5},
-      {&all_of_type?/1, &AllOfParser.parse/5},
-      {&any_of_type?/1, &AnyOfParser.parse/5},
-      {&one_of_type?/1, &OneOfParser.parse/5},
-      {&object_type?/1, &ObjectParser.parse/5},
-      {&array_type?/1, &ArrayParser.parse/5},
-      {&primitive_type?/1, &PrimitiveParser.parse/5},
-      {&definitions?/1, &DefinitionsParser.parse/5}
+      {&Predicates.ref_type?/1, &TypeReferenceParser.parse/5},
+      {&Predicates.enum_type?/1, &EnumParser.parse/5},
+      {&Predicates.union_type?/1, &UnionParser.parse/5},
+      {&Predicates.all_of_type?/1, &AllOfParser.parse/5},
+      {&Predicates.any_of_type?/1, &AnyOfParser.parse/5},
+      {&Predicates.one_of_type?/1, &OneOfParser.parse/5},
+      {&Predicates.object_type?/1, &ObjectParser.parse/5},
+      {&Predicates.array_type?/1, &ArrayParser.parse/5},
+      {&Predicates.primitive_type?/1, &PrimitiveParser.parse/5},
+      {&Predicates.definitions?/1, &DefinitionsParser.parse/5}
     ]
 
     predicate_node_type_pairs
@@ -192,56 +192,6 @@ defmodule JS2E.Parser do
     else
       false
     end
-  end
-
-  @spec definitions?(map) :: boolean
-  defp definitions?(schema_node) do
-    Map.has_key?(schema_node, "definitions")
-  end
-
-  @spec primitive_type?(map) :: boolean
-  defp primitive_type?(schema_node) do
-    schema_node["type"] in ["null", "boolean", "string", "number", "integer"]
-  end
-
-  @spec ref_type?(map) :: boolean
-  defp ref_type?(schema_node) do
-    Map.has_key?(schema_node, "$ref")
-  end
-
-  @spec enum_type?(map) :: boolean
-  defp enum_type?(schema_node) do
-    Map.has_key?(schema_node, "enum")
-  end
-
-  @spec all_of_type?(map) :: boolean
-  defp all_of_type?(schema_node) do
-    Map.get(schema_node, "allOf")
-  end
-
-  @spec any_of_type?(map) :: boolean
-  defp any_of_type?(schema_node) do
-    Map.get(schema_node, "anyOf")
-  end
-
-  @spec one_of_type?(map) :: boolean
-  defp one_of_type?(schema_node) do
-    Map.get(schema_node, "oneOf")
-  end
-
-  @spec union_type?(map) :: boolean
-  defp union_type?(schema_node) do
-    is_list(schema_node["type"])
-  end
-
-  @spec object_type?(map) :: boolean
-  defp object_type?(schema_node) do
-    schema_node["type"] == "object" && Map.has_key?(schema_node, "properties")
-  end
-
-  @spec array_type?(map) :: boolean
-  defp array_type?(schema_node) do
-    schema_node["type"] == "array" && Map.has_key?(schema_node, "items")
   end
 
 end

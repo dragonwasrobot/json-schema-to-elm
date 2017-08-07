@@ -201,3 +201,13 @@ that have references across files, e.g.
 then the corresponding Elm file, `Domain.Circle`, will import the
 definitions (types, encoders and decoders) from the other Elm module,
 `Domain/Definitions.elm`.
+
+## Tests
+
+Run the standard mix task
+
+    mix test
+
+for test coverage run
+
+    mix coveralls.html

@@ -47,7 +47,7 @@ defmodule JS2E.Parsers.Util do
   end
 
   @doc ~S"""
-  Returns a list of type paths based when given a type dictionary.
+  Returns a list of type paths when given a type dictionary.
   """
   @spec create_types_list(Types.typeDictionary, TypePath.t) :: [TypePath.t]
   def create_types_list(type_dict, path) do

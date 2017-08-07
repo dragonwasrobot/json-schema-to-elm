@@ -152,6 +152,8 @@ defmodule JS2E.Printers.EnumPrinter do
 
   @spec create_elm_value(String.t, String.t) :: String.t
   defp create_elm_value(value, type) do
+    Logger.debug "Value: #{value}, Type: #{type}"
+
     case type do
       "string" ->
         upcase_first value
