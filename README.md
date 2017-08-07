@@ -18,6 +18,11 @@ or similar.
 
 Run `./js2e` for usage instructions.
 
+> Note: The `js2e` tool only tries to resolve references for the file(s) you
+> pass it. So if you need to generate Elm code from more than one file you
+> have to pass it the enclosing directory of the relevant JSON schema files,
+> in order for it to be able to resolve the references correctly.
+
 A proper description of which properties are mandatory are how the generator
 works is still in progress, but feel free to take a look at the `examples`
 folder which contains an example of a pair of JSON schemas and their
@@ -168,15 +173,34 @@ encodePoint point =
 which contains an Elm type for the `color` and `point` definitions along with
 their corresponding JSON decoders and encoders.
 
-Furthermore, if we supply `js2e` with another JSON schema file that references
-any of the definitions in `definitions.json`, e.g.
+Furthermore, if we instead supply `js2e` with a directory of JSON schema files
+that have references across files, e.g.
 
 ``` json
-{ "$ref" : "http://example.com/definitions.json#point" }
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "title": "Circle",
+    "id": "http://example.com/circle.json",
+    "description": "Schema for a circle shape",
+    "type": "object",
+    "properties": {
+        "center": {
+            "$ref": "http://example.com/definitions.json#point"
+        },
+        "radius": {
+            "type": "number"
+        },
+        "color": {
+            "$ref": "http://example.com/definitions.json#color"
+        }
+    },
+    "required": ["center", "radius"]
+}
 ```
 
-then the corresponding Elm file output will import the definitions `Point`,
-`pointDecoder` and `encodePoint` from `Domain.Definitions`.
+then the corresponding Elm file, `Domain.Circle`, will import the
+definitions (types, encoders and decoders) from the other Elm module,
+`Domain/Definitions.elm`.
 
 ## Tests
 
