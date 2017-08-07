@@ -5,21 +5,41 @@ defmodule JS2E.Types.TypeReference do
   JSON Schema:
 
       "self": {
-          "$ref": "#/definitions/link"
+        "$ref": "#/definitions/foo"
       }
 
-  Where "#/definitions/link" resolves to
+      "other": {
+        "$ref": "http://www.example.com/definitions.json#bar"
+      }
+
+  Where "#/definitions/foo" resolves to
 
       "definitions": {
-          "link": {
-              "type": "string"
-          }
+        "foo": {
+          "type": "string"
+        }
+      }
+
+  and "http://www.example.com/definitions.json#bar" resolves to
+
+      "definitions": {
+        "bar": {
+          "id": "#bar",
+          "type": "number"
+        }
       }
 
   Elixir intermediate representation:
 
       %TypeReference{name: "self",
                      path: ["#", "definitions", "link"]}
+
+      %TypeReference{name: "other",
+                     path: %URI{scheme: "http",
+                                host: "www.example.com",
+                                path: "/definitions.json",
+                                fragment: "bar",
+                                ...}}
 
   """
 
