@@ -2,7 +2,7 @@ defmodule JS2ETest.Printers.AllOfPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{AllOfType, ObjectType, TypeReference}
+  alias JS2E.Types.{AllOfType, ObjectType, TypeReference, SchemaDefinition}
   alias JS2E.Printers.AllOfPrinter
 
   test "print 'all of' type value" do
@@ -31,6 +31,13 @@ defmodule JS2ETest.Printers.AllOfPrinter do
                                   "radius" => ["#", "properties", "radius"]}}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     all_of_type_program =
       %AllOfType{
         name: "shape",
@@ -38,7 +45,7 @@ defmodule JS2ETest.Printers.AllOfPrinter do
         types: [["#", "shape", "0"],
                 ["#", "shape", "1"]]
       }
-      |> AllOfPrinter.print_type(type_dict, %{})
+      |> AllOfPrinter.print_type(schema_def, %{})
 
     expected_all_of_type_program =
       """
@@ -69,6 +76,13 @@ defmodule JS2ETest.Printers.AllOfPrinter do
                                   "radius" => ["#", "properties", "radius"]}}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     all_of_decoder_program =
       %AllOfType{
         name: "shape",
@@ -76,7 +90,7 @@ defmodule JS2ETest.Printers.AllOfPrinter do
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AllOfPrinter.print_decoder(type_dict, %{})
+      |> AllOfPrinter.print_decoder(schema_def, %{})
 
     expected_all_of_decoder_program =
     """
@@ -108,6 +122,13 @@ defmodule JS2ETest.Printers.AllOfPrinter do
                                   "radius" => ["#", "properties", "radius"]}}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     all_of_encoder_program =
       %AllOfType{
         name: "shape",
@@ -115,7 +136,7 @@ defmodule JS2ETest.Printers.AllOfPrinter do
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AllOfPrinter.print_encoder(type_dict, %{})
+      |> AllOfPrinter.print_encoder(schema_def, %{})
 
     expected_all_of_encoder_program =
     """

@@ -10,7 +10,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "",
+        "title": "Root",
         "id": "http://example.com/root.json",
         "type": "array",
         "items": { "$ref": "#/definitions/positiveInteger" },
@@ -24,7 +24,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       }
       """
       |> Poison.decode!()
-      |> Parser.parse_schema()
+      |> Parser.parse_schema("Domain")
 
     expected_root_type_reference = %ArrayType{
       name: "#",
@@ -43,7 +43,8 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
     assert schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
-        title: "",
+        title: "Root",
+        module: "Domain",
         id: URI.parse("http://example.com/root.json"),
         types: %{
           "#" => expected_root_type_reference,

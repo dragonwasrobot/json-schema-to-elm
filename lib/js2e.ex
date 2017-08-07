@@ -105,8 +105,8 @@ defmodule JS2E do
   @spec generate([String.t], String.t) :: :ok
   def generate(json_schema_paths, module_name) do
 
-    schema_dict = Parser.parse_schema_files(json_schema_paths)
-    printed_schemas = Printer.print_schemas(schema_dict, module_name)
+    schema_dict = Parser.parse_schema_files(json_schema_paths, module_name)
+    printed_schemas = Printer.print_schemas(schema_dict)
 
     printed_schemas
     |> Enum.each(fn{file_path, file_content} ->

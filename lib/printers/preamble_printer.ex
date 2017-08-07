@@ -18,21 +18,17 @@ defmodule JS2E.Printers.PreamblePrinter do
   EEx.function_from_file(:defp, :import_template, @import_location,
     [:prefix, :import])
 
-  @spec print_preamble(
-    SchemaDefinition.t,
-    Types.schemaDictionary,
-    String.t) :: String.t
-  def print_preamble(%SchemaDefinition{id: schema_id,
+  @spec print_preamble(SchemaDefinition.t, Types.schemaDictionary) :: String.t
+  def print_preamble(%SchemaDefinition{id: _id,
                                        title: title,
+                                       module: module_name,
                                        description: description,
-                                       types: type_dict},
-    schema_dict, module_name \\ "") do
+                                       types: type_dict} = schema_def,
+    schema_dict) do
 
     prefix = create_prefix(module_name)
 
-    imports =
-      type_dict
-      |> create_imports(schema_id, schema_dict)
+    imports = schema_def |> create_imports(schema_dict)
 
     preamble_template(prefix, title, description, imports, &import_template/2)
   end
@@ -47,19 +43,22 @@ defmodule JS2E.Printers.PreamblePrinter do
   end
 
   @spec create_imports(
-    Types.typeDictionary,
-    URI.t,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_imports(type_dict, schema_id, schema_dict) do
+  defp create_imports(schema_def, schema_dict) do
+    schema_id = schema_def.id
+    type_dict = schema_def.types
+
     type_dict
     |> get_type_references
     |> create_dependency_map(schema_id, schema_dict)
-    |> create_dependencies(type_dict, schema_dict)
+    |> create_dependencies(schema_def, schema_dict)
   end
 
   @spec get_type_references(Types.typeDictionary) :: [TypeReference.t]
   defp get_type_references(type_dict) do
+
     type_dict
     |> Enum.reduce([], fn ({_path, type}, types) ->
       if get_string_name(type) == "TypeReference" do
@@ -110,7 +109,7 @@ defmodule JS2E.Printers.PreamblePrinter do
         type_ref_schema_def = schema_dict[type_ref_schema_uri]
 
         type_refs = if Map.has_key?(dependency_map, type_ref_schema_def.id) do
-          [type_ref |  dependency_map[type_ref_schema_def.id]]
+          [type_ref | dependency_map[type_ref_schema_def.id]]
         else
           [type_ref]
         end
@@ -122,10 +121,10 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   @spec create_dependencies(
     %{required(String.t) => TypeReference.t},
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_dependencies(dependency_map, type_dict, schema_dict) do
+  defp create_dependencies(dependency_map, schema_def, schema_dict) do
 
     dependency_map
     |> Enum.map(fn{schema_id, type_refs} ->
@@ -137,7 +136,7 @@ defmodule JS2E.Printers.PreamblePrinter do
         type_refs
         |> Enum.sort(&(&2.name < &1.name))
         |> Enum.map(fn type_ref ->
-        create_import(type_ref, type_dict, schema_dict)
+        create_import(type_ref, schema_def, schema_dict)
       end)
 
         %{title: type_ref_schema_title,
@@ -147,13 +146,16 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   @spec create_import(
     TypeReference.t,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: map
-  defp create_import(type_ref, type_dict, schema_dict) do
+  defp create_import(type_ref, schema_def, schema_dict) do
 
     type_path = type_ref.path
-    resolved_type = type_path |> Printer.resolve_type(type_dict, schema_dict)
+    {resolved_type, resolved_schema_def} =
+      type_path
+      |> Printer.resolve_type!(schema_def, schema_dict)
+
     resolved_type_name = upcase_first resolved_type.name
     resolved_decoder_name = "#{resolved_type.name}Decoder"
     resolved_encoder_name = "encode#{resolved_type_name}"

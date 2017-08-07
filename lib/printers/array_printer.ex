@@ -20,27 +20,27 @@ defmodule JS2E.Printers.ArrayPrinter do
 
   @spec print_type(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_type(%ArrayType{name: _name,
                             path: _path,
-                            items: _items_path}, _type_dict, _schema_dict) do
+                            items: _items_path}, _schema_def, _schema_dict) do
     ""
   end
 
   @spec print_decoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_decoder(%ArrayType{name: name,
                                path: _path,
-                               items: items_path}, type_dict, schema_dict) do
+                               items: items_path}, schema_def, schema_dict) do
 
-    items_type =
+    {items_type, resolved_schema_def} =
       items_path
-      |> Printer.resolve_type(type_dict, schema_dict)
+      |> Printer.resolve_type!(schema_def, schema_dict)
 
     items_type_name = determine_type_name(items_type)
     items_decoder_name = determine_decoder_name(items_type)
@@ -54,22 +54,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   defp determine_decoder_name(items_type) do
 
     if primitive_type?(items_type) do
-      items_type_value = items_type.type
-
-      case items_type do
-        "integer" ->
-          "Decode.int"
-
-        "number" ->
-          "Decode.float"
-
-        "boolean" ->
-          "Decode.bool"
-
-        _ ->
-          "Decode.#{downcase_first items_type_value}"
-      end
-
+      determine_primitive_type_decoder!(items_type.type)
     else
       items_type_name = items_type.name
 
@@ -85,22 +70,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   defp determine_type_name(items_type) do
 
     if primitive_type?(items_type) do
-      items_type_value = items_type.type
-
-      case items_type_value do
-        "integer" ->
-          "Int"
-
-        "number" ->
-          "Float"
-
-        "boolean" ->
-          "Bool"
-
-        _ ->
-          upcase_first items_type_value
-      end
-
+      determine_primitive_type!(items_type.type)
     else
       items_type_name = items_type.name
 
@@ -115,16 +85,16 @@ defmodule JS2E.Printers.ArrayPrinter do
 
   @spec print_encoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_encoder(%ArrayType{name: name,
                                path: _path,
-                               items: items_path}, type_dict, schema_dict) do
+                               items: items_path}, schema_def, schema_dict) do
 
-    items_type =
+    {items_type, resolved_schema_def} =
       items_path
-      |> Printer.resolve_type(type_dict, schema_dict)
+      |> Printer.resolve_type!(schema_def, schema_dict)
 
     items_type_name = determine_type_name(items_type)
     items_encoder_name = determine_encoder_name(items_type)
@@ -138,22 +108,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   defp determine_encoder_name(items_type) do
 
     if primitive_type?(items_type) do
-      items_type_value = items_type.type
-
-      case items_type_value do
-        "integer" ->
-          "Encode.int"
-
-        "number" ->
-          "Encode.float"
-
-        "boolean" ->
-          "Encode.bool"
-
-        true ->
-          "Encode.#{downcase_first items_type_value}"
-      end
-
+      determine_primitive_type_encoder!(items_type.type)
     else
       items_type_name = items_type.name
 

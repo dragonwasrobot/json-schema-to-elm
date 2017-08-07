@@ -41,7 +41,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
       }
       """
       |> Poison.decode!()
-      |> Parser.parse_schema()
+      |> Parser.parse_schema("Domain")
 
     expected_root_type_reference = %TypeReference{
       name: "#",
@@ -72,6 +72,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
       %SchemaDefinition{
         description: "Demonstrates the different types of internal references",
         title: "Internal references",
+        module: "Domain",
         id: URI.parse("http://example.com/root.json"),
         types: %{
           "#" => expected_root_type_reference,

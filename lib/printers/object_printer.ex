@@ -11,7 +11,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{Printer, Types}
-  alias JS2E.Types.ObjectType
+  alias JS2E.Types.{ObjectType, SchemaDefinition}
 
   EEx.function_from_file(:defp, :type_template, @type_location,
     [:type_name, :fields])
@@ -24,13 +24,13 @@ defmodule JS2E.Printers.ObjectPrinter do
 
   @spec print_type(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_type(%ObjectType{name: name,
                              path: _path,
                              properties: properties,
-                             required: required}, type_dict, schema_dict) do
+                             required: required}, schema_def, schema_dict) do
 
     type_name = if name == "#" do
       "Root"
@@ -38,7 +38,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       upcase_first name
     end
 
-    fields = create_type_fields(properties, required, type_dict, schema_dict)
+    fields = create_type_fields(properties, required, schema_def, schema_dict)
 
     type_template(type_name, fields)
   end
@@ -46,27 +46,27 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_type_fields(
     Types.propertyDictionary,
     [String.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_type_fields(properties, required, type_dict, schema_dict) do
+  defp create_type_fields(properties, required, schema_def, schema_dict) do
 
     properties
-    |> Enum.map(&(create_type_field(&1, required, type_dict, schema_dict)))
+    |> Enum.map(&(create_type_field(&1, required, schema_def, schema_dict)))
   end
 
   @spec create_type_field(
     {String.t, String.t},
     [String.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: map
   defp create_type_field({property_name, property_path},
-    required, type_dict, schema_dict) do
+    required, schema_def, schema_dict) do
 
     field_type =
       property_path
-      |> Printer.resolve_type(type_dict, schema_dict)
+      |> Printer.resolve_type!(schema_def, schema_dict)
       |> create_type_name
       |> (fn (field_name) ->
       if property_name in required do
@@ -80,29 +80,11 @@ defmodule JS2E.Printers.ObjectPrinter do
       type: field_type}
   end
 
-  @spec create_type_name(Types.typeDefinition) :: String.t
-  defp create_type_name(property_type) do
+  @spec create_type_name({Types.typeDefinition, SchemaDefinition.t}) :: String.t
+  defp create_type_name({property_type, schema_def}) do
 
     if primitive_type?(property_type) do
-      property_type_value = property_type.type
-
-      case property_type_value do
-        "string" ->
-          "String"
-
-        "integer" ->
-          "Int"
-
-        "number" ->
-          "Float"
-
-        "boolean" ->
-          "Bool"
-
-        _ ->
-          upcase_first property_type_value
-      end
-
+      determine_primitive_type!(property_type.type)
     else
 
       property_type_name = property_type.name
@@ -117,14 +99,14 @@ defmodule JS2E.Printers.ObjectPrinter do
 
   @spec print_decoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_decoder(%ObjectType{name: name,
                                 path: _path,
                                 properties: properties,
                                 required: required},
-    type_dict, schema_dict) do
+    schema_def, schema_dict) do
 
     decoder_name = if name == "#" do
       "rootDecoder"
@@ -139,7 +121,7 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
 
     clauses = create_decoder_properties(
-      properties, required, type_dict, schema_dict)
+      properties, required, schema_def, schema_dict)
 
     decoder_template(decoder_name, type_name, clauses)
   end
@@ -147,29 +129,30 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_decoder_properties(
     Types.propertyDictionary,
     [String.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_decoder_properties(properties, required, type_dict, schema_dict) do
+  defp create_decoder_properties(properties, required,
+    schema_def, schema_dict) do
 
     properties
     |> Enum.map(fn property ->
-      create_decoder_property(property, required, type_dict, schema_dict)
+      create_decoder_property(property, required, schema_def, schema_dict)
     end)
   end
 
   @spec create_decoder_property(
     {String.t, String.t},
     [String.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: map
   defp create_decoder_property({property_name, property_path},
-    required, type_dict, schema_dict) do
+    required, schema_def, schema_dict) do
 
-    property_type =
+    {property_type, resolved_schema_def} =
       property_path
-      |> Printer.resolve_type(type_dict, schema_dict)
+      |> Printer.resolve_type!(schema_def, schema_dict)
 
     decoder_name = create_decoder_name(property_type)
     is_required = property_name in required
@@ -250,21 +233,21 @@ defmodule JS2E.Printers.ObjectPrinter do
 
   @spec print_encoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_encoder(%ObjectType{name: name,
                                 path: _path,
                                 properties: properties,
                                 required: required},
-    type_dict, schema_dict) do
+    schema_def, schema_dict) do
 
     type_name = if name == "#", do: "Root", else: upcase_first name
     encoder_name = "encode#{type_name}"
     argument_name = downcase_first type_name
 
     properties = create_encoder_properties(properties, required,
-      type_dict, schema_dict)
+      schema_def, schema_dict)
 
     template = encoder_template(encoder_name, type_name,
       argument_name, properties)
@@ -274,29 +257,30 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_encoder_properties(
     Types.propertyDictionary,
     [String.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_encoder_properties(properties, required, type_dict, schema_dict) do
+  defp create_encoder_properties(properties, required,
+    schema_def, schema_dict) do
 
     properties
     |> Enum.map(fn property ->
-      create_encoder_property(property, required, type_dict, schema_dict)
+      create_encoder_property(property, required, schema_def, schema_dict)
     end)
   end
 
   @spec create_encoder_property(
     {String.t, String.t},
     [String.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: map
   defp create_encoder_property({property_name, property_path}, required,
-    type_dict, schema_dict) do
+    schema_def, schema_dict) do
 
-    property_type =
+    {property_type, resolved_schema_def} =
       property_path
-      |> Printer.resolve_type(type_dict, schema_dict)
+      |> Printer.resolve_type!(schema_def, schema_dict)
 
     encoder_name = create_encoder_name(property_type)
     is_required = property_name in required

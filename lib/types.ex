@@ -21,7 +21,7 @@ defmodule JS2E.Types do
     TypeReference.t
   )
 
-  @type typeIdentifier :: (TypePath.t | URI.t | String.t)
+  @type typeIdentifier :: (String.t | TypePath.t | URI.t)
   @type propertyDictionary :: %{required(String.t) => typeIdentifier}
   @type typeDictionary :: %{required(String.t) => typeDefinition}
   @type schemaDictionary :: %{required(String.t) => SchemaDefinition.t}

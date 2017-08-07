@@ -2,12 +2,17 @@ defmodule JS2ETest.Printers.EnumPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.EnumType
+  alias JS2E.Types.{EnumType, SchemaDefinition}
   alias JS2E.Printers.EnumPrinter
 
   test "print enum type with string values" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     enum_type_program =
       %EnumType{
@@ -15,7 +20,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
         path: ["#", "definitions", "color"],
         type: "string",
         values: ["none", "green", "yellow", "red"]}
-        |> EnumPrinter.print_type(type_dict, %{})
+        |> EnumPrinter.print_type(schema_def, %{})
 
     expected_enum_type_program =
     """
@@ -31,7 +36,12 @@ defmodule JS2ETest.Printers.EnumPrinter do
 
   test "print enum type with number values" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     enum_type_program =
       %EnumType{
@@ -39,7 +49,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
         path: ["#", "definitions", "temperature"],
         type: "number",
         values: [-0.618, 1.618, 3.14, 7.73]}
-        |> EnumPrinter.print_type(type_dict, %{})
+        |> EnumPrinter.print_type(schema_def, %{})
 
     expected_enum_type_program =
     """
@@ -55,7 +65,12 @@ defmodule JS2ETest.Printers.EnumPrinter do
 
   test "print enum decoder with string values" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     enum_decoder_program =
       %EnumType{
@@ -63,7 +78,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
         path: ["#", "definitions", "color"],
         type: "string",
         values: ["none", "green", "yellow", "red"]}
-        |> EnumPrinter.print_decoder(type_dict, %{})
+        |> EnumPrinter.print_decoder(schema_def, %{})
 
     expected_enum_decoder_program =
     """
@@ -91,7 +106,12 @@ defmodule JS2ETest.Printers.EnumPrinter do
 
   test "print enum decoder with number values" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     enum_decoder_program =
       %EnumType{
@@ -99,7 +119,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
         path: ["#", "definitions", "temperature"],
         type: "number",
         values: [-0.618, 1.618, 3.14, 7.73]}
-        |> EnumPrinter.print_decoder(type_dict, %{})
+        |> EnumPrinter.print_decoder(schema_def, %{})
 
     expected_enum_decoder_program =
     """
@@ -127,7 +147,12 @@ defmodule JS2ETest.Printers.EnumPrinter do
 
   test "print enum encoder with string values" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     enum_encoder_program =
       %EnumType{
@@ -135,7 +160,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
         path: ["#", "definitions", "color"],
         type: "string",
         values: ["none", "green", "yellow", "red"]}
-        |> EnumPrinter.print_encoder(type_dict, %{})
+        |> EnumPrinter.print_encoder(schema_def, %{})
 
     expected_enum_encoder_program =
     """
@@ -160,7 +185,12 @@ defmodule JS2ETest.Printers.EnumPrinter do
 
   test "print enum encoder with number values" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     enum_encoder_program =
       %EnumType{
@@ -168,7 +198,7 @@ defmodule JS2ETest.Printers.EnumPrinter do
         path: ["#", "definitions", "temperature"],
         type: "number",
         values: [-0.618, 1.618, 3.14, 7.73]}
-        |> EnumPrinter.print_encoder(type_dict, %{})
+        |> EnumPrinter.print_encoder(schema_def, %{})
 
     expected_enum_encoder_program =
     """
