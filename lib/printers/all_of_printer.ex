@@ -64,6 +64,7 @@ defmodule JS2E.Printers.AllOfPrinter do
       type: field_type}
   end
 
+
   @spec create_type_name(Types.typeDefinition) :: String.t
   defp create_type_name(property_type) do
 
@@ -76,6 +77,9 @@ defmodule JS2E.Printers.AllOfPrinter do
 
         "number" ->
           "Float"
+
+        "boolean" ->
+          "Bool"
 
         _ ->
           upcase_first property_type_value
@@ -155,6 +159,9 @@ defmodule JS2E.Printers.AllOfPrinter do
 
       "number" ->
         "Decode.float"
+
+      "boolean" ->
+        "Decode.bool"
 
       _ ->
         "Decode.#{property_type_value}"

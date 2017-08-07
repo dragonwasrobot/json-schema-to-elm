@@ -53,17 +53,20 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_decoder_name(Types.typeDefinition) :: String.t
   defp determine_decoder_name(items_type) do
 
-    if get_string_name(items_type) == "PrimitiveType" do
+    if primitive_type?(items_type) do
       items_type_value = items_type.type
 
-      cond do
-        items_type_value == "integer" ->
+      case items_type do
+        "integer" ->
           "Decode.int"
 
-        items_type_value == "number" ->
+        "number" ->
           "Decode.float"
 
-        true ->
+        "boolean" ->
+          "Decode.bool"
+
+        _ ->
           "Decode.#{downcase_first items_type_value}"
       end
 
@@ -81,17 +84,20 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_type_name(Types.typeDefinition) :: String.t
   defp determine_type_name(items_type) do
 
-    if get_string_name(items_type) == "PrimitiveType" do
+    if primitive_type?(items_type) do
       items_type_value = items_type.type
 
-      cond do
-        items_type_value == "integer" ->
+      case items_type_value do
+        "integer" ->
           "Int"
 
-        items_type_value == "number" ->
+        "number" ->
           "Float"
 
-        true ->
+        "boolean" ->
+          "Bool"
+
+        _ ->
           upcase_first items_type_value
       end
 
@@ -131,15 +137,18 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_encoder_name(Types.typeDefinition) :: String.t
   defp determine_encoder_name(items_type) do
 
-    if get_string_name(items_type) == "PrimitiveType" do
+    if primitive_type?(items_type) do
       items_type_value = items_type.type
 
-      cond do
-        items_type_value == "integer" ->
+      case items_type_value do
+        "integer" ->
           "Encode.int"
 
-        items_type_value == "number" ->
+        "number" ->
           "Encode.float"
+
+        "boolean" ->
+          "Encode.bool"
 
         true ->
           "Encode.#{downcase_first items_type_value}"

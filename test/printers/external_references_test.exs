@@ -118,6 +118,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
           exposing
               ( float
               , int
+              , bool
               , string
               , list
               , succeed
@@ -143,6 +144,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
               ( Value
               , float
               , int
+              , bool
               , string
               , list
               , object
@@ -207,6 +209,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
           exposing
               ( float
               , int
+              , bool
               , string
               , list
               , succeed
@@ -232,6 +235,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
               ( Value
               , float
               , int
+              , bool
               , string
               , list
               , object

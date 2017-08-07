@@ -6,6 +6,7 @@ import Json.Decode as Decode
     exposing
         ( float
         , int
+        , bool
         , string
         , list
         , succeed
@@ -31,6 +32,7 @@ import Json.Encode as Encode
         ( Value
         , float
         , int
+        , bool
         , string
         , list
         , object

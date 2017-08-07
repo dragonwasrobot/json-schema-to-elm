@@ -78,6 +78,9 @@ defmodule JS2E.Printers.AnyOfPrinter do
         "number" ->
           "Float"
 
+        "boolean" ->
+          "Bool"
+
         _ ->
           upcase_first property_type_value
       end
@@ -156,6 +159,9 @@ defmodule JS2E.Printers.AnyOfPrinter do
 
       "number" ->
         "Decode.float"
+
+      "boolean" ->
+        "Decode.bool"
 
       _ ->
         "Decode.#{property_type_value}"
