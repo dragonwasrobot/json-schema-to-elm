@@ -1,5 +1,6 @@
 defmodule JS2ETest.Parsers.ObjectParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.ObjectParser
 
   alias JS2E.Types.{ObjectType, PrimitiveType, TypeReference}
   alias JS2E.Parsers.ObjectParser

@@ -17,7 +17,8 @@ defmodule JS2E.Predicates do
   """
   @spec definitions?(map) :: boolean
   def definitions?(schema_node) do
-    Map.has_key?(schema_node, "definitions")
+    definitions = schema_node["definitions"]
+    is_map(definitions)
   end
 
   @doc ~S"""
@@ -40,7 +41,8 @@ defmodule JS2E.Predicates do
   """
   @spec primitive_type?(map) :: boolean
   def primitive_type?(schema_node) do
-    schema_node["type"] in ["null", "boolean", "string", "number", "integer"]
+    type = schema_node["type"]
+    type in ["null", "boolean", "string", "number", "integer"]
   end
 
   @doc ~S"""
@@ -57,7 +59,8 @@ defmodule JS2E.Predicates do
   """
   @spec ref_type?(map) :: boolean
   def ref_type?(schema_node) do
-    Map.has_key?(schema_node, "$ref")
+    ref = schema_node["$ref"]
+    is_binary(ref)
   end
 
   @doc ~S"""
@@ -65,16 +68,17 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.enum_type?(%{})
-  false
+      iex> JS2E.Predicates.enum_type?(%{})
+      false
 
-  iex> JS2E.Predicates.enum_type?(%{"enum" => ["red", "yellow", "green"]})
-  true
+      iex> JS2E.Predicates.enum_type?(%{"enum" => ["red", "yellow", "green"]})
+      true
 
   """
   @spec enum_type?(map) :: boolean
   def enum_type?(schema_node) do
-    Map.has_key?(schema_node, "enum")
+    enum = schema_node["enum"]
+    is_list(enum)
   end
 
   @doc ~S"""
@@ -82,16 +86,20 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.all_of_type?(%{})
-  false
+      iex> JS2E.Predicates.all_of_type?(%{})
+      false
 
-  iex> JS2E.Predicates.all_of_type?(%{"allOf" => [%{"$ref" => "#foo"}]})
-  true
+      iex> JS2E.Predicates.all_of_type?(%{"allOf" => []})
+      false
+
+      iex> JS2E.Predicates.all_of_type?(%{"allOf" => [%{"$ref" => "#foo"}]})
+      true
 
   """
   @spec all_of_type?(map) :: boolean
   def all_of_type?(schema_node) do
-    Map.has_key?(schema_node, "allOf")
+    all_of = schema_node["allOf"]
+    is_list(all_of) && length(all_of) > 0
   end
 
   @doc ~S"""
@@ -99,16 +107,20 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.any_of_type?(%{})
-  false
+      iex> JS2E.Predicates.any_of_type?(%{})
+      false
 
-  iex> JS2E.Predicates.any_of_type?(%{"anyOf" => [%{"$ref" => "#foo"}]})
-  true
+      iex> JS2E.Predicates.any_of_type?(%{"anyOf" => []})
+      false
+
+      iex> JS2E.Predicates.any_of_type?(%{"anyOf" => [%{"$ref" => "#foo"}]})
+      true
 
   """
   @spec any_of_type?(map) :: boolean
   def any_of_type?(schema_node) do
-    Map.has_key?(schema_node, "anyOf")
+    any_of = schema_node["anyOf"]
+    is_list(any_of) && length(any_of) > 0
   end
 
   @doc ~S"""
@@ -116,16 +128,20 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.one_of_type?(%{})
-  false
+      iex> JS2E.Predicates.one_of_type?(%{})
+      false
 
-  iex> JS2E.Predicates.one_of_type?(%{"oneOf" => [%{"$ref" => "#foo"}]})
-  true
+      iex> JS2E.Predicates.one_of_type?(%{"oneOf" => []})
+      false
+
+      iex> JS2E.Predicates.one_of_type?(%{"oneOf" => [%{"$ref" => "#foo"}]})
+      true
 
   """
   @spec one_of_type?(map) :: boolean
   def one_of_type?(schema_node) do
-    Map.has_key?(schema_node, "oneOf")
+    one_of = schema_node["oneOf"]
+    is_list(one_of) && length(one_of) > 0
   end
 
   @doc ~S"""
@@ -133,16 +149,17 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.union_type?(%{})
-  false
+      iex> JS2E.Predicates.union_type?(%{})
+      false
 
-  iex> JS2E.Predicates.union_type?(%{"type" => ["number", "integer", "string"]})
-  true
+      iex> JS2E.Predicates.union_type?(%{"type" => ["number", "integer", "string"]})
+      true
 
   """
   @spec union_type?(map) :: boolean
   def union_type?(schema_node) do
-    is_list(schema_node["type"])
+    type = schema_node["type"]
+    is_list(type)
   end
 
   @doc ~S"""
@@ -150,21 +167,23 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.object_type?(%{})
-  false
+      iex> JS2E.Predicates.object_type?(%{})
+      false
 
-  iex> JS2E.Predicates.object_type?(%{"type" => "object"})
-  false
+      iex> JS2E.Predicates.object_type?(%{"type" => "object"})
+      false
 
-  iex> anObject = %{"type" => "object",
-  ...>              "properties" => %{"name" => %{"type" => "string"}}}
-  iex> JS2E.Predicates.object_type?(anObject)
-  true
+      iex> anObject = %{"type" => "object",
+      ...>              "properties" => %{"name" => %{"type" => "string"}}}
+      iex> JS2E.Predicates.object_type?(anObject)
+      true
 
   """
   @spec object_type?(map) :: boolean
   def object_type?(schema_node) do
-    schema_node["type"] == "object" && Map.has_key?(schema_node, "properties")
+    type = schema_node["type"]
+    properties = schema_node["properties"]
+    type == "object" && is_map(properties)
   end
 
   @doc ~S"""
@@ -172,20 +191,22 @@ defmodule JS2E.Predicates do
 
   ## Examples
 
-  iex> JS2E.Predicates.array_type?(%{})
-  false
+      iex> JS2E.Predicates.array_type?(%{})
+      false
 
-  iex> JS2E.Predicates.array_type?(%{"type" => "array"})
-  false
+      iex> JS2E.Predicates.array_type?(%{"type" => "array"})
+      false
 
-  iex> anArray = %{"type" => "array", "items" => %{"$ref" => "#foo"}}
-  iex> JS2E.Predicates.array_type?(anArray)
-  true
+      iex> anArray = %{"type" => "array", "items" => %{"$ref" => "#foo"}}
+      iex> JS2E.Predicates.array_type?(anArray)
+      true
 
   """
   @spec array_type?(map) :: boolean
   def array_type?(schema_node) do
-    schema_node["type"] == "array" && Map.has_key?(schema_node, "items")
+    type = schema_node["type"]
+    items = schema_node["items"]
+    type == "array" && is_map(items)
   end
 
 end

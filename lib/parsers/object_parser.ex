@@ -63,9 +63,20 @@ defmodule JS2E.Parsers.ObjectParser do
     end)
   end
 
+  @doc ~S"""
+  Creates a property dictionary based on a type dictionary and a type path.
+
+  ## Examples
+
+      iex> type_dict = %{}
+      ...> path = JS2E.TypePath.from_string("#")
+      ...> JS2E.Parsers.ObjectParser.create_property_dict(type_dict, path)
+      %{}
+
+  """
   @spec create_property_dict(Types.typeDictionary, TypePath.t)
   :: Types.propertyDictionary
-  defp create_property_dict(type_dict, path) do
+  def create_property_dict(type_dict, path) do
     type_dict
     |> Enum.reduce(%{}, fn({child_path, child_type}, reference_dict) ->
       child_type_path = TypePath.add_child(path, child_type.name)
