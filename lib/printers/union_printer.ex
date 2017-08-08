@@ -11,7 +11,7 @@ defmodule JS2E.Printers.UnionPrinter do
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{TypePath, Types}
-  alias JS2E.Types.UnionType
+  alias JS2E.Types.{UnionType, SchemaDefinition}
 
   EEx.function_from_file(:defp, :type_template, @type_location,
     [:type_name, :clauses])
@@ -24,12 +24,12 @@ defmodule JS2E.Printers.UnionPrinter do
 
   @spec print_type(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_type(%UnionType{name: name,
                             path: _path,
-                            types: types}, _type_dict, _schema_dict) do
+                            types: types}, _schema_def, _schema_dict) do
 
     type_name = upcase_first name
     clauses = create_type_clauses(types, name)
@@ -69,12 +69,12 @@ defmodule JS2E.Printers.UnionPrinter do
 
   @spec print_decoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_decoder(%UnionType{name: name,
                                path: _path,
-                               types: types}, _type_dict, _schema_dict) do
+                               types: types}, _schema_def, _schema_dict) do
 
     type_name = upcase_first name
     nullable? = "null" in types
@@ -129,12 +129,12 @@ defmodule JS2E.Printers.UnionPrinter do
 
   @spec print_encoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_encoder(%UnionType{name: name,
                               path: _path,
-                              types: types}, _type_dict, _schema_dict) do
+                              types: types}, _schema_def, _schema_dict) do
 
     type_name = upcase_first name
     encoder_name = "encode#{type_name}"

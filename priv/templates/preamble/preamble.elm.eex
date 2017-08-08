@@ -4,12 +4,7 @@ module <%= prefix %><%= title %> exposing (..)
 
 import Json.Decode as Decode
     exposing
-        ( float
-        , int
-        , bool
-        , string
-        , list
-        , succeed
+        ( succeed
         , fail
         , map
         , maybe
@@ -30,13 +25,9 @@ import Json.Decode.Pipeline
 import Json.Encode as Encode
     exposing
         ( Value
-        , float
-        , int
-        , bool
-        , string
-        , list
         , object
         )
-<%= for import <- imports do %><%#
-%><%= import_template(prefix, import) %><%#
+<%= for import_name <- imports do %><%#
+%>import <%= prefix %><%= import_name %><%#
 %><% end %>
+

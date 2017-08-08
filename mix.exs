@@ -4,7 +4,7 @@ defmodule JS2E.Mixfile do
   def project do
     [app: :js2e,
      version: "2.0.0",
-     elixir: "~> 1.4",
+     elixir: "~> 1.5",
      deps: deps(),
      aliases: aliases(),
      build_embedded: Mix.env == :prod,

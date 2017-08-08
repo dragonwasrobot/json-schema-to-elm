@@ -11,7 +11,7 @@ defmodule JS2E.Printers.OneOfPrinter do
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{Printer, TypePath, Types}
-  alias JS2E.Types.OneOfType
+  alias JS2E.Types.{OneOfType, SchemaDefinition}
 
   EEx.function_from_file(:defp, :type_template, @type_location,
     [:type_name, :clauses])
@@ -24,15 +24,15 @@ defmodule JS2E.Printers.OneOfPrinter do
 
   @spec print_type(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_type(%OneOfType{name: name,
                             path: _path,
-                            types: types}, type_dict, schema_dict) do
+                            types: types}, schema_def, schema_dict) do
 
     type_name = upcase_first name
-    clauses = create_type_clauses(types, name, type_dict, schema_dict)
+    clauses = create_type_clauses(types, name, schema_def, schema_dict)
 
     type_template(type_name, clauses)
   end
@@ -40,17 +40,17 @@ defmodule JS2E.Printers.OneOfPrinter do
   @spec create_type_clauses(
     [TypePath.t],
     String.t,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_type_clauses(types, name, type_dict, schema_dict) do
+  defp create_type_clauses(types, name, schema_def, schema_dict) do
 
     type_name = upcase_first name
 
     create_type_clause = fn type_path ->
-      clause_type =
+      {clause_type, resolved_schema_def} =
         type_path
-        |> Printer.resolve_type(type_dict, schema_dict)
+        |> Printer.resolve_type!(schema_def, schema_dict)
 
       type_value = upcase_first clause_type.name
 
@@ -69,31 +69,31 @@ defmodule JS2E.Printers.OneOfPrinter do
 
   @spec print_decoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_decoder(%OneOfType{name: name,
                                path: _path,
-                               types: types}, type_dict, schema_dict) do
+                               types: types}, schema_def, schema_dict) do
 
     decoder_name = "#{name}Decoder"
     decoder_type = upcase_first name
-    clause_decoders = create_decoder_clauses(types, type_dict, schema_dict)
+    clause_decoders = create_decoder_clauses(types, schema_def, schema_dict)
 
     decoder_template(decoder_name, decoder_type, clause_decoders)
   end
 
   @spec create_decoder_clauses(
     [TypePath.t],
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [String.t]
-  defp create_decoder_clauses(types, type_dict, schema_dict) do
+  defp create_decoder_clauses(types, schema_def, schema_dict) do
 
     create_decoder_clause = fn type_path ->
-      clause_type =
+      {clause_type, resolved_schema_def} =
         type_path
-        |> Printer.resolve_type(type_dict, schema_dict)
+        |> Printer.resolve_type!(schema_def, schema_dict)
 
       "#{clause_type.name}Decoder"
     end
@@ -104,16 +104,16 @@ defmodule JS2E.Printers.OneOfPrinter do
 
   @spec print_encoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_encoder(%OneOfType{name: name,
                               path: _path,
-                              types: types}, type_dict, schema_dict) do
+                              types: types}, schema_def, schema_dict) do
 
     type_name = upcase_first name
     encoder_name = "encode#{type_name}"
-    cases = create_encoder_cases(types, name, type_dict, schema_dict)
+    cases = create_encoder_cases(types, name, schema_def, schema_dict)
 
     template = encoder_template(encoder_name, type_name, name, cases)
     trim_newlines(template)
@@ -122,30 +122,30 @@ defmodule JS2E.Printers.OneOfPrinter do
   @spec create_encoder_cases(
     [String.t],
     String.t,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [map]
-  defp create_encoder_cases(types, name, type_dict, schema_dict) do
+  defp create_encoder_cases(types, name, schema_def, schema_dict) do
 
     types |> Enum.map(fn type ->
-      create_encoder_clause(type, name, type_dict, schema_dict)
+      create_encoder_clause(type, name, schema_def, schema_dict)
     end)
   end
 
   @spec create_encoder_clause(
     String.t,
     String.t,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: map
-  defp create_encoder_clause(type_path, name, type_dict, schema_dict) do
+  defp create_encoder_clause(type_path, name, schema_def, schema_dict) do
 
     type_name = upcase_first name
 
     create_type_clause = fn type_path ->
-      clause_type =
+      {clause_type, resolved_schema_def} =
         type_path
-        |> Printer.resolve_type(type_dict, schema_dict)
+        |> Printer.resolve_type!(schema_def, schema_dict)
 
       argument_name = clause_type.name
       type_value = upcase_first argument_name

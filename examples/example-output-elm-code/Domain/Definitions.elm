@@ -4,11 +4,7 @@ module Domain.Definitions exposing (..)
 
 import Json.Decode as Decode
     exposing
-        ( float
-        , int
-        , string
-        , list
-        , succeed
+        ( succeed
         , fail
         , map
         , maybe
@@ -29,10 +25,6 @@ import Json.Decode.Pipeline
 import Json.Encode as Encode
     exposing
         ( Value
-        , float
-        , int
-        , string
-        , list
         , object
         )
 
@@ -101,4 +93,5 @@ encodePoint point =
         y =
             [ ( "y", Encode.float point.y ) ]
     in
-        object <| x ++ y
+        object <|
+            x ++ y

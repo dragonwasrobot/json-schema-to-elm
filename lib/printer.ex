@@ -5,20 +5,20 @@ defmodule JS2E.Printer do
   """
 
   require Logger
+  import JS2E.Printers.Util
   alias JS2E.{TypePath, Types}
   alias JS2E.Printers.{ArrayPrinter, EnumPrinter, ObjectPrinter,
                        AllOfPrinter, AnyOfPrinter, OneOfPrinter,
                        PrimitivePrinter, UnionPrinter, PreamblePrinter,
-                       TypeReferencePrinter, Util}
+                       TypeReferencePrinter}
   alias JS2E.Types.{PrimitiveType, TypeReference, SchemaDefinition}
 
-  @primitive_types ["boolean", "null", "string", "number", "integer"]
+  @spec print_schemas(Types.schemaDictionary) :: Types.fileDictionary
+  def print_schemas(schema_dict) do
 
-  @spec print_schemas(Types.schemaDictionary, String.t) :: Types.fileDictionary
-  def print_schemas(schema_dict, module_name \\ "") do
-
-    create_file_path = fn (module_name, schema_def) ->
+    create_file_path = fn (schema_def) ->
       title = schema_def.title
+      module_name = schema_def.module
 
       if module_name != "" do
         "./#{module_name}/#{title}.elm"
@@ -29,39 +29,37 @@ defmodule JS2E.Printer do
 
     schema_dict
     |> Enum.reduce(%{}, fn ({_id, schema_def}, acc) ->
-      file_path = create_file_path.(module_name, schema_def)
-      output_file = print_schema(schema_def, schema_dict, module_name)
+      file_path = create_file_path.(schema_def)
+      output_file = print_schema(schema_def, schema_dict)
       acc |> Map.put(file_path, output_file)
     end)
   end
 
-  @spec print_schema(
-    SchemaDefinition.t,
-    Types.schemaDictionary,
-    String.t
-  ) :: String.t
-  def print_schema(%SchemaDefinition{id: _id,
-                                     title: _title,
-                                     description: _description,
-                                     types: type_dict} = schema_def,
-    schema_dict, module_name \\ "") do
+  @spec print_schema(SchemaDefinition.t, Types.schemaDictionary) :: String.t
+  def print_schema(schema_def, schema_dict) do
 
     preamble =
       schema_def
-      |> PreamblePrinter.print_preamble(schema_dict, module_name)
+      |> PreamblePrinter.print_preamble(schema_dict)
 
-    values = type_dict
-    |> filter_aliases
-    |> Enum.sort(&(&1.name < &2.name))
+    type_dict = schema_def.types
 
-    types = values
-    |> Enum.map_join("\n\n", &(print_type(&1, type_dict, schema_dict)))
+    values =
+      type_dict
+      |> filter_aliases
+      |> Enum.sort(&(&1.name < &2.name))
 
-    decoders = values
-    |> Enum.map_join("\n\n", &(print_decoder(&1, type_dict, schema_dict)))
+    types =
+      values
+      |> Enum.map_join("\n\n", &(print_type(&1, schema_def, schema_dict)))
 
-    encoders = values
-    |> Enum.map_join("\n\n", &(print_encoder(&1, type_dict, schema_dict)))
+    decoders =
+      values
+      |> Enum.map_join("\n\n", &(print_decoder(&1, schema_def, schema_dict)))
+
+    encoders =
+      values
+      |> Enum.map_join("\n\n", &(print_encoder(&1, schema_def, schema_dict)))
 
     """
     #{String.trim(preamble)}
@@ -88,10 +86,10 @@ defmodule JS2E.Printer do
 
   @spec print_type(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
-  def print_type(type_def, type_dict, schema_dict) do
+  def print_type(type_def, schema_def, schema_dict) do
 
     type_to_printer_dict = %{
       "ArrayType" => &ArrayPrinter.print_type/3,
@@ -105,10 +103,10 @@ defmodule JS2E.Printer do
       "TypeReference" => &TypeReferencePrinter.print_type/3
     }
 
-    struct_name = Util.get_string_name(type_def)
+    struct_name = get_string_name(type_def)
 
     if Map.has_key?(type_to_printer_dict, struct_name) do
-      type_to_printer_dict[struct_name].(type_def, type_dict, schema_dict)
+      type_to_printer_dict[struct_name].(type_def, schema_def, schema_dict)
     else
       Logger.error "Error(print_type) unknown type: #{inspect struct_name}"
     end
@@ -116,10 +114,10 @@ defmodule JS2E.Printer do
 
   @spec print_decoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
-  def print_decoder(type_def, type_dict, schema_dict) do
+  def print_decoder(type_def, schema_def, schema_dict) do
 
     type_to_printer_dict = %{
       "ArrayType" => &ArrayPrinter.print_decoder/3,
@@ -133,11 +131,11 @@ defmodule JS2E.Printer do
       "TypeReference" => &TypeReferencePrinter.print_decoder/3
     }
 
-    struct_name = Util.get_string_name(type_def)
+    struct_name = get_string_name(type_def)
 
     if Map.has_key?(type_to_printer_dict, struct_name) do
       printer = type_to_printer_dict[struct_name]
-      printer.(type_def, type_dict, schema_dict)
+      printer.(type_def, schema_def, schema_dict)
     else
       Logger.error "Error(print_decoder) unknown type: #{inspect struct_name}"
     end
@@ -145,10 +143,10 @@ defmodule JS2E.Printer do
 
   @spec print_encoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
-  def print_encoder(type_def, type_dict, schema_dict) do
+  def print_encoder(type_def, schema_def, schema_dict) do
 
     type_to_printer_dict = %{
       "ArrayType" => &ArrayPrinter.print_encoder/3,
@@ -162,62 +160,85 @@ defmodule JS2E.Printer do
       "TypeReference" => &TypeReferencePrinter.print_encoder/3
     }
 
-    struct_name = Util.get_string_name(type_def)
+    struct_name = get_string_name(type_def)
 
     if Map.has_key?(type_to_printer_dict, struct_name) do
       printer = type_to_printer_dict[struct_name]
-      printer.(type_def, type_dict, schema_dict)
+      printer.(type_def, schema_def, schema_dict)
     else
       Logger.error "Error(print_encoder) unknown type: #{inspect struct_name}"
     end
   end
 
-  @spec resolve_type(
+  @spec resolve_type!(
     Types.typeIdentifier,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
-  ) :: Types.typeDefinition
-  def resolve_type(identifier, type_dict, schema_dict) do
-    Logger.debug "Looking up '#{identifier}' in #{inspect type_dict}"
+  ) :: {Types.typeDefinition, SchemaDefinition.t}
+  def resolve_type!(identifier, schema_def, schema_dict) do
+    Logger.debug "Looking up '#{inspect identifier}' in #{inspect schema_def}"
+    type_dict = schema_def.types
 
-    type = cond do
-      identifier in @primitive_types ->
-        PrimitiveType.new(identifier, identifier, identifier)
+    {resolved_type, resolved_schema_def} = cond do
+
+      identifier in ["string", "number", "integer", "boolean"] ->
+        resolve_primitive_identifier(identifier, schema_def)
 
       TypePath.type_path?(identifier) ->
-        type_dict[TypePath.to_string(identifier)]
+        resolve_type_path_identifier(identifier, schema_def)
 
       URI.parse(identifier).scheme != nil ->
-        schema_id = determine_schema_id(identifier)
-        schema = schema_dict[to_string(schema_id)]
-        schema_type_dict = schema.types
-
-        if to_string(identifier) == schema_id do
-          schema_type_dict["#"]
-        else
-          schema_type_dict[to_string(identifier)]
-        end
+        resolve_uri_identifier(identifier, schema_dict)
 
       true ->
-        Logger.error("Could not resolve '#{identifier}'")
-        nil
+        raise "Could not resolve identifier: '#{identifier}'"
     end
 
-    Logger.debug("Found type: #{inspect type}")
+    Logger.debug("Resolved type: #{inspect resolved_type}")
+    Logger.debug("Resolved schema: #{inspect resolved_schema_def}")
 
-    if type.__struct__ == TypeReference do
-      resolve_type(type.path, type_dict, schema_dict)
+    if resolved_type.__struct__ == TypeReference do
+      resolve_type!(resolved_type.path, resolved_schema_def, schema_dict)
     else
-      type
+      {resolved_type, resolved_schema_def}
     end
   end
 
-  @spec determine_schema_id(URI.t) :: String.t
-  defp determine_schema_id(identifier) do
-    identifier
-    |> URI.parse
-    |> URI.merge("#")
-    |> to_string
+  @spec resolve_primitive_identifier(String.t, SchemaDefinition.t)
+  :: {Types.typeDefinition, SchemaDefinition.t}
+  defp resolve_primitive_identifier(identifier, schema_def) do
+    primitive_type = PrimitiveType.new(identifier, identifier, identifier)
+    {primitive_type, schema_def}
+  end
+
+  @spec resolve_type_path_identifier(TypePath.t, SchemaDefinition.t)
+  :: {Types.typeDefinition, SchemaDefinition.t}
+  defp resolve_type_path_identifier(identifier, schema_def) do
+    type_dict = schema_def.types
+    resolved_type = type_dict[TypePath.to_string(identifier)]
+    {resolved_type, schema_def}
+
+  end
+
+  @spec resolve_uri_identifier(String.t, Types.schemaDictionary)
+  :: {Types.typeDefinition, SchemaDefinition.t}
+  defp resolve_uri_identifier(identifier, schema_dict) do
+
+    determine_schema_id = fn identifier ->
+      identifier |> URI.parse |> URI.merge("#") |> to_string
+    end
+
+    schema_id = determine_schema_id.(identifier)
+    schema_def = schema_dict[schema_id]
+    type_dict = schema_def.types
+
+    resolved_type = if to_string(identifier) == schema_id do
+      type_dict["#"]
+    else
+      type_dict[to_string(identifier)]
+    end
+
+    {resolved_type, schema_def}
   end
 
 end

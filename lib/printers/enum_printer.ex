@@ -11,7 +11,7 @@ defmodule JS2E.Printers.EnumPrinter do
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.Types
-  alias JS2E.Types.EnumType
+  alias JS2E.Types.{EnumType, SchemaDefinition}
 
   EEx.function_from_file(:defp, :type_template, @type_location,
     [:type_name, :clauses])
@@ -24,13 +24,13 @@ defmodule JS2E.Printers.EnumPrinter do
 
   @spec print_type(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_type(%EnumType{name: name,
                            path: _path,
                            type: type,
-                           values: values}, _type_dict, _schema_dict) do
+                           values: values}, _schema_def, _schema_dict) do
 
     type_name = upcase_first name
     clauses = values |> Enum.map(&(create_elm_value!(&1, type)))
@@ -40,37 +40,20 @@ defmodule JS2E.Printers.EnumPrinter do
 
   @spec print_decoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_decoder(%EnumType{name: name,
                               path: _path,
                               type: type,
-                              values: values}, _type_dict, _schema_dict) do
+                              values: values}, _schema_def, _schema_dict) do
 
     decoder_name = "#{downcase_first name}Decoder"
-    argument_type = create_type_value type
+    argument_type = determine_primitive_type!(type)
     decoder_type = upcase_first name
     cases = create_decoder_cases(values, type)
 
     decoder_template(decoder_name, decoder_type, name, argument_type, cases)
-  end
-
-  @spec create_type_value(String.t) :: String.t
-  defp create_type_value(type) do
-    case type do
-      "string" ->
-        "String"
-
-      "integer" ->
-        "Int"
-
-      "number" ->
-        "Float"
-
-      _ ->
-        raise "Unknown or unsupported enum type: #{type}"
-    end
   end
 
   @spec create_decoder_cases([String.t], String.t) :: [map]
@@ -104,13 +87,13 @@ defmodule JS2E.Printers.EnumPrinter do
 
   @spec print_encoder(
     Types.typeDefinition,
-    Types.typeDictionary,
+    SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
   def print_encoder(%EnumType{name: name,
                               path: _path,
                               type: type,
-                              values: values}, _type_dict, _schema_dict) do
+                              values: values}, _schema_def, _schema_dict) do
 
     argument_type = upcase_first name
     encoder_name = "encode#{argument_type}"

@@ -5,6 +5,8 @@ defmodule JS2E.Printers.Util do
 
   alias JS2E.Types
 
+  # Indentation, whitespace and casing - start
+
   @indent_size 4
 
   @doc ~S"""
@@ -19,6 +21,14 @@ defmodule JS2E.Printers.Util do
   @spec indent(pos_integer) :: String.t
   def indent(tabs \\ 1) when is_integer(tabs) do
     String.pad_leading("", tabs * @indent_size)
+  end
+
+  @doc ~S"""
+  Remove excessive newlines of a string.
+  """
+  @spec trim_newlines(String.t) :: String.t
+  def trim_newlines(str) do
+    String.trim(str) <> "\n"
   end
 
   @doc ~S"""
@@ -59,32 +69,110 @@ defmodule JS2E.Printers.Util do
     end
   end
 
-  @doc ~S"""
-  Remove excessive newlines of a string.
-  """
-  @spec trim_newlines(String.t) :: String.t
-  def trim_newlines(str) do
-    String.trim(str) <> "\n"
+  # Indentation, whitespace and casing - end
+
+  # Printing types - start
+
+  @spec create_type_name(
+    {Types.typeDefinition, SchemaDefinition.t},
+    SchemaDefinition.t
+  ) :: String.t
+  def create_type_name({resolved_type, resolved_schema}, context_schema) do
+
+    type_name = (if primitive_type?(resolved_type) do
+      determine_primitive_type!(resolved_type.type)
+    else
+      resolved_type_name = resolved_type.name
+      if resolved_type_name == "#" do
+        if resolved_schema.title != nil do
+          upcase_first resolved_schema.title
+        else
+          "Root"
+        end
+      else
+        upcase_first resolved_type_name
+      end
+    end)
+
+    if resolved_schema.id != context_schema.id do
+      qualify_name(type_name, resolved_schema)
+    else
+      type_name
+    end
+
   end
 
   @doc ~S"""
-  Returns the encoder name given a JSON schema type definition.
+  Converts the following primitive types: "string", "integer", "number",
+  and "boolean" into their Elm type equivalent. Raises and error otherwise.
+
+  ## Examples
+
+  iex> determine_primitive_type!("string")
+  "String"
+
+  iex> determine_primitive_type!("integer")
+  "Int"
+
+  iex> determine_primitive_type!("number")
+  "Float"
+
+  iex> determine_primitive_type!("boolean")
+  "Bool"
+
+  iex> determine_primitive_type!("array")
+  ** (RuntimeError) Unknown or unsupported primitive type: 'array'
+
   """
-  @spec create_encoder_name(Types.typeDefinition) :: String.t
-  def create_encoder_name(type) do
+  @spec determine_primitive_type!(String.t) :: String.t
+  def determine_primitive_type!(type_name) do
+    case type_name do
+      "string" ->
+        "String"
 
-    if primitive_type?(type) do
-      primitive_type_name = type.type
-      determine_primitive_type_encoder!(primitive_type_name)
+      "integer" ->
+        "Int"
+
+      "number" ->
+        "Float"
+
+      "boolean" ->
+        "Bool"
+
+      _ ->
+        raise "Unknown or unsupported primitive type: '#{type_name}'"
+    end
+  end
+
+  # Printing types - end
+
+  # Printing decoders - start
+
+  @spec create_decoder_name(
+    {Types.typeDefinition, SchemaDefinition.t},
+    SchemaDefinition.t
+  ) :: String.t
+  def create_decoder_name({resolved_type, resolved_schema}, context_schema) do
+
+    decoder_name = (if primitive_type?(resolved_type) do
+      determine_primitive_type_decoder!(resolved_type.type)
     else
-
-      type_name = type.name
+      type_name = resolved_type.name
       if type_name == "#" do
-        "encodeRoot"
+        if resolved_schema.title != nil do
+          "#{downcase_first resolved_schema.title}Decoder"
+        else
+          "rootDecoder"
+        end
       else
-        "encode#{upcase_first type_name}"
+        "#{type_name}Decoder"
       end
+    end)
 
+    if resolved_schema.id != context_schema.id do
+      qualify_name(decoder_name, resolved_schema)
+    else
+      decoder_name
     end
   end
 
@@ -128,6 +216,41 @@ defmodule JS2E.Printers.Util do
 
       _ ->
         raise "Unknown or unsupported primitive type: '#{type_name}'"
+    end
+  end
+
+  # Printing decoders - end
+
+  # Printing encoders - start
+
+  @doc ~S"""
+  Returns the encoder name given a JSON schema type definition.
+  """
+  @spec create_encoder_name(
+    {Types.typeDefinition, SchemaDefinition.t},
+    SchemaDefinition.t
+  ) :: String.t
+  def create_encoder_name({resolved_type, resolved_schema}, context_schema) do
+
+    encoder_name = (if primitive_type?(resolved_type) do
+      determine_primitive_type_encoder!(resolved_type.type)
+    else
+      type_name = resolved_type.name
+      if type_name == "#" do
+        if resolved_schema.title != nil do
+          "encode#{upcase_first resolved_schema.title}"
+        else
+          "encodeRoot"
+        end
+      else
+        "encode#{upcase_first type_name}"
+      end
+    end)
+
+    if resolved_schema.id != context_schema.id do
+      qualify_name(encoder_name, resolved_schema)
+    else
+      encoder_name
     end
   end
 
@@ -181,45 +304,16 @@ defmodule JS2E.Printers.Util do
     end
   end
 
-  @doc ~S"""
-  Converts the following primitive types: "string", "integer", "number",
-  and "boolean" into their Elm type equivalent. Raises and error otherwise.
+  # Printing encoders - end
 
-  ## Examples
+  # Printing utils - start
 
-    iex> determine_primitive_type!("string")
-    "String"
-
-    iex> determine_primitive_type!("integer")
-    "Int"
-
-    iex> determine_primitive_type!("number")
-    "Float"
-
-    iex> determine_primitive_type!("boolean")
-    "Bool"
-
-    iex> determine_primitive_type!("array")
-    ** (RuntimeError) Unknown or unsupported primitive type: 'array'
-
-  """
-  @spec determine_primitive_type!(String.t) :: String.t
-  def determine_primitive_type!(type_name) do
-    case type_name do
-      "string" ->
-        "String"
-
-      "integer" ->
-        "Int"
-
-      "number" ->
-        "Float"
-
-      "boolean" ->
-        "Bool"
-
-      _ ->
-        raise "Unknown or unsupported primitive type: '#{type_name}'"
+  @spec qualify_name(String.t, SchemaDefinition.t) :: String.t
+  def qualify_name(type_name, schema_def) do
+    if schema_def.title do
+      "#{schema_def.module}.#{schema_def.title}.#{type_name}"
+    else
+      "#{schema_def.module}.#{type_name}"
     end
   end
 
@@ -228,11 +322,11 @@ defmodule JS2E.Printers.Util do
 
   ## Examples
 
-      iex> primitive_type = %JS2E.Types.PrimitiveType{name: "foo",
-      ...>                                        path: ["#","foo"],
-      ...>                                        type: "string"}
-      ...> get_string_name(primitive_type)
-      "PrimitiveType"
+  iex> primitive_type = %JS2E.Types.PrimitiveType{name: "foo",
+  ...>                                        path: ["#","foo"],
+  ...>                                        type: "string"}
+  ...> get_string_name(primitive_type)
+  "PrimitiveType"
 
   """
   @spec get_string_name(struct) :: String.t
@@ -242,6 +336,10 @@ defmodule JS2E.Printers.Util do
     |> String.split(".")
     |> List.last
   end
+
+  # Printing utils - end
+
+  # Predicate functions - start
 
   @spec primitive_type?(struct) :: boolean
   def primitive_type?(type) do
@@ -262,5 +360,7 @@ defmodule JS2E.Printers.Util do
   def union_type?(type) do
     get_string_name(type) == "UnionType"
   end
+
+  # Predicate functions - end
 
 end

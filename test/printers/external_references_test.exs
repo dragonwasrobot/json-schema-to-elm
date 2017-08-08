@@ -15,6 +15,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
         description: "Schema for common types",
         id: URI.parse("http://example.com/definitions.json"),
         title: "Definitions",
+        module: "Domain",
         types: %{
 
           "#/definitions/color" =>
@@ -61,6 +62,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
         %SchemaDefinition{
           id: URI.parse("http://example.com/circle.json"),
           title: "Circle",
+          module: "Domain",
           description: "Schema for a circle shape",
           types: %{
 
@@ -101,9 +103,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
     }
 
     module_prefix = "Domain"
-    elm_program = Printer.print_schemas(
-      schema_representations, module_prefix)
-
+    elm_program = Printer.print_schemas(schema_representations)
     Logger.debug "#{inspect elm_program}"
 
     circle_program = elm_program["./Domain/Circle.elm"]
@@ -116,12 +116,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
 
       import Json.Decode as Decode
           exposing
-              ( float
-              , int
-              , bool
-              , string
-              , list
-              , succeed
+              ( succeed
               , fail
               , map
               , maybe
@@ -142,27 +137,14 @@ defmodule JS2ETest.Printers.ExternalReferences do
       import Json.Encode as Encode
           exposing
               ( Value
-              , float
-              , int
-              , bool
-              , string
-              , list
               , object
               )
       import Domain.Definitions
-          exposing
-              ( Color
-              , colorDecoder
-              , encodeColor
-              , Point
-              , pointDecoder
-              , encodePoint
-              )
 
 
       type alias Circle =
-          { center : Point
-          , color : Maybe Color
+          { center : Domain.Definitions.Point
+          , color : Maybe Domain.Definitions.Color
           , radius : Float
           }
 
@@ -170,8 +152,8 @@ defmodule JS2ETest.Printers.ExternalReferences do
       circleDecoder : Decoder Circle
       circleDecoder =
           decode Circle
-              |> required "center" pointDecoder
-              |> optional "color" (Decode.string |> andThen colorDecoder |> maybe) Nothing
+              |> required "center" Domain.Definitions.pointDecoder
+              |> optional "color" (Decode.string |> andThen Domain.Definitions.colorDecoder |> maybe) Nothing
               |> required "radius" Decode.float
 
 
@@ -179,12 +161,12 @@ defmodule JS2ETest.Printers.ExternalReferences do
       encodeCircle circle =
           let
               center =
-                  [ ( "center", encodePoint circle.center ) ]
+                  [ ( "center", Domain.Definitions.encodePoint circle.center ) ]
 
               color =
                   case circle.color of
                       Just color ->
-                          [ ( "color", encodeColor color ) ]
+                          [ ( "color", Domain.Definitions.encodeColor color ) ]
 
                       Nothing ->
                           []
@@ -196,8 +178,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
                   center ++ color ++ radius
       """
 
-    definitions_program =
-      elm_program["./Domain/Definitions.elm"]
+    definitions_program = elm_program["./Domain/Definitions.elm"]
 
     assert definitions_program ==
       """
@@ -207,12 +188,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
 
       import Json.Decode as Decode
           exposing
-              ( float
-              , int
-              , bool
-              , string
-              , list
-              , succeed
+              ( succeed
               , fail
               , map
               , maybe
@@ -233,11 +209,6 @@ defmodule JS2ETest.Printers.ExternalReferences do
       import Json.Encode as Encode
           exposing
               ( Value
-              , float
-              , int
-              , bool
-              , string
-              , list
               , object
               )
 

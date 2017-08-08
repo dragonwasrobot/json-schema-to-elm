@@ -2,12 +2,17 @@ defmodule JS2ETest.Printers.ArrayPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{ArrayType, EnumType}
+  alias JS2E.Types.{ArrayType, EnumType, SchemaDefinition}
   alias JS2E.Printers.ArrayPrinter
 
   test "print array type" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     array_type_program =
       %ArrayType{
@@ -15,7 +20,7 @@ defmodule JS2ETest.Printers.ArrayPrinter do
         path: ["#", "items"],
         items: ["#", "definitions", "color"]
       }
-      |> ArrayPrinter.print_type(type_dict, %{})
+      |> ArrayPrinter.print_type(schema_def, %{})
 
     expected_array_type_program = ""
 
@@ -32,13 +37,20 @@ defmodule JS2ETest.Printers.ArrayPrinter do
                 values: ["none", "green", "yellow", "red"]}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     array_decoder_program =
       %ArrayType{
         name: "colors",
         path: ["#"],
         items: ["#", "items"]
       }
-      |> ArrayPrinter.print_decoder(type_dict, %{})
+      |> ArrayPrinter.print_decoder(schema_def, %{})
 
     expected_array_decoder_program =
     """
@@ -60,13 +72,20 @@ defmodule JS2ETest.Printers.ArrayPrinter do
                 values: ["none", "green", "yellow", "red"]}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     array_encoder_program =
       %ArrayType{
         name: "colors",
         path: ["#"],
         items: ["#", "items"]
       }
-      |> ArrayPrinter.print_encoder(type_dict, %{})
+      |> ArrayPrinter.print_encoder(schema_def, %{})
 
     expected_array_encoder_program =
     """

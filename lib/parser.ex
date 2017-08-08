@@ -19,27 +19,27 @@ defmodule JS2E.Parser do
     "http://json-schema.org/draft-04/schema"
   ]
 
-  @spec parse_schema_files([String.t]) :: Types.schemaDictionary
-  def parse_schema_files(json_schema_paths) do
+  @spec parse_schema_files([String.t], String.t) :: Types.schemaDictionary
+  def parse_schema_files(json_schema_paths, module_name) do
     json_schema_paths
     |> Enum.reduce(%{}, fn (json_schema_path, schema_dict) ->
 
       json_schema_path
-      |> parse_schema_file
+      |> parse_schema_file(module_name)
       |> Map.merge(schema_dict)
     end)
   end
 
-  @spec parse_schema_file(String.t) :: Types.schemaDictionary
-  def parse_schema_file(json_schema_path) do
+  @spec parse_schema_file(String.t, String.t) :: Types.schemaDictionary
+  def parse_schema_file(json_schema_path, module_name) do
     json_schema_path
     |> File.read!
     |> Poison.decode!
-    |> parse_schema
+    |> parse_schema(module_name)
   end
 
-  @spec parse_schema(map) :: Types.schemaDictionary
-  def parse_schema(schema_root_node) do
+  @spec parse_schema(map, String.t) :: Types.schemaDictionary
+  def parse_schema(schema_root_node, module_name) do
 
     if not supported_schema_version?(schema_root_node) do
       exit(:bad_version)
@@ -64,7 +64,7 @@ defmodule JS2E.Parser do
       |> Map.merge(root, handle_conflict)
 
     %{to_string(schema_id) =>
-      SchemaDefinition.new(schema_id, title, description, types)}
+      SchemaDefinition.new(schema_id, title, module_name, description, types)}
   end
 
   @spec parse_schema_id(any) :: {:ok, URI.t} | {:error, String.t}

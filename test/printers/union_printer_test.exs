@@ -2,12 +2,17 @@ defmodule JS2ETest.Printers.UnionPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.UnionType
+  alias JS2E.Types.{UnionType, SchemaDefinition}
   alias JS2E.Printers.UnionPrinter
 
   test "print union type value" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     union_type_program =
       %UnionType{
@@ -15,7 +20,7 @@ defmodule JS2ETest.Printers.UnionPrinter do
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer"]
       }
-      |> UnionPrinter.print_type(type_dict, %{})
+      |> UnionPrinter.print_type(schema_def, %{})
 
     expected_union_type_program =
       """
@@ -29,7 +34,12 @@ defmodule JS2ETest.Printers.UnionPrinter do
 
   test "print union type with null value" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     union_type_program =
       %UnionType{
@@ -37,7 +47,7 @@ defmodule JS2ETest.Printers.UnionPrinter do
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer", "null"]
       }
-      |> UnionPrinter.print_type(type_dict, %{})
+      |> UnionPrinter.print_type(schema_def, %{})
 
     expected_union_type_program =
     """
@@ -51,7 +61,12 @@ defmodule JS2ETest.Printers.UnionPrinter do
 
   test "print union decoder" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     union_decoder_program =
       %UnionType{
@@ -59,7 +74,7 @@ defmodule JS2ETest.Printers.UnionPrinter do
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer"]
       }
-      |> UnionPrinter.print_decoder(type_dict, %{})
+      |> UnionPrinter.print_decoder(schema_def, %{})
 
     expected_union_decoder_program =
     """
@@ -75,7 +90,12 @@ defmodule JS2ETest.Printers.UnionPrinter do
 
   test "print union decoder with null value" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     union_decoder_program =
       %UnionType{
@@ -83,7 +103,7 @@ defmodule JS2ETest.Printers.UnionPrinter do
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer", "null"]
       }
-      |> UnionPrinter.print_decoder(type_dict, %{})
+      |> UnionPrinter.print_decoder(schema_def, %{})
 
     expected_union_decoder_program =
     """
@@ -100,7 +120,12 @@ defmodule JS2ETest.Printers.UnionPrinter do
 
   test "print union encoder" do
 
-    type_dict = %{}
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: %{}}
 
     union_encoder_program =
       %UnionType{
@@ -108,7 +133,7 @@ defmodule JS2ETest.Printers.UnionPrinter do
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer"]
       }
-      |> UnionPrinter.print_encoder(type_dict, %{})
+      |> UnionPrinter.print_encoder(schema_def, %{})
 
     expected_union_encoder_program =
     """

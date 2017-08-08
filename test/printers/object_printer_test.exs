@@ -2,7 +2,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{ObjectType, EnumType, PrimitiveType}
+  alias JS2E.Types.{ObjectType, EnumType, PrimitiveType, SchemaDefinition}
   alias JS2E.Printers.ObjectPrinter
 
   test "print object type" do
@@ -25,6 +25,13 @@ defmodule JS2ETest.Printers.ObjectPrinter do
                        type: "number"}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     object_type_program =
       %ObjectType{
         name: "circle",
@@ -35,7 +42,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
           "title" => ["#", "properties", "title"],
           "radius" => ["#", "properties", "radius"]}
       }
-      |> ObjectPrinter.print_type(type_dict, %{})
+      |> ObjectPrinter.print_type(schema_def, %{})
 
     expected_object_type_program =
     """
@@ -69,6 +76,13 @@ defmodule JS2ETest.Printers.ObjectPrinter do
                        type: "number"}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     object_decoder_program =
       %ObjectType{
         name: "circle",
@@ -79,7 +93,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
           "title" => ["#", "properties", "title"],
           "radius" => ["#", "properties", "radius"]}
       }
-      |> ObjectPrinter.print_decoder(type_dict, %{})
+      |> ObjectPrinter.print_decoder(schema_def, %{})
 
     expected_object_decoder_program =
     """
@@ -114,6 +128,13 @@ defmodule JS2ETest.Printers.ObjectPrinter do
                        type: "number"}
     }
 
+    schema_def = %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      module: "Domain",
+      types: type_dict}
+
     object_encoder_program =
       %ObjectType{
         name: "circle",
@@ -124,7 +145,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
           "title" => ["#", "properties", "title"],
           "radius" => ["#", "properties", "radius"]}
       }
-      |> ObjectPrinter.print_encoder(type_dict, %{})
+      |> ObjectPrinter.print_encoder(schema_def, %{})
 
     expected_object_encoder_program =
     """
