@@ -5,7 +5,6 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   @templates_location Application.get_env(:js2e, :templates_location)
   @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
-  @import_location Path.join(@templates_location, "preamble/import.elm.eex")
 
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
@@ -13,10 +12,7 @@ defmodule JS2E.Printers.PreamblePrinter do
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
   EEx.function_from_file(:defp, :preamble_template, @preamble_location,
-    [:prefix, :title, :description, :imports, :import_template])
-
-  EEx.function_from_file(:defp, :import_template, @import_location,
-    [:prefix, :import])
+    [:prefix, :title, :description, :imports])
 
   @spec print_preamble(SchemaDefinition.t, Types.schemaDictionary) :: String.t
   def print_preamble(%SchemaDefinition{id: _id,
@@ -30,7 +26,7 @@ defmodule JS2E.Printers.PreamblePrinter do
 
     imports = schema_def |> create_imports(schema_dict)
 
-    preamble_template(prefix, title, description, imports, &import_template/2)
+    preamble_template(prefix, title, description, imports)
   end
 
   @spec create_prefix(String.t) :: String.t
@@ -123,46 +119,14 @@ defmodule JS2E.Printers.PreamblePrinter do
     %{required(String.t) => TypeReference.t},
     SchemaDefinition.t,
     Types.schemaDictionary
-  ) :: [map]
+  ) :: [String.t]
   defp create_dependencies(dependency_map, schema_def, schema_dict) do
 
     dependency_map
     |> Enum.map(fn{schema_id, type_refs} ->
-
       type_ref_schema = schema_dict[to_string(schema_id)]
-      type_ref_schema_title = type_ref_schema.title
-
-      type_ref_dependencies =
-        type_refs
-        |> Enum.sort(&(&2.name < &1.name))
-        |> Enum.map(fn type_ref ->
-        create_import(type_ref, schema_def, schema_dict)
-      end)
-
-        %{title: type_ref_schema_title,
-          dependencies: type_ref_dependencies}
+      type_ref_schema.title
     end)
-  end
-
-  @spec create_import(
-    TypeReference.t,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: map
-  defp create_import(type_ref, schema_def, schema_dict) do
-
-    type_path = type_ref.path
-    {resolved_type, resolved_schema_def} =
-      type_path
-      |> Printer.resolve_type!(schema_def, schema_dict)
-
-    resolved_type_name = upcase_first resolved_type.name
-    resolved_decoder_name = "#{resolved_type.name}Decoder"
-    resolved_encoder_name = "encode#{resolved_type_name}"
-
-    %{type_name: resolved_type_name,
-      decoder_name: resolved_decoder_name,
-      encoder_name: resolved_encoder_name}
   end
 
   @spec has_relative_path?(URI.t) :: boolean

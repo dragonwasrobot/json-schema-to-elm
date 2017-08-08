@@ -197,11 +197,12 @@ defmodule JS2E.Printers.AnyOfPrinter do
     |> Enum.map(fn type_path ->
       Printer.resolve_type!(type_path, schema_def, schema_dict)
     end)
-      |> Enum.reduce([], fn ({property, schema}, properties) ->
-        encoder_name = create_encoder_name(property)
-        updated_property = Map.put(property, :encoder_name, encoder_name)
-        properties ++ [updated_property]
-      end)
+    |> Enum.reduce([], fn ({resolved_property, resolved_schema}, properties) ->
+      encoder_name = create_encoder_name(
+      {resolved_property, resolved_schema}, schema_def)
+      updated_property = Map.put(resolved_property, :encoder_name, encoder_name)
+      properties ++ [updated_property]
+    end)
   end
 
 end

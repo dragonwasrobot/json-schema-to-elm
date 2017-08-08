@@ -140,19 +140,11 @@ defmodule JS2ETest.Printers.ExternalReferences do
               , object
               )
       import Domain.Definitions
-          exposing
-              ( Color
-              , colorDecoder
-              , encodeColor
-              , Point
-              , pointDecoder
-              , encodePoint
-              )
 
 
       type alias Circle =
-          { center : Definitions.Point
-          , color : Maybe Definitions.Color
+          { center : Domain.Definitions.Point
+          , color : Maybe Domain.Definitions.Color
           , radius : Float
           }
 
@@ -160,8 +152,8 @@ defmodule JS2ETest.Printers.ExternalReferences do
       circleDecoder : Decoder Circle
       circleDecoder =
           decode Circle
-              |> required "center" Definitions.pointDecoder
-              |> optional "color" (Decode.string |> andThen Definitions.colorDecoder |> maybe) Nothing
+              |> required "center" Domain.Definitions.pointDecoder
+              |> optional "color" (Decode.string |> andThen Domain.Definitions.colorDecoder |> maybe) Nothing
               |> required "radius" Decode.float
 
 
@@ -169,12 +161,12 @@ defmodule JS2ETest.Printers.ExternalReferences do
       encodeCircle circle =
           let
               center =
-                  [ ( "center", Definitions.encodePoint circle.center ) ]
+                  [ ( "center", Domain.Definitions.encodePoint circle.center ) ]
 
               color =
                   case circle.color of
                       Just color ->
-                          [ ( "color", Definitions.encodeColor color ) ]
+                          [ ( "color", Domain.Definitions.encodeColor color ) ]
 
                       Nothing ->
                           []

@@ -4,11 +4,7 @@ module Domain.Circle exposing (..)
 
 import Json.Decode as Decode
     exposing
-        ( float
-        , int
-        , string
-        , list
-        , succeed
+        ( succeed
         , fail
         , map
         , maybe
@@ -29,53 +25,44 @@ import Json.Decode.Pipeline
 import Json.Encode as Encode
     exposing
         ( Value
-        , float
-        , int
-        , string
-        , list
         , object
         )
 import Domain.Definitions
-    exposing
-        ( Color
-        , colorDecoder
-        , encodeColor
-        , Point
-        , pointDecoder
-        , encodePoint
-        )
 
 
-type alias Root =
-    { center : Point
-    , color : Maybe Color
+type alias Circle =
+    { center : Domain.Definitions.Point
+    , color : Maybe Domain.Definitions.Color
     , radius : Float
     }
 
 
-rootDecoder : Decoder Root
-rootDecoder =
-    decode Root
-        |> required "center" pointDecoder
-        |> optional "color" (Decode.string |> andThen colorDecoder |> maybe) Nothing
+circleDecoder : Decoder Circle
+circleDecoder =
+    decode Circle
+        |> required "center" Domain.Definitions.pointDecoder
+        |> optional "color" (Decode.string |> andThen Domain.Definitions.colorDecoder |> maybe) Nothing
         |> required "radius" Decode.float
 
 
-encodeRoot : Root -> Value
-encodeRoot root =
+encodeCircle : Circle -> Value
+encodeCircle circle =
     let
         center =
-            [ ( "center", encodePoint root.center ) ]
+            [ ( "center", Domain.Definitions.encodePoint circle.center ) ]
 
         color =
-            case root.color of
+            case circle.color of
                 Just color ->
-                    [ ( "color", encodeColor color ) ]
+                    [ ( "color", Domain.Definitions.encodeColor color ) ]
 
                 Nothing ->
                     []
 
         radius =
-            [ ( "radius", Encode.float root.radius ) ]
+            [ ( "radius", Encode.float circle.radius ) ]
     in
-        object <| center ++ color ++ radius
+        object <|
+            center
+                ++ color
+                ++ radius

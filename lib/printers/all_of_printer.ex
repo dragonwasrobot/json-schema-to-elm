@@ -56,22 +56,12 @@ defmodule JS2E.Printers.AllOfPrinter do
     field_type =
       type_path
       |> Printer.resolve_type!(schema_def, schema_dict)
-      |> create_type_name
+      |> create_type_name(schema_def)
 
     field_name = downcase_first field_type
 
     %{name: field_name,
       type: field_type}
-  end
-
-  @spec create_type_name({Types.typeDefinition, SchemaDefinition.t}) :: String.t
-  defp create_type_name({property_type, schema_def}) do
-
-    if primitive_type?(property_type) do
-      determine_primitive_type!(property_type.type)
-    else
-      property_type_name = upcase_first property_type.name
-    end
   end
 
   @spec print_decoder(
@@ -116,7 +106,8 @@ defmodule JS2E.Printers.AllOfPrinter do
       |> Printer.resolve_type!(schema_def, schema_dict)
 
     property_name = property_type.name
-    decoder_name = create_decoder_name(property_type)
+    decoder_name = create_decoder_name(
+      {property_type, resolved_schema_def}, schema_def)
 
     cond do
       union_type?(property_type) || one_of_type?(property_type) ->
@@ -132,17 +123,6 @@ defmodule JS2E.Printers.AllOfPrinter do
 
       true ->
         create_decoder_normal_clause(property_name, decoder_name)
-    end
-  end
-
-  @spec create_decoder_name(Types.typeDefinition) :: String.t
-  defp create_decoder_name(property_type) do
-
-    if primitive_type?(property_type) do
-      determine_primitive_type_decoder!(property_type.type)
-    else
-      property_type_name = property_type.name
-      "#{property_type_name}Decoder"
     end
   end
 
@@ -191,9 +171,10 @@ defmodule JS2E.Printers.AllOfPrinter do
     |> Enum.map(fn type_path ->
       Printer.resolve_type!(type_path, schema_def, schema_dict)
     end)
-    |> Enum.reduce([], fn ({property, schema}, properties) ->
-      encoder_name = create_encoder_name(property)
-      updated_property = Map.put(property, :encoder_name, encoder_name)
+    |> Enum.reduce([], fn ({resolved_property, resolved_schema}, properties) ->
+      encoder_name = create_encoder_name(
+      {resolved_property, resolved_schema}, schema_def)
+      updated_property = Map.put(resolved_property, :encoder_name, encoder_name)
       properties ++ [updated_property]
     end)
   end

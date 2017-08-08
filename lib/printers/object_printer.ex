@@ -32,11 +32,15 @@ defmodule JS2E.Printers.ObjectPrinter do
                              properties: properties,
                              required: required}, schema_def, schema_dict) do
 
-    type_name = if name == "#" do
-      "Root"
+    type_name = (if name == "#" do
+      if schema_def.title != nil do
+        upcase_first schema_def.title
+      else
+        "Root"
+      end
     else
       upcase_first name
-    end
+    end)
 
     fields = create_type_fields(properties, required, schema_def, schema_dict)
 
@@ -64,37 +68,22 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp create_type_field({property_name, property_path},
     required, schema_def, schema_dict) do
 
-    field_type =
-      property_path
-      |> Printer.resolve_type!(schema_def, schema_dict)
-      |> create_type_name
-      |> (fn (field_name) ->
+    check_if_maybe = fn (field_name, property_name, required) ->
       if property_name in required do
         field_name
       else
         "Maybe #{field_name}"
       end
-    end).()
+    end
+
+    field_type =
+      property_path
+      |> Printer.resolve_type!(schema_def, schema_dict)
+      |> create_type_name(schema_def)
+      |> check_if_maybe.(property_name, required)
 
     %{name: property_name,
       type: field_type}
-  end
-
-  @spec create_type_name({Types.typeDefinition, SchemaDefinition.t}) :: String.t
-  defp create_type_name({property_type, schema_def}) do
-
-    if primitive_type?(property_type) do
-      determine_primitive_type!(property_type.type)
-    else
-
-      property_type_name = property_type.name
-      if property_type_name == "#" do
-        "Root"
-      else
-        upcase_first property_type_name
-      end
-
-    end
   end
 
   @spec print_decoder(
@@ -108,17 +97,16 @@ defmodule JS2E.Printers.ObjectPrinter do
                                 required: required},
     schema_def, schema_dict) do
 
-    decoder_name = if name == "#" do
-      "rootDecoder"
-    else
-      "#{downcase_first name}Decoder"
-    end
-
-    type_name = if name == "#" do
-      "Root"
+    type_name = (if name == "#" do
+      if schema_def.title != nil do
+        upcase_first schema_def.title
+      else
+        "Root"
+      end
     else
       upcase_first name
-    end
+    end)
+    decoder_name = "#{downcase_first type_name}Decoder"
 
     clauses = create_decoder_properties(
       properties, required, schema_def, schema_dict)
@@ -154,7 +142,9 @@ defmodule JS2E.Printers.ObjectPrinter do
       property_path
       |> Printer.resolve_type!(schema_def, schema_dict)
 
-    decoder_name = create_decoder_name(property_type)
+    decoder_name = create_decoder_name(
+      {property_type, resolved_schema_def}, schema_def)
+
     is_required = property_name in required
 
     cond do
@@ -171,24 +161,6 @@ defmodule JS2E.Printers.ObjectPrinter do
 
       true ->
         create_decoder_normal_clause(property_name, decoder_name, is_required)
-    end
-  end
-
-  @spec create_decoder_name(Types.typeDefinition) :: String.t
-  defp create_decoder_name(property_type) do
-
-    if primitive_type?(property_type) do
-      primitive_type_name = property_type.type
-      determine_primitive_type_decoder!(primitive_type_name)
-    else
-
-      property_type_name = property_type.name
-      if property_type_name == "#" do
-        "rootDecoder"
-      else
-        "#{property_type_name}Decoder"
-      end
-
     end
   end
 
@@ -242,8 +214,18 @@ defmodule JS2E.Printers.ObjectPrinter do
                                 required: required},
     schema_def, schema_dict) do
 
-    type_name = if name == "#", do: "Root", else: upcase_first name
+    type_name = (if name == "#" do
+      if schema_def.title != nil do
+        upcase_first schema_def.title
+      else
+        "Root"
+      end
+    else
+      upcase_first name
+    end)
+
     encoder_name = "encode#{type_name}"
+
     argument_name = downcase_first type_name
 
     properties = create_encoder_properties(properties, required,
@@ -278,11 +260,12 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp create_encoder_property({property_name, property_path}, required,
     schema_def, schema_dict) do
 
-    {property_type, resolved_schema_def} =
+    {resolved_type, resolved_schema} =
       property_path
       |> Printer.resolve_type!(schema_def, schema_dict)
 
-    encoder_name = create_encoder_name(property_type)
+    encoder_name = create_encoder_name(
+      {resolved_type, resolved_schema}, schema_def)
     is_required = property_name in required
 
     %{name: property_name,

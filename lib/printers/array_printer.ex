@@ -88,9 +88,8 @@ defmodule JS2E.Printers.ArrayPrinter do
     SchemaDefinition.t,
     Types.schemaDictionary
   ) :: String.t
-  def print_encoder(%ArrayType{name: name,
-                               path: _path,
-                               items: items_path}, schema_def, schema_dict) do
+  def print_encoder(%ArrayType{name: name, path: _path, items: items_path},
+    schema_def, schema_dict) do
 
     {items_type, resolved_schema_def} =
       items_path
