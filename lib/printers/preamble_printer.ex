@@ -8,7 +8,7 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
-  alias JS2E.{Printer, Types}
+  alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
   EEx.function_from_file(:defp, :preamble_template, @preamble_location,
@@ -19,7 +19,7 @@ defmodule JS2E.Printers.PreamblePrinter do
                                        title: title,
                                        module: module_name,
                                        description: description,
-                                       types: type_dict} = schema_def,
+                                       types: _type_dict} = schema_def,
     schema_dict) do
 
     prefix = create_prefix(module_name)
@@ -120,10 +120,10 @@ defmodule JS2E.Printers.PreamblePrinter do
     SchemaDefinition.t,
     Types.schemaDictionary
   ) :: [String.t]
-  defp create_dependencies(dependency_map, schema_def, schema_dict) do
+  defp create_dependencies(dependency_map, _schema_def, schema_dict) do
 
     dependency_map
-    |> Enum.map(fn{schema_id, type_refs} ->
+    |> Enum.map(fn{schema_id, _type_refs} ->
       type_ref_schema = schema_dict[to_string(schema_id)]
       type_ref_schema.title
     end)

@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.OneOfPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing a 'one of' type decoder.
   """
@@ -22,11 +23,9 @@ defmodule JS2E.Printers.OneOfPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :type_name, :argument_name, :cases])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%OneOfType{name: name,
                             path: _path,
                             types: types}, schema_def, schema_dict) do
@@ -48,7 +47,7 @@ defmodule JS2E.Printers.OneOfPrinter do
     type_name = upcase_first name
 
     create_type_clause = fn type_path ->
-      {clause_type, resolved_schema_def} =
+      {clause_type, _resolved_schema_def} =
         type_path
         |> Printer.resolve_type!(schema_def, schema_dict)
 
@@ -67,11 +66,9 @@ defmodule JS2E.Printers.OneOfPrinter do
     |> Enum.map(create_type_clause)
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%OneOfType{name: name,
                                path: _path,
                                types: types}, schema_def, schema_dict) do
@@ -91,7 +88,7 @@ defmodule JS2E.Printers.OneOfPrinter do
   defp create_decoder_clauses(types, schema_def, schema_dict) do
 
     create_decoder_clause = fn type_path ->
-      {clause_type, resolved_schema_def} =
+      {clause_type, _resolved_schema_def} =
         type_path
         |> Printer.resolve_type!(schema_def, schema_dict)
 
@@ -102,11 +99,9 @@ defmodule JS2E.Printers.OneOfPrinter do
     |> Enum.map(create_decoder_clause)
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%OneOfType{name: name,
                               path: _path,
                               types: types}, schema_def, schema_dict) do
@@ -143,7 +138,7 @@ defmodule JS2E.Printers.OneOfPrinter do
     type_name = upcase_first name
 
     create_type_clause = fn type_path ->
-      {clause_type, resolved_schema_def} =
+      {clause_type, _resolved_schema_def} =
         type_path
         |> Printer.resolve_type!(schema_def, schema_dict)
 

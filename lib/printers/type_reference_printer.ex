@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.TypeReferencePrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing a type reference decoder.
   """
@@ -7,31 +8,25 @@ defmodule JS2E.Printers.TypeReferencePrinter do
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%TypeReference{name: _name,
                                 path: _path}, _schema_def, _schema_dict) do
     ""
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%TypeReference{name: _name,
                                    path: _path}, _schema_def, _schema_dict) do
     ""
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%TypeReference{name: _name,
                                    path: _path}, _schema_def, _schema_dict) do
     ""

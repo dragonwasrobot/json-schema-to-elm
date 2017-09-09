@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.AnyOfPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing an 'any of' type decoder.
   """
@@ -22,11 +23,9 @@ defmodule JS2E.Printers.AnyOfPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :type_name, :argument_name, :properties])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%AnyOfType{name: name,
                             path: _path,
                             types: types}, schema_def, schema_dict) do
@@ -66,20 +65,18 @@ defmodule JS2E.Printers.AnyOfPrinter do
   end
 
   @spec create_type_name({Types.typeDefinition, SchemaDefinition.t}) :: String.t
-  defp create_type_name({property_type, schema_def}) do
+  defp create_type_name({property_type, _schema_def}) do
 
     if primitive_type?(property_type) do
       determine_primitive_type!(property_type.type)
     else
-      property_type_name = upcase_first property_type.name
+      upcase_first property_type.name
     end
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%AnyOfType{name: name,
                                path: _path,
                                types: type_paths},
@@ -112,7 +109,7 @@ defmodule JS2E.Printers.AnyOfPrinter do
   ) :: map
   defp create_decoder_property(type_path, schema_def, schema_dict) do
 
-    {property_type, resolved_schema_def} =
+    {property_type, _resolved_schema_def} =
       type_path
       |> Printer.resolve_type!(schema_def, schema_dict)
 
@@ -165,11 +162,9 @@ defmodule JS2E.Printers.AnyOfPrinter do
     decoder_name: decoder_name}
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%AnyOfType{name: name,
                                path: _path,
                                types: type_paths},

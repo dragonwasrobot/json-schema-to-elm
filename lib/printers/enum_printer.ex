@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.EnumPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   Prints the Elm type, JSON decoder and JSON eecoder for a JSON schema 'enum'.
   """
@@ -22,11 +23,9 @@ defmodule JS2E.Printers.EnumPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :argument_name, :argument_type, :cases])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%EnumType{name: name,
                            path: _path,
                            type: type,
@@ -38,11 +37,9 @@ defmodule JS2E.Printers.EnumPrinter do
     type_template(type_name, clauses)
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%EnumType{name: name,
                               path: _path,
                               type: type,
@@ -85,11 +82,9 @@ defmodule JS2E.Printers.EnumPrinter do
     end
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%EnumType{name: name,
                               path: _path,
                               type: type,

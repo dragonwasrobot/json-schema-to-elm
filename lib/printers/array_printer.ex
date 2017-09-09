@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.ArrayPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing an 'array' type decoder.
   """
@@ -18,27 +19,23 @@ defmodule JS2E.Printers.ArrayPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :argument_name, :items_type_name, :items_encoder_name])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%ArrayType{name: _name,
                             path: _path,
                             items: _items_path}, _schema_def, _schema_dict) do
     ""
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%ArrayType{name: name,
                                path: _path,
                                items: items_path}, schema_def, schema_dict) do
 
-    {items_type, resolved_schema_def} =
+    {items_type, _resolved_schema_def} =
       items_path
       |> Printer.resolve_type!(schema_def, schema_dict)
 
@@ -83,15 +80,13 @@ defmodule JS2E.Printers.ArrayPrinter do
     end
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%ArrayType{name: name, path: _path, items: items_path},
     schema_def, schema_dict) do
 
-    {items_type, resolved_schema_def} =
+    {items_type, _resolved_schema_def} =
       items_path
       |> Printer.resolve_type!(schema_def, schema_dict)
 

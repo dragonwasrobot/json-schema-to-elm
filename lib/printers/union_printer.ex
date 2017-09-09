@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.UnionPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing an 'object' type decoder.
   """
@@ -22,11 +23,9 @@ defmodule JS2E.Printers.UnionPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :type_name, :argument_name, :cases])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%UnionType{name: name,
                             path: _path,
                             types: types}, _schema_def, _schema_dict) do
@@ -67,11 +66,9 @@ defmodule JS2E.Printers.UnionPrinter do
     |> Enum.map(to_clause)
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%UnionType{name: name,
                                path: _path,
                                types: types}, _schema_def, _schema_dict) do
@@ -127,11 +124,9 @@ defmodule JS2E.Printers.UnionPrinter do
       wrapper: wrapper}
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%UnionType{name: name,
                               path: _path,
                               types: types}, _schema_def, _schema_dict) do

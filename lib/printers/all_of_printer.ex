@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.AllOfPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing an 'all of' type decoder.
   """
@@ -22,11 +23,9 @@ defmodule JS2E.Printers.AllOfPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :type_name, :argument_name, :properties])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%AllOfType{name: name,
                             path: _path,
                             types: types}, schema_def, schema_dict) do
@@ -37,20 +36,14 @@ defmodule JS2E.Printers.AllOfPrinter do
     type_template(type_name, fields)
   end
 
-  @spec create_type_fields(
-    [TypePath.t],
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: [map]
+  @spec create_type_fields([TypePath.t], SchemaDefinition.t,
+    Types.schemaDictionary) :: [map]
   defp create_type_fields(types, schema_def, schema_dict) do
     types |> Enum.map(&(create_type_field(&1, schema_def, schema_dict)))
   end
 
-  @spec create_type_field(
-    TypePath.t,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: map
+  @spec create_type_field(TypePath.t, SchemaDefinition.t,
+    Types.schemaDictionary) :: map
   defp create_type_field(type_path, schema_def, schema_dict) do
 
     field_type =
@@ -64,11 +57,9 @@ defmodule JS2E.Printers.AllOfPrinter do
       type: field_type}
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%AllOfType{name: name,
                                path: _path,
                                types: type_paths},
@@ -144,11 +135,9 @@ defmodule JS2E.Printers.AllOfPrinter do
       decoder_name: decoder_name}
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%AllOfType{name: name,
                                path: _path,
                                types: type_paths},

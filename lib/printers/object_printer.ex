@@ -1,4 +1,5 @@
 defmodule JS2E.Printers.ObjectPrinter do
+  @behaviour JS2E.Printers.PrinterBehaviour
   @moduledoc """
   A printer for printing an 'object' type decoder.
   """
@@ -22,11 +23,9 @@ defmodule JS2E.Printers.ObjectPrinter do
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :type_name, :argument_name, :properties])
 
-  @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_type(%ObjectType{name: name,
                              path: _path,
                              properties: properties,
@@ -86,11 +85,9 @@ defmodule JS2E.Printers.ObjectPrinter do
       type: field_type}
   end
 
-  @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_decoder(%ObjectType{name: name,
                                 path: _path,
                                 properties: properties,
@@ -203,11 +200,9 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary
-  ) :: String.t
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary) :: String.t
   def print_encoder(%ObjectType{name: name,
                                 path: _path,
                                 properties: properties,
