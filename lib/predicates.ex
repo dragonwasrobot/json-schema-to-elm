@@ -209,4 +209,28 @@ defmodule JS2E.Predicates do
     type == "array" && is_map(items)
   end
 
+  @doc ~S"""
+  Returns true if the json subschema represents a tuple type.
+
+  ## Examples
+
+      iex> JS2E.Predicates.tuple_type?(%{})
+      false
+
+      iex> JS2E.Predicates.tuple_type?(%{"type" => "array"})
+      false
+
+      iex> aTuple = %{"type" => "array",
+      ...>            "items" => [%{"$ref" => "#foo"}, %{"$ref" => "#bar"}]}
+      iex> JS2E.Predicates.tuple_type?(aTuple)
+      true
+
+  """
+  @spec tuple_type?(map) :: boolean
+  def tuple_type?(schema_node) do
+    type = schema_node["type"]
+    items = schema_node["items"]
+    type == "array" && is_list(items)
+  end
+
 end

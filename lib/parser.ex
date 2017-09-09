@@ -7,7 +7,7 @@ defmodule JS2E.Parser do
   require Logger
   alias JS2E.Parsers.{ArrayParser, ObjectParser, EnumParser, PrimitiveParser,
                       DefinitionsParser, AllOfParser, AnyOfParser, OneOfParser,
-                      UnionParser, TypeReferenceParser}
+                      UnionParser, TupleParser, TypeReferenceParser}
   alias JS2E.{TypePath, Types, Predicates}
   alias JS2E.Types.SchemaDefinition
 
@@ -100,6 +100,10 @@ defmodule JS2E.Parser do
         schema_root_node
         |> parse_type(schema_id, [], name)
 
+      Predicates.tuple_type?(schema_root_node) ->
+        schema_root_node
+        |> parse_type(schema_id, [], name)
+
       Predicates.array_type?(schema_root_node) ->
         schema_root_node
         |> parse_type(schema_id, [], name)
@@ -169,6 +173,7 @@ defmodule JS2E.Parser do
       {&Predicates.one_of_type?/1, &OneOfParser.parse/5},
       {&Predicates.object_type?/1, &ObjectParser.parse/5},
       {&Predicates.array_type?/1, &ArrayParser.parse/5},
+      {&Predicates.tuple_type?/1, &TupleParser.parse/5},
       {&Predicates.primitive_type?/1, &PrimitiveParser.parse/5},
       {&Predicates.definitions?/1, &DefinitionsParser.parse/5}
     ]
