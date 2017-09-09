@@ -1,4 +1,5 @@
 defmodule JS2E.Parsers.OneOfParser do
+  @behaviour JS2E.Parsers.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema oneOf type:
 
@@ -36,6 +37,7 @@ defmodule JS2E.Parsers.OneOfParser do
   @doc ~S"""
   Parses a JSON schema oneOf type into an `JS2E.Types.OneOfType`.
   """
+  @impl JS2E.Parsers.ParserBehaviour
   @spec parse(map, URI.t, URI.t, TypePath.t, String.t)
   :: Types.typeDictionary
   def parse(schema_node, parent_id, id, path, name) do

@@ -1,4 +1,5 @@
 defmodule JS2E.Parsers.UnionParser do
+  @behaviour JS2E.Parsers.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema union type:
 
@@ -17,6 +18,7 @@ defmodule JS2E.Parsers.UnionParser do
   @doc ~S"""
   Parses a JSON schema union type into an `JS2E.Types.UnionType`.
   """
+  @impl JS2E.Parsers.ParserBehaviour
   @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
   def parse(schema_node, _parent_id, id, path, name) do
     Logger.debug "Parsing '#{inspect path}' as union type"

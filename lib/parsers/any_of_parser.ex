@@ -1,4 +1,5 @@
 defmodule JS2E.Parsers.AnyOfParser do
+  @behaviour JS2E.Parsers.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema anyOf type:
 
@@ -36,7 +37,8 @@ defmodule JS2E.Parsers.AnyOfParser do
   @doc ~S"""
   Parses a JSON schema anyOf type into an `JS2E.Types.AnyOfType`.
   """
-  @spec parse(map, URI.t, URI.t, TypePath.t, String.t)
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec parse(map, URI.t, URI.t | nil, TypePath.t, String.t)
   :: Types.typeDictionary
   def parse(schema_node, parent_id, id, path, name) do
     Logger.debug "Parsing '#{inspect path}' as anyOf type"

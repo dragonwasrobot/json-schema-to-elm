@@ -1,4 +1,5 @@
 defmodule JS2E.Parsers.EnumParser do
+  @behaviour JS2E.Parsers.ParserBehaviour
   @moduledoc ~S"""
   Parse a JSON schema enum type:
 
@@ -18,7 +19,9 @@ defmodule JS2E.Parsers.EnumParser do
   @doc ~S"""
   Parses a JSON schema enum type into an `JS2E.Types.EnumType`.
   """
-  @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec parse(map, URI.t, URI.t | nil, TypePath.t, String.t)
+  :: Types.typeDictionary
   def parse(schema_node, _parent_id, id, path, name) do
     Logger.debug "parsing '#{inspect path}' as EnumType"
 
