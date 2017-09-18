@@ -121,6 +121,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
               , map
               , maybe
               , field
+              , index
               , at
               , andThen
               , oneOf
@@ -194,6 +195,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
               , map
               , maybe
               , field
+              , index
               , at
               , andThen
               , oneOf

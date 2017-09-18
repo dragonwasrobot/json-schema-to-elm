@@ -1,6 +1,6 @@
 <%= decoder_name %> : Decoder <%= type_name %>
 <%= decoder_name %> =
-    map<%= Enum.count(clauses) %> <%= type_name %><%#
+    Decode.map<%= Enum.count(clauses) %> (<%= Enum.map_join(clauses, ",", fn x -> "" end)%>)<%#
         %><%= for {clause, idx} <- Enum.with_index(clauses) do %><%#
         %><%= if  Map.has_key?(clause, :property_decoder) do %>
         (index <%= idx %> <%= clause.property_decoder %>) |> andThen <%= clause.decoder %>)<%#

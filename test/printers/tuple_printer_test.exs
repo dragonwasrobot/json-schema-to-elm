@@ -9,11 +9,11 @@ defmodule JS2ETest.Printers.TuplePrinter do
 
     type_dict = %{
       "#/shapePair/0" =>
-      %TypeReference{name: "square",
+      %TypeReference{name: "0",
                      path: ["#", "definitions", "square"]},
 
       "#/shapePair/1" =>
-        %TypeReference{name: "circle",
+        %TypeReference{name: "1",
                        path: ["#", "definitions", "circle"]},
 
       "#/definitions/square" =>
@@ -41,7 +41,7 @@ defmodule JS2ETest.Printers.TuplePrinter do
     tuple_type_program =
       %TupleType{
         name: "shapePair",
-        path: ["#", "definitions", "shapePair"],
+        path: ["#", "shapePair"],
         items: [["#", "shapePair", "0"],
                 ["#", "shapePair", "1"]]
       }
@@ -61,6 +61,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
   test "print 'tuple' decoder" do
 
     type_dict = %{
+      "#/shapePair/0" =>
+      %TypeReference{name: "0",
+                     path: ["#", "definitions", "square"]},
+
+      "#/shapePair/1" =>
+        %TypeReference{name: "1",
+                       path: ["#", "definitions", "circle"]},
+
       "#/definitions/square" =>
       %ObjectType{name: "square",
                   path: ["#"],
@@ -86,9 +94,9 @@ defmodule JS2ETest.Printers.TuplePrinter do
     tuple_decoder_program =
       %TupleType{
         name: "shapePair",
-        path: ["#", "definitions", "shapePair"],
-        items: [["#", "definitions", "square"],
-                ["#", "definitions", "circle"]]
+        path: ["#"],
+        items: [["#", "shapePair", "0"],
+                ["#", "shapePair", "1"]]
       }
       |> TuplePrinter.print_decoder(schema_def, %{})
 
@@ -96,7 +104,7 @@ defmodule JS2ETest.Printers.TuplePrinter do
     """
     shapePairDecoder : Decoder ShapePair
     shapePairDecoder =
-        map2 ShapePair
+        Decode.map2 (,)
             (index 0 squareDecoder)
             (index 1 circleDecoder)
     """
@@ -107,6 +115,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
   test "print 'tuple' encoder" do
 
     type_dict = %{
+      "#/shapePair/0" =>
+      %TypeReference{name: "0",
+                     path: ["#", "definitions", "square"]},
+
+      "#/shapePair/1" =>
+        %TypeReference{name: "1",
+                       path: ["#", "definitions", "circle"]},
+
       "#/definitions/square" =>
       %ObjectType{name: "square",
                   path: ["#"],
@@ -131,25 +147,25 @@ defmodule JS2ETest.Printers.TuplePrinter do
 
     tuple_encoder_program =
       %TupleType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        items: [["#", "definitions", "square"],
-                ["#", "definitions", "circle"]]
+        name: "shapePair",
+        path: ["#"],
+        items: [["#", "shapePair", "0"],
+                ["#", "shapePair", "1"]]
       }
       |> TuplePrinter.print_encoder(schema_def, %{})
 
     expected_tuple_encoder_program =
     """
-    encodeShape : Shape -> Value
-    encodeShape shape =
+    encodeShapePair : ShapePair -> Value
+    encodeShapePair (square, circle) =
         let
-            square =
-                encodeSquare shape.square
+            encodedsquare =
+                encodeSquare square
 
-            circle =
-                encodeCircle shape.circle
+            encodedcircle =
+                encodeCircle circle
         in
-            list (square, circle)
+            list [encodedsquare, encodedcircle]
     """
 
     assert tuple_encoder_program == expected_tuple_encoder_program
