@@ -24,9 +24,9 @@ defmodule JS2E.Types.TupleType do
   - Type definitions
 
       type alias ShapePair =
-          { rectangle : Rectangle
-          , circle : Circle
-          }
+          ( Rectangle
+          , Circle
+          )
 
   - Decoder definition
 
@@ -43,10 +43,10 @@ defmodule JS2E.Types.TupleType do
   - Encoder definition
 
       encodeShapePair : List ShapePair -> Value
-      encodeShapePair shapePair =
+      encodeShapePair (rectangle, circle) =
           Encode.list
-              [ encodeRectangle shapePair.rectangle
-              , encodeCircle shapePair.circle
+              [ encodeRectangle rectangle
+              , encodeCircle circle
               ]
 
   - Encoder usage

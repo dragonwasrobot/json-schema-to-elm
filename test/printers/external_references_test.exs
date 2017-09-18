@@ -138,6 +138,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
           exposing
               ( Value
               , object
+              , list
               )
       import Domain.Definitions
 
@@ -210,6 +211,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
           exposing
               ( Value
               , object
+              , list
               )
 
 

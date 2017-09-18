@@ -26,6 +26,7 @@ import Json.Encode as Encode
     exposing
         ( Value
         , object
+        , list
         )
 <%= for import_name <- imports do %><%#
 %>import <%= prefix %><%= import_name %><%#

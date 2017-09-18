@@ -16,7 +16,7 @@ defmodule JS2E.Parsers.TupleParser do
 
   require Logger
   import JS2E.Parsers.Util
-  alias JS2E.{Parser, TypePath, Types}
+  alias JS2E.{TypePath, Types}
   alias JS2E.Types.TupleType
 
   @doc ~S"""
