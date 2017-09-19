@@ -21,7 +21,7 @@ defmodule JS2E.Printers.TuplePrinter do
     [:decoder_name, :type_name, :clauses])
 
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
-    [:encoder_name, :type_name, :argument_name, :properties])
+    [:encoder_name, :type_name, :properties])
 
   @impl JS2E.Printers.PrinterBehaviour
   @spec print_type(Types.typeDefinition, SchemaDefinition.t,
@@ -74,58 +74,51 @@ defmodule JS2E.Printers.TuplePrinter do
 
     type_paths
     |> Enum.map(fn type_path ->
-      create_decoder_property(type_path, schema_def, schema_dict)
+      create_decoder_clause(type_path, schema_def, schema_dict)
     end)
   end
 
-  @spec create_decoder_property(
+  @spec create_decoder_clause(
     TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary
   ) :: map
-  defp create_decoder_property(type_path, schema_def, schema_dict) do
+  defp create_decoder_clause(type_path, schema_def, schema_dict) do
 
     {property_type, resolved_schema_def} =
       type_path
       |> Printer.resolve_type!(schema_def, schema_dict)
 
-    property_name = property_type.name
     decoder_name = create_decoder_name(
       {property_type, resolved_schema_def}, schema_def)
 
     cond do
       union_type?(property_type) || one_of_type?(property_type) ->
-        create_decoder_union_clause(property_name, decoder_name)
+        create_decoder_union_clause(decoder_name)
 
       enum_type?(property_type) ->
         property_type_decoder =
           property_type.type
           |> determine_primitive_type_decoder!()
 
-        create_decoder_enum_clause(
-          property_name, property_type_decoder, decoder_name)
+        create_decoder_enum_clause(property_type_decoder, decoder_name)
 
       true ->
-        create_decoder_normal_clause(property_name, decoder_name)
+        create_decoder_normal_clause(decoder_name)
     end
   end
 
-  defp create_decoder_union_clause(property_name, decoder_name) do
-    %{property_name: property_name,
+  defp create_decoder_union_clause(decoder_name) do
+    %{decoder_name: decoder_name}
+  end
+
+  defp create_decoder_enum_clause(property_type_decoder, decoder_name) do
+    %{property_decoder: property_type_decoder,
       decoder_name: decoder_name}
   end
 
-  defp create_decoder_enum_clause(property_name,
-    property_type_decoder, decoder_name) do
-
-    %{property_name: property_name,
-      property_decoder: property_type_decoder,
-      decoder_name: decoder_name}
-  end
-
-  defp create_decoder_normal_clause(property_name, decoder_name) do
-    %{property_name: property_name,
-      decoder_name: decoder_name}
+  defp create_decoder_normal_clause(decoder_name) do
+    %{decoder_name: decoder_name}
   end
 
   @impl JS2E.Printers.PrinterBehaviour
@@ -138,12 +131,10 @@ defmodule JS2E.Printers.TuplePrinter do
 
     type_name = upcase_first name
     encoder_name = "encode#{type_name}"
-    argument_name = downcase_first type_name
 
     properties = create_encoder_properties(type_paths, schema_def, schema_dict)
 
-    template = encoder_template(encoder_name, type_name,
-      argument_name, properties)
+    template = encoder_template(encoder_name, type_name, properties)
     trim_newlines(template)
   end
 

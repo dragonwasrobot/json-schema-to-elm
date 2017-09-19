@@ -177,7 +177,6 @@ defmodule JS2E.Printer do
   ) :: {Types.typeDefinition, SchemaDefinition.t}
   def resolve_type!(identifier, schema_def, schema_dict) do
     Logger.debug "Looking up '#{inspect identifier}' in #{inspect schema_def}"
-    type_dict = schema_def.types
 
     {resolved_type, resolved_schema_def} = cond do
 
