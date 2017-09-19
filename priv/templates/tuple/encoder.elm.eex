@@ -1,0 +1,9 @@
+<%= encoder_name %> : <%= type_name %> -> Value
+<%= encoder_name %> (<%= Enum.map_join(properties, ", ", fn property -> property.name end) %>) =
+    let<%= for property <- properties do %>
+        encoded<%= property.name %> =
+            <%= property.encoder_name %> <%= property.name %>
+<% end %><%#
+%>    in
+        list [<%= Enum.map_join(properties, ", ", fn property -> "encoded#{property.name}" end) %>]
+

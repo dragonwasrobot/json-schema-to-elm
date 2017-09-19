@@ -75,6 +75,7 @@ import Json.Decode as Decode
         , map
         , maybe
         , field
+        , index
         , at
         , andThen
         , oneOf
@@ -92,6 +93,7 @@ import Json.Encode as Encode
     exposing
         ( Value
         , object
+        , list
         )
 
 
@@ -206,6 +208,7 @@ import Json.Decode as Decode
         , map
         , maybe
         , field
+        , index
         , at
         , andThen
         , oneOf
@@ -223,6 +226,7 @@ import Json.Encode as Encode
     exposing
         ( Value
         , object
+        , list
         )
 import Domain.Definitions
 
@@ -259,7 +263,10 @@ encodeCircle circle =
         radius =
             [ ( "radius", Encode.float circle.radius ) ]
     in
-        object <| center ++ color ++ radius
+        object <|
+            center
+                ++ color
+                ++ radius
 ```
 
 ## Tests
