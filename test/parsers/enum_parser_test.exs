@@ -1,5 +1,6 @@
 defmodule JS2ETest.Parsers.EnumParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.EnumParser, import: true
 
   alias JS2E.Types.EnumType
   alias JS2E.Parsers.EnumParser

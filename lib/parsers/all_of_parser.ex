@@ -35,6 +35,28 @@ defmodule JS2E.Parsers.AllOfParser do
   alias JS2E.Types.AllOfType
 
   @doc ~S"""
+  Returns true if the json subschema represents an allOf type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"allOf" => []})
+  false
+
+  iex> type?(%{"allOf" => [%{"$ref" => "#foo"}]})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    all_of = schema_node["allOf"]
+    is_list(all_of) && length(all_of) > 0
+  end
+
+  @doc ~S"""
   Parses a JSON schema allOf type into an `JS2E.Types.AllOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

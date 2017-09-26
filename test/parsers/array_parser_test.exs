@@ -1,5 +1,6 @@
 defmodule JS2ETest.Parsers.ArrayParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.ArrayParser, import: true
 
   alias JS2E.Types.{ArrayType, TypeReference}
   alias JS2E.Parsers.ArrayParser

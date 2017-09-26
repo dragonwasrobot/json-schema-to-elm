@@ -1,12 +1,13 @@
 defmodule JS2ETest.Parsers.DefinitionsParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.DefinitionsParser, import: true
 
   alias JS2E.{Types, Parser}
   alias Types.{ArrayType, TypeReference, PrimitiveType, SchemaDefinition}
 
   test "parse definitions" do
 
-    schema_dict =
+    {:ok, schema_dict} =
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",

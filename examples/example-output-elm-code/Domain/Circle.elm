@@ -65,6 +65,4 @@ encodeCircle circle =
             [ ( "radius", Encode.float circle.radius ) ]
     in
         object <|
-            center
-                ++ color
-                ++ radius
+            center ++ color ++ radius

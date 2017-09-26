@@ -103,7 +103,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
     }
 
     module_prefix = "Domain"
-    elm_program = Printer.print_schemas(schema_representations)
+    {:ok, elm_program} = Printer.print_schemas(schema_representations)
     Logger.debug "#{inspect elm_program}"
 
     circle_program = elm_program["./Domain/Circle.elm"]

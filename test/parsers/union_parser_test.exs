@@ -1,5 +1,6 @@
 defmodule JS2ETest.Parsers.UnionParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.UnionParser, import: true
 
   alias JS2E.Types.UnionType
   alias JS2E.Parsers.UnionParser

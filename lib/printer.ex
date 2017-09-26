@@ -13,7 +13,8 @@ defmodule JS2E.Printer do
                        TypeReferencePrinter}
   alias JS2E.Types.{PrimitiveType, TypeReference, SchemaDefinition}
 
-  @spec print_schemas(Types.schemaDictionary) :: Types.fileDictionary
+  @spec print_schemas(Types.schemaDictionary)
+  :: {:ok, Types.fileDictionary}
   def print_schemas(schema_dict) do
 
     create_file_path = fn (schema_def) ->
@@ -27,12 +28,14 @@ defmodule JS2E.Printer do
       end
     end
 
-    schema_dict
+    result = schema_dict
     |> Enum.reduce(%{}, fn ({_id, schema_def}, acc) ->
       file_path = create_file_path.(schema_def)
       output_file = print_schema(schema_def, schema_dict)
       acc |> Map.put(file_path, output_file)
     end)
+
+    {:ok, result}
   end
 
   @spec print_schema(SchemaDefinition.t, Types.schemaDictionary) :: String.t
@@ -178,7 +181,7 @@ defmodule JS2E.Printer do
   def resolve_type!(identifier, schema_def, schema_dict) do
     Logger.debug "Looking up '#{inspect identifier}' in #{inspect schema_def}"
 
-    {resolved_type, resolved_schema_def} = cond do
+    {resolved_type, resolved_schema_def} = (cond do
 
       identifier in ["string", "number", "integer", "boolean"] ->
         resolve_primitive_identifier(identifier, schema_def)
@@ -191,7 +194,7 @@ defmodule JS2E.Printer do
 
       true ->
         raise "Could not resolve identifier: '#{identifier}'"
-    end
+    end)
 
     Logger.debug("Resolved type: #{inspect resolved_type}")
     Logger.debug("Resolved schema: #{inspect resolved_schema_def}")

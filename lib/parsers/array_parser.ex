@@ -19,6 +19,29 @@ defmodule JS2E.Parsers.ArrayParser do
   alias JS2E.Types.ArrayType
 
   @doc ~S"""
+  Returns true if the json subschema represents an array type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"type" => "array"})
+  false
+
+  iex> type?(%{"type" => "array", "items" => %{"$ref" => "#foo"}})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    type = schema_node["type"]
+    items = schema_node["items"]
+    type == "array" && is_map(items)
+  end
+
+  @doc ~S"""
   Parses a JSON schema array type into an `JS2E.Types.ArrayType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

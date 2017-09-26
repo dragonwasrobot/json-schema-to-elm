@@ -20,6 +20,31 @@ defmodule JS2E.Parsers.TupleParser do
   alias JS2E.Types.TupleType
 
   @doc ~S"""
+  Returns true if the json subschema represents a tuple type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"type" => "array"})
+  false
+
+  iex> aTuple = %{"type" => "array",
+  ...>            "items" => [%{"$ref" => "#foo"}, %{"$ref" => "#bar"}]}
+  iex> type?(aTuple)
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    type = schema_node["type"]
+    items = schema_node["items"]
+    type == "array" && is_list(items)
+  end
+
+  @doc ~S"""
   Parses a JSON schema array type into an `JS2E.Types.TupleType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

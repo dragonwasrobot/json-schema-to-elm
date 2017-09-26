@@ -17,6 +17,25 @@ defmodule JS2E.Parsers.EnumParser do
   alias JS2E.Types.EnumType
 
   @doc ~S"""
+  Returns true if the json subschema represents an enum type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"enum" => ["red", "yellow", "green"]})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    enum = schema_node["enum"]
+    is_list(enum)
+  end
+
+  @doc ~S"""
   Parses a JSON schema enum type into an `JS2E.Types.EnumType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

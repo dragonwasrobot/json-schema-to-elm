@@ -16,6 +16,25 @@ defmodule JS2E.Parsers.UnionParser do
   alias JS2E.Types.UnionType
 
   @doc ~S"""
+  Returns true if the json subschema represents a union type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"type" => ["number", "integer", "string"]})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    type = schema_node["type"]
+    is_list(type)
+  end
+
+  @doc ~S"""
   Parses a JSON schema union type into an `JS2E.Types.UnionType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

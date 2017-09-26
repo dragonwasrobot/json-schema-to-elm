@@ -6,7 +6,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
 
   test "parse internal references" do
 
-    schema_dict =
+    {:ok, schema_dict} =
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",

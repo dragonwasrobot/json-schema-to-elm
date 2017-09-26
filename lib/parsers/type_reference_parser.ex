@@ -16,6 +16,25 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   alias JS2E.Types.TypeReference
 
   @doc ~S"""
+  Returns true if the json subschema represents a reference to another schema.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"$ref" => "#foo"})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    ref = schema_node["$ref"]
+    is_binary(ref)
+  end
+
+  @doc ~S"""
   Parses a JSON schema type reference into an `JS2E.Types.TypeReference`.
   """
   @impl JS2E.Parsers.ParserBehaviour

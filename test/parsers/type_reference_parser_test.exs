@@ -1,5 +1,6 @@
 defmodule JS2ETest.Parsers.TypeReferenceParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.TypeReferenceParser, import: true
 
   alias JS2E.Types.TypeReference
   alias JS2E.Parsers.TypeReferenceParser

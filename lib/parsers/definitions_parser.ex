@@ -19,6 +19,25 @@ defmodule JS2E.Parsers.DefinitionsParser do
   alias JS2E.{Parser, TypePath, Types}
 
   @doc ~S"""
+  Returns true if the json schema contains a 'definitions' property.
+
+  ## Examples
+
+  iex> type?(%{"title" => "A fancy title"})
+  false
+
+  iex> type?(%{"definitions" => %{}})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    definitions = schema_node["definitions"]
+    is_map(definitions)
+  end
+
+  @doc ~S"""
   Parses a JSON schema 'definitions' property into a map of types.
   """
   @impl JS2E.Parsers.ParserBehaviour

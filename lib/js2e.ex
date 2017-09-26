@@ -18,7 +18,8 @@ defmodule JS2E do
   """
 
   require Logger
-  alias JS2E.{Parser, Printer}
+  import JS2E.Parser, only: [parse_schema_files: 2]
+  import JS2E.Printer, only: [print_schemas: 1]
 
   @spec main([String.t]) :: :ok
   def main(args) do
@@ -103,18 +104,23 @@ defmodule JS2E do
   end
 
   @spec generate([String.t], String.t) :: :ok
-  def generate(json_schema_paths, module_name) do
+  def generate(schema_paths, module_name) do
 
-    schema_dict = Parser.parse_schema_files(json_schema_paths, module_name)
-    printed_schemas = Printer.print_schemas(schema_dict)
+    with {:ok, schema_dict} <- parse_schema_files(schema_paths, module_name),
+         {:ok, printed_schemas} <- print_schemas(schema_dict)
+    do
 
-    printed_schemas
-    |> Enum.each(fn{file_path, file_content} ->
+    Enum.each(printed_schemas, fn{file_path, file_content} ->
       {:ok, file} = File.open file_path, [:write]
       IO.binwrite file, file_content
       File.close file
       Logger.info "Created file: #{file_path}"
     end)
+
+    else
+      {:error, error} ->
+        Logger.error IO.ANSI.format([:red, error])
+    end
   end
 
 end

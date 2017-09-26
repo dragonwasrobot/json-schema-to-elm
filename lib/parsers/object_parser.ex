@@ -28,6 +28,31 @@ defmodule JS2E.Parsers.ObjectParser do
   alias JS2E.Types.ObjectType
 
   @doc ~S"""
+  Returns true if the json subschema represents an allOf type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"type" => "object"})
+  false
+
+  iex> anObject = %{"type" => "object",
+  ...>              "properties" => %{"name" => %{"type" => "string"}}}
+  iex> type?(anObject)
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    type = schema_node["type"]
+    properties = schema_node["properties"]
+    type == "object" && is_map(properties)
+  end
+
+  @doc ~S"""
   Parses a JSON schema object type into an `JS2E.Types.ObjectType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

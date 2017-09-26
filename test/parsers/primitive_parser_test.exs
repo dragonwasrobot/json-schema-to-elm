@@ -1,5 +1,6 @@
 defmodule JS2ETest.Parsers.PrimitiveParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.PrimitiveParser, import: true
 
   alias JS2E.Types.PrimitiveType
   alias JS2E.Parsers.PrimitiveParser

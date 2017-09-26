@@ -35,6 +35,28 @@ defmodule JS2E.Parsers.AnyOfParser do
   alias JS2E.Types.AnyOfType
 
   @doc ~S"""
+  Returns true if the json subschema represents an anyOf type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"anyOf" => []})
+  false
+
+  iex> type?(%{"anyOf" => [%{"$ref" => "#foo"}]})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    any_of = schema_node["anyOf"]
+    is_list(any_of) && length(any_of) > 0
+  end
+
+  @doc ~S"""
   Parses a JSON schema anyOf type into an `JS2E.Types.AnyOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour

@@ -35,6 +35,28 @@ defmodule JS2E.Parsers.OneOfParser do
   alias JS2E.Types.OneOfType
 
   @doc ~S"""
+  Returns true if the json subschema represents an oneOf type.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"oneOf" => []})
+  false
+
+  iex> type?(%{"oneOf" => [%{"$ref" => "#foo"}]})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(schema_node) do
+    one_of = schema_node["oneOf"]
+    is_list(one_of) && length(one_of) > 0
+  end
+
+  @doc ~S"""
   Parses a JSON schema oneOf type into an `JS2E.Types.OneOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
