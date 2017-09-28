@@ -14,8 +14,8 @@ defmodule JS2E.Parsers.ArrayParser do
   """
 
   require Logger
-  alias JS2E.{Parser, TypePath, Types}
-  alias JS2E.Parsers.Util
+  import JS2E.Parsers.Util
+  alias JS2E.{Types, TypePath}
   alias JS2E.Types.ArrayType
 
   @doc ~S"""
@@ -57,13 +57,13 @@ defmodule JS2E.Parsers.ArrayParser do
     items_type_dict =
       schema_node
       |> Map.get("items")
-      |> Parser.parse_type(parent_id, path, "items")
+      |> parse_type(parent_id, path, "items")
 
     array_type = ArrayType.new(name, path, items_abs_path)
     Logger.debug "Parsed array type: #{inspect array_type}"
 
     array_type
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
     |> Map.merge(items_type_dict)
   end
 

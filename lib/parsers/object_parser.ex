@@ -23,8 +23,8 @@ defmodule JS2E.Parsers.ObjectParser do
   """
 
   require Logger
-  alias JS2E.{Parser, TypePath, Types}
-  alias JS2E.Parsers.Util
+  import JS2E.Parsers.Util
+  alias JS2E.{TypePath, Types}
   alias JS2E.Types.ObjectType
 
   @doc ~S"""
@@ -76,7 +76,7 @@ defmodule JS2E.Parsers.ObjectParser do
     Logger.debug "Parsed object type: #{inspect object_type}"
 
     object_type
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
     |> Map.merge(descendants_type_dict)
   end
 
@@ -84,7 +84,7 @@ defmodule JS2E.Parsers.ObjectParser do
   defp create_descendants_dict(node_properties, parent_id, path) do
     node_properties
     |> Enum.reduce(%{}, fn({child_name, child_node}, type_dict) ->
-      child_types = Parser.parse_type(child_node, parent_id, path, child_name)
+      child_types = parse_type(child_node, parent_id, path, child_name)
 
       Map.merge(type_dict, child_types)
     end)

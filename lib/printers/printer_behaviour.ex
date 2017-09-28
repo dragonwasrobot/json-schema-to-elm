@@ -3,6 +3,9 @@ defmodule JS2E.Printers.PrinterBehaviour do
   Describes the functions needed to implement a printer of a JSON schema node.
   """
 
+  alias JS2E.Types
+  alias JS2E.Types.SchemaDefinition
+
   @callback print_type(Types.typeDefinition, SchemaDefinition.t,
     Types.schemaDictionary) :: String.t
 

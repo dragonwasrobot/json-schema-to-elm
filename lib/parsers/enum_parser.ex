@@ -12,8 +12,8 @@ defmodule JS2E.Parsers.EnumParser do
   """
 
   require Logger
+  import JS2E.Parsers.Util
   alias JS2E.{TypePath, Types}
-  alias JS2E.Parsers.Util
   alias JS2E.Types.EnumType
 
   @doc ~S"""
@@ -50,7 +50,7 @@ defmodule JS2E.Parsers.EnumParser do
     Logger.debug "Parsed enum type: #{inspect enum_type}"
 
     enum_type
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
   end
 
 end

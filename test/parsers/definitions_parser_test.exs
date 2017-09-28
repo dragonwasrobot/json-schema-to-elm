@@ -2,7 +2,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
   use ExUnit.Case
   doctest JS2E.Parsers.DefinitionsParser, import: true
 
-  alias JS2E.{Types, Parser}
+  alias JS2E.{Types, RootParser}
   alias Types.{ArrayType, TypeReference, PrimitiveType, SchemaDefinition}
 
   test "parse definitions" do
@@ -25,7 +25,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       }
       """
       |> Poison.decode!()
-      |> Parser.parse_schema("Domain")
+      |> RootParser.parse_schema("Domain")
 
     expected_root_type_reference = %ArrayType{
       name: "#",

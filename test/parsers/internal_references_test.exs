@@ -1,7 +1,7 @@
 defmodule JS2ETest.Parsers.InternalReferences do
   use ExUnit.Case
 
-  alias JS2E.{Types, Parser}
+  alias JS2E.{Types, RootParser}
   alias Types.{PrimitiveType, TypeReference, SchemaDefinition}
 
   test "parse internal references" do
@@ -41,7 +41,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
       }
       """
       |> Poison.decode!()
-      |> Parser.parse_schema("Domain")
+      |> RootParser.parse_schema("Domain")
 
     expected_root_type_reference = %TypeReference{
       name: "#",

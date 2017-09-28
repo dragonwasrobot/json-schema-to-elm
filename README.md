@@ -11,7 +11,8 @@ or similar.
 
 - Clone this repository: `git clone
   git@github.com:dragonwasrobot/json-schema-to-elm.git`
-- Build an executable: `MIX_ENV=prod mix build`
+- Build an executable: `MIX_ENV=prod mix build` (or `MIX_ENV=dev mix build`
+  for debug logging)
 - An executable, `js2e`, has now been created in your current working directory.
 
 ## Usage

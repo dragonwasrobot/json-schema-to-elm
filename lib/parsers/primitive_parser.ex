@@ -11,8 +11,8 @@ defmodule JS2E.Parsers.PrimitiveParser do
   """
 
   require Logger
+  import JS2E.Parsers.Util
   alias JS2E.{TypePath, Types}
-  alias JS2E.Parsers.Util
   alias JS2E.Types.PrimitiveType
 
   @doc ~S"""
@@ -53,7 +53,7 @@ defmodule JS2E.Parsers.PrimitiveParser do
     Logger.debug "Parsed primitive type: #{inspect primitive_type}"
 
     primitive_type
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
   end
 
 end

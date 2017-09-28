@@ -43,12 +43,12 @@ defmodule JS2E.Types.PrimitiveType do
   alias JS2E.TypePath
 
   @type t :: %__MODULE__{name: String.t,
-                         path: TypePath.t,
+                         path: String.t | TypePath.t,
                          type: String.t}
 
   defstruct [:name, :path, :type]
 
-  @spec new(String.t, TypePath.t, String.t) :: t
+  @spec new(String.t, String.t | TypePath.t, String.t) :: t
   def new(name, path, type) do
     %__MODULE__{name: name,
                 path: path,

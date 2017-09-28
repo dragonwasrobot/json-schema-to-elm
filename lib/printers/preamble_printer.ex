@@ -24,7 +24,7 @@ defmodule JS2E.Printers.PreamblePrinter do
 
     prefix = create_prefix(module_name)
 
-    imports = schema_def |> create_imports(schema_dict)
+    imports = create_imports(schema_def, schema_dict)
 
     preamble_template(prefix, title, description, imports)
   end
@@ -41,7 +41,7 @@ defmodule JS2E.Printers.PreamblePrinter do
   @spec create_imports(
     SchemaDefinition.t,
     Types.schemaDictionary
-  ) :: [map]
+  ) :: [String.t]
   defp create_imports(schema_def, schema_dict) do
     schema_id = schema_def.id
     type_dict = schema_def.types

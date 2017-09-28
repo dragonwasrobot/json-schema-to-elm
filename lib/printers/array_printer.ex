@@ -11,7 +11,7 @@ defmodule JS2E.Printers.ArrayPrinter do
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util
   alias JS2E.{Printer, Types}
-  alias JS2E.Types.ArrayType
+  alias JS2E.Types.{ArrayType, SchemaDefinition}
 
   EEx.function_from_file(:defp, :decoder_template, @decoder_location,
     [:decoder_name, :items_type_name, :items_decoder_name])

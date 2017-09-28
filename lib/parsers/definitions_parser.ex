@@ -16,7 +16,8 @@ defmodule JS2E.Parsers.DefinitionsParser do
   """
 
   require Logger
-  alias JS2E.{Parser, TypePath, Types}
+  import JS2E.Parsers.Util
+  alias JS2E.{TypePath, Types}
 
   @doc ~S"""
   Returns true if the json schema contains a 'definitions' property.
@@ -57,7 +58,7 @@ defmodule JS2E.Parsers.DefinitionsParser do
 
       child_types =
         child_node
-        |> Parser.parse_type(parent_id, child_path, child_name)
+        |> parse_type(parent_id, child_path, child_name)
 
       Map.merge(type_dict, child_types)
     end)

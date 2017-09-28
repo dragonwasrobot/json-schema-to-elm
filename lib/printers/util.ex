@@ -4,6 +4,7 @@ defmodule JS2E.Printers.Util do
   """
 
   alias JS2E.Types
+  alias JS2E.Types.SchemaDefinition
 
   # Indentation, whitespace and casing - start
 

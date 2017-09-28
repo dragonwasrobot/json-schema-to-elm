@@ -11,7 +11,7 @@ defmodule JS2E.Parsers.UnionParser do
   """
 
   require Logger
-  alias JS2E.Parsers.Util
+  import JS2E.Parsers.Util
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.UnionType
 
@@ -47,7 +47,7 @@ defmodule JS2E.Parsers.UnionParser do
     Logger.debug "Parsed union type: #{inspect union_type}"
 
     union_type
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
   end
 
 end

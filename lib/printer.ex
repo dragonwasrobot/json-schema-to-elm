@@ -7,10 +7,10 @@ defmodule JS2E.Printer do
   require Logger
   import JS2E.Printers.Util
   alias JS2E.{TypePath, Types}
-  alias JS2E.Printers.{ArrayPrinter, EnumPrinter, ObjectPrinter,
-                       AllOfPrinter, AnyOfPrinter, OneOfPrinter,
-                       PrimitivePrinter, UnionPrinter, PreamblePrinter,
-                       TypeReferencePrinter}
+  alias JS2E.Printers.{AllOfPrinter, AnyOfPrinter, ArrayPrinter,
+                       EnumPrinter, ObjectPrinter, OneOfPrinter,
+                       PreamblePrinter, PrimitivePrinter, TuplePrinter,
+                       TypeReferencePrinter, UnionPrinter}
   alias JS2E.Types.{PrimitiveType, TypeReference, SchemaDefinition}
 
   @spec print_schemas(Types.schemaDictionary)
@@ -95,15 +95,16 @@ defmodule JS2E.Printer do
   def print_type(type_def, schema_def, schema_dict) do
 
     type_to_printer_dict = %{
+      "AllOfType" => &AllOfPrinter.print_type/3,
+      "AnyOfType" => &AnyOfPrinter.print_type/3,
       "ArrayType" => &ArrayPrinter.print_type/3,
       "EnumType" => &EnumPrinter.print_type/3,
       "ObjectType" => &ObjectPrinter.print_type/3,
-      "PrimitiveType" => &PrimitivePrinter.print_type/3,
-      "AllOfType" => &AllOfPrinter.print_type/3,
-      "AnyOfType" => &AnyOfPrinter.print_type/3,
       "OneOfType" => &OneOfPrinter.print_type/3,
-      "UnionType" => &UnionPrinter.print_type/3,
-      "TypeReference" => &TypeReferencePrinter.print_type/3
+      "PrimitiveType" => &PrimitivePrinter.print_type/3,
+      "TupleType" => &TuplePrinter.print_type/3,
+      "TypeReference" => &TypeReferencePrinter.print_type/3,
+      "UnionType" => &UnionPrinter.print_type/3
     }
 
     struct_name = get_string_name(type_def)
@@ -123,15 +124,16 @@ defmodule JS2E.Printer do
   def print_decoder(type_def, schema_def, schema_dict) do
 
     type_to_printer_dict = %{
+      "AllOfType" => &AllOfPrinter.print_decoder/3,
+      "AnyOfType" => &AnyOfPrinter.print_decoder/3,
       "ArrayType" => &ArrayPrinter.print_decoder/3,
       "EnumType" => &EnumPrinter.print_decoder/3,
       "ObjectType" => &ObjectPrinter.print_decoder/3,
-      "PrimitiveType" => &PrimitivePrinter.print_decoder/3,
-      "AllOfType" => &AllOfPrinter.print_decoder/3,
-      "AnyOfType" => &AnyOfPrinter.print_decoder/3,
       "OneOfType" => &OneOfPrinter.print_decoder/3,
-      "UnionType" => &UnionPrinter.print_decoder/3,
-      "TypeReference" => &TypeReferencePrinter.print_decoder/3
+      "PrimitiveType" => &PrimitivePrinter.print_decoder/3,
+      "TupleType" => &TuplePrinter.print_decoder/3,
+      "TypeReference" => &TypeReferencePrinter.print_decoder/3,
+      "UnionType" => &UnionPrinter.print_decoder/3
     }
 
     struct_name = get_string_name(type_def)
@@ -152,15 +154,16 @@ defmodule JS2E.Printer do
   def print_encoder(type_def, schema_def, schema_dict) do
 
     type_to_printer_dict = %{
+      "AllOfType" => &AllOfPrinter.print_encoder/3,
+      "AnyOfType" => &AnyOfPrinter.print_encoder/3,
       "ArrayType" => &ArrayPrinter.print_encoder/3,
       "EnumType" => &EnumPrinter.print_encoder/3,
       "ObjectType" => &ObjectPrinter.print_encoder/3,
-      "PrimitiveType" => &PrimitivePrinter.print_encoder/3,
-      "AllOfType" => &AllOfPrinter.print_encoder/3,
-      "AnyOfType" => &AnyOfPrinter.print_encoder/3,
       "OneOfType" => &OneOfPrinter.print_encoder/3,
-      "UnionType" => &UnionPrinter.print_encoder/3,
-      "TypeReference" => &TypeReferencePrinter.print_encoder/3
+      "PrimitiveType" => &PrimitivePrinter.print_encoder/3,
+      "TupleType" => &TuplePrinter.print_encoder/3,
+      "TypeReference" => &TypeReferencePrinter.print_encoder/3,
+      "UnionType" => &UnionPrinter.print_encoder/3
     }
 
     struct_name = get_string_name(type_def)
@@ -219,7 +222,6 @@ defmodule JS2E.Printer do
     type_dict = schema_def.types
     resolved_type = type_dict[TypePath.to_string(identifier)]
     {resolved_type, schema_def}
-
   end
 
   @spec resolve_uri_identifier(String.t, Types.schemaDictionary)

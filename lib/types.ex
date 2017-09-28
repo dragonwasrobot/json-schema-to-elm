@@ -5,20 +5,21 @@ defmodule JS2E.Types do
   """
 
   alias JS2E.TypePath
-  alias JS2E.Types.{ArrayType, EnumType, PrimitiveType, ObjectType,
-                    AllOfType, AnyOfType, OneOfType, UnionType,
-                    TypeReference, SchemaDefinition}
+  alias JS2E.Types.{AllOfType, AnyOfType, ArrayType, EnumType,
+                    ObjectType, OneOfType, PrimitiveType, SchemaDefinition,
+                    TupleType, TypeReference, UnionType}
 
   @type typeDefinition :: (
-    ArrayType.t |
-    EnumType.t |
-    PrimitiveType.t |
-    ObjectType.t |
     AllOfType.t |
     AnyOfType.t |
+    ArrayType.t |
+    EnumType.t |
+    ObjectType.t |
     OneOfType.t |
-    UnionType.t |
-    TypeReference.t
+    PrimitiveType.t |
+    TupleType.t |
+    TypeReference.t |
+    UnionType.t
   )
 
   @type typeIdentifier :: (String.t | TypePath.t | URI.t)

@@ -3,6 +3,8 @@ defmodule JS2E.Parsers.ParserBehaviour do
   Describes the functions needed to implement a parser for a JSON schema node.
   """
 
+  alias JS2E.{TypePath, Types}
+
   @callback type?(map) :: boolean
 
   @callback parse(map, URI.t, URI.t | nil, TypePath.t, String.t)

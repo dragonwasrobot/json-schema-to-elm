@@ -11,8 +11,8 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   """
 
   require Logger
+  import JS2E.Parsers.Util
   alias JS2E.{TypePath, Types}
-  alias JS2E.Parsers.Util
   alias JS2E.Types.TypeReference
 
   @doc ~S"""
@@ -52,7 +52,7 @@ defmodule JS2E.Parsers.TypeReferenceParser do
     Logger.debug "Parsed type reference: #{inspect type_reference}"
 
     type_reference
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
   end
 
   @spec to_type_identifier(String.t) :: Types.typeIdentifier
