@@ -5,6 +5,7 @@ defmodule JS2E.Types do
   """
 
   alias JS2E.TypePath
+  alias JS2E.Printers.PrinterResult
   alias JS2E.Types.{AllOfType, AnyOfType, ArrayType, EnumType,
                     ObjectType, OneOfType, PrimitiveType, SchemaDefinition,
                     TupleType, TypeReference, UnionType}
@@ -22,6 +23,7 @@ defmodule JS2E.Types do
     UnionType.t
   )
 
+  @type schemaNode :: map
   @type typeIdentifier :: (String.t | TypePath.t | URI.t)
   @type propertyDictionary :: %{required(String.t) => typeIdentifier}
   @type typeDictionary :: %{required(String.t) => typeDefinition}

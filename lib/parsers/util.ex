@@ -1,6 +1,6 @@
 defmodule JS2E.Parsers.Util do
   @moduledoc ~S"""
-  A module containing utility function for JSON schema parsers.
+  A module containing utility functions for JSON schema parsers.
   """
 
   require Logger
@@ -8,10 +8,11 @@ defmodule JS2E.Parsers.Util do
                       DefinitionsParser, ObjectParser, OneOfParser,
                       PrimitiveParser, TupleParser, TypeReferenceParser,
                       UnionParser}
+  alias JS2E.Parsers.{ErrorUtil, ParserError, ParserResult}
   alias JS2E.{TypePath, Types}
 
   @type nodeParser :: (
-    map, URI.t, URI.t, TypePath.t, String.t -> Types.typeDictionary
+    Types.node, URI.t, URI.t, TypePath.t, String.t -> ParserResult.t
   )
 
   @doc ~S"""
@@ -25,34 +26,18 @@ defmodule JS2E.Parsers.Util do
   ) :: Types.typeDictionary
   def create_type_dict(type_def, path, id) do
 
-    string_path = path |> TypePath.to_string
+    string_path = path |> TypePath.to_string()
 
-    if id != nil do
+    type_dict = (if id != nil do
       string_id = if type_def.name == "#" do "#{id}#" else "#{id}" end
 
       %{string_path => type_def,
         string_id => type_def}
     else
       %{string_path => type_def}
-    end
-  end
-
-  @doc ~S"""
-  Creates a type dictionary based on a list of JSON schema objects.
-  """
-  @spec create_descendants_type_dict([map], URI.t, TypePath.t)
-  :: Types.typeDictionary
-  def create_descendants_type_dict(types, parent_id, path)
-  when is_list(types) do
-    types
-    |> Enum.reduce({%{}, 0}, fn(child_node, {type_dict, idx}) ->
-
-      child_name = to_string idx
-      child_types = parse_type(child_node, parent_id, path, child_name)
-
-      {Map.merge(type_dict, child_types), idx + 1}
     end)
-    |> elem(0)
+
+    type_dict
   end
 
   @doc ~S"""
@@ -75,48 +60,69 @@ defmodule JS2E.Parsers.Util do
     |> Map.values()
   end
 
-  @spec parse_type(map, URI.t, TypePath.t, String.t) :: Types.typeDictionary
+  @doc ~S"""
+  Parse a list of JSON schema objects that have a child relation to another
+  schema object with the specified `parent_id`.
+  """
+  @spec parse_child_types([Types.schemaNode], URI.t, TypePath.t)
+  :: ParserResult.t
+  def parse_child_types(child_nodes, parent_id, path)
+  when is_list(child_nodes) do
+
+    child_nodes
+    |> Enum.reduce({ParserResult.new(), 0}, fn (child_node, {result, idx}) ->
+      child_name = to_string(idx)
+      child_result = parse_type(child_node, parent_id, path, child_name)
+      {ParserResult.merge(result, child_result), idx + 1}
+    end)
+    |> elem(0)
+  end
+
+  @spec parse_type(Types.schemaNode, URI.t, TypePath.t, String.t)
+  :: ParserResult.t
   def parse_type(schema_node, parent_id, path, name) do
-    Logger.debug "Parsing type with name: #{name}, " <>
-      "path: #{path}, and value: #{inspect schema_node}"
 
-    node_parser = determine_node_parser(schema_node)
-    Logger.debug "node_parser: #{inspect node_parser}"
+    case determine_node_parser(schema_node, path) do
+      {:ok, node_parser} ->
+        id = determine_id(schema_node, parent_id)
+        parent_id = determine_parent_id(id, parent_id)
+        type_path = TypePath.add_child(path, name)
+        node_parser.(schema_node, parent_id, id, type_path, name)
 
-    if node_parser != nil do
-
-      id = determine_id(schema_node, parent_id)
-      parent_id = determine_parent_id(id, parent_id)
-      type_path = TypePath.add_child(path, name)
-      node_parser.(schema_node, parent_id, id, type_path, name)
-
-    else
-      Logger.error "Could not determine parser for node: #{inspect schema_node}"
+      {:error, reason} ->
+        ParserResult.new(%{}, [], [reason])
     end
   end
 
-  @spec determine_node_parser(map) :: (nodeParser | nil)
-  defp determine_node_parser(schema_node) do
+  @spec determine_node_parser(Types.schemaNode, Types.typeIdentifier)
+  :: {:ok, nodeParser} | {:error, ParserError.t}
+  defp determine_node_parser(schema_node, identifier) do
 
     predicate_node_type_pairs = [
-      {&TypeReferenceParser.type?/1, &TypeReferenceParser.parse/5},
-      {&EnumParser.type?/1, &EnumParser.parse/5},
-      {&UnionParser.type?/1, &UnionParser.parse/5},
       {&AllOfParser.type?/1, &AllOfParser.parse/5},
       {&AnyOfParser.type?/1, &AnyOfParser.parse/5},
-      {&OneOfParser.type?/1, &OneOfParser.parse/5},
-      {&ObjectParser.type?/1, &ObjectParser.parse/5},
       {&ArrayParser.type?/1, &ArrayParser.parse/5},
-      {&TupleParser.type?/1, &TupleParser.parse/5},
+      {&DefinitionsParser.type?/1, &DefinitionsParser.parse/5},
+      {&EnumParser.type?/1, &EnumParser.parse/5},
+      {&ObjectParser.type?/1, &ObjectParser.parse/5},
+      {&OneOfParser.type?/1, &OneOfParser.parse/5},
       {&PrimitiveParser.type?/1, &PrimitiveParser.parse/5},
-      {&DefinitionsParser.type?/1, &DefinitionsParser.parse/5}
+      {&TupleParser.type?/1, &TupleParser.parse/5},
+      {&TypeReferenceParser.type?/1, &TypeReferenceParser.parse/5},
+      {&UnionParser.type?/1, &UnionParser.parse/5}
     ]
 
-    predicate_node_type_pairs
-    |> Enum.find({nil, nil}, fn {pred?, _node_parser} ->
+    node_parser =
+      predicate_node_type_pairs
+      |> Enum.find({nil, nil}, fn {pred?, _node_parser} ->
       pred?.(schema_node)
-    end)
-    |> elem(1)
+    end) |> elem(1)
+
+    if node_parser != nil do
+      {:ok, node_parser}
+    else
+      {:error, ErrorUtil.unknown_node_type(identifier, schema_node)}
+    end
   end
 
   @spec determine_id(map, URI.t) :: (URI.t | nil)

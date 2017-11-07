@@ -7,7 +7,7 @@ defmodule JS2ETest.Parsers.OneOfParser do
 
   test "parse primitive one_of type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "oneOf": [
@@ -73,7 +73,9 @@ defmodule JS2ETest.Parsers.OneOfParser do
       ]
     }
 
-    assert type_dict == %{
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
       "#/oneOfExample" => expected_one_of_type,
       "#/oneOfExample/0" => expected_object_type,
       "#/oneOfExample/1" => expected_primitive_type,

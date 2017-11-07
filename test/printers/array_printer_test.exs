@@ -7,27 +7,31 @@ defmodule JS2ETest.Printers.ArrayPrinter do
 
   test "print array type" do
 
+    module_name = "Domain"
+
     schema_def = %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: %{}}
 
-    array_type_program =
+    result =
       %ArrayType{
         name: "colors",
         path: ["#", "items"],
         items: ["#", "definitions", "color"]
       }
-      |> ArrayPrinter.print_type(schema_def, %{})
+      |> ArrayPrinter.print_type(schema_def, %{}, module_name)
 
     expected_array_type_program = ""
+    array_type_program = result.printed_schema
 
     assert array_type_program == expected_array_type_program
   end
 
   test "print array decoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/items" =>
@@ -41,16 +45,15 @@ defmodule JS2ETest.Printers.ArrayPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    array_decoder_program =
+    result =
       %ArrayType{
         name: "colors",
         path: ["#"],
         items: ["#", "items"]
       }
-      |> ArrayPrinter.print_decoder(schema_def, %{})
+      |> ArrayPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_array_decoder_program =
     """
@@ -58,11 +61,14 @@ defmodule JS2ETest.Printers.ArrayPrinter do
     colorsDecoder =
         Decode.list colorDecoder
     """
+    array_decoder_program = result.printed_schema
 
     assert array_decoder_program == expected_array_decoder_program
   end
 
   test "print array encoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/items" =>
@@ -76,16 +82,15 @@ defmodule JS2ETest.Printers.ArrayPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    array_encoder_program =
+    result =
       %ArrayType{
         name: "colors",
         path: ["#"],
         items: ["#", "items"]
       }
-      |> ArrayPrinter.print_encoder(schema_def, %{})
+      |> ArrayPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_array_encoder_program =
     """
@@ -93,6 +98,7 @@ defmodule JS2ETest.Printers.ArrayPrinter do
     encodeColors colors =
         Encode.list <| List.map encodeColor <| colors
     """
+    array_encoder_program = result.printed_schema
 
     assert array_encoder_program == expected_array_encoder_program
   end

@@ -2,12 +2,13 @@ defmodule JS2ETest.Parsers.AllOfParser do
   use ExUnit.Case
   doctest JS2E.Parsers.AllOfParser, import: true
 
+  require Logger
   alias JS2E.Types.{AllOfType, ObjectType, PrimitiveType, TypeReference}
-  alias JS2E.Parsers.AllOfParser
+  alias JS2E.Parsers.{AllOfParser, ParserError, ParserWarning}
 
   test "parse primitive all_of type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "allOf": [
@@ -73,7 +74,9 @@ defmodule JS2ETest.Parsers.AllOfParser do
       ]
     }
 
-    assert type_dict == %{
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
       "#/allOfExample" => expected_all_of_type,
       "#/allOfExample/0" => expected_object_type,
       "#/allOfExample/1" => expected_primitive_type,
@@ -81,6 +84,26 @@ defmodule JS2ETest.Parsers.AllOfParser do
       "#/allOfExample/0/radius" => expected_radius_type,
       "#/allOfExample/0/title" => expected_title_type
     }
+  end
+
+  test "reports type error if allOf has wrong type" do
+
+    parser_result =
+      ~S"""
+      {
+        "allOf": {
+          "type": "string"
+        }
+      }
+      """
+      |> Poison.decode!()
+      |> AllOfParser.parse(nil, nil, ["#", "allOfExample"], "allOfExample")
+
+    [error] = parser_result.errors
+    Logger.debug "Error: #{inspect error}"
+
+    assert error.error_type == :type_mismatch
+    assert error.identifier == ["#", "allOfExample"]
   end
 
 end

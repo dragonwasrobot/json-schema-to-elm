@@ -2,12 +2,13 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
   use ExUnit.Case
   doctest JS2E.Parsers.DefinitionsParser, import: true
 
-  alias JS2E.{Types, RootParser}
+  alias JS2E.Types
   alias Types.{ArrayType, TypeReference, PrimitiveType, SchemaDefinition}
+  alias JS2E.Parsers.RootParser
 
   test "parse definitions" do
 
-    {:ok, schema_dict} =
+    schema_result =
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -25,7 +26,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       }
       """
       |> Poison.decode!()
-      |> RootParser.parse_schema("Domain")
+      |> RootParser.parse_schema("examples/example.json")
 
     expected_root_type_reference = %ArrayType{
       name: "#",
@@ -41,11 +42,12 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       path: ["#", "definitions", "positiveInteger"],
       type: "integer"}
 
-    assert schema_dict == %{
+    assert schema_result.errors == []
+    assert schema_result.warnings == []
+    assert schema_result.schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
         title: "Root",
-        module: "Domain",
         id: URI.parse("http://example.com/root.json"),
         types: %{
           "#" => expected_root_type_reference,

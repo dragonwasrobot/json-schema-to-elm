@@ -7,7 +7,9 @@ defmodule JS2ETest.Parsers.AnyOfParser do
 
   test "parse primitive any_of type" do
 
-    type_dict =
+    parent = "http://www.example.com/schema.json"
+
+    parser_result =
       ~S"""
       {
         "anyOf": [
@@ -33,7 +35,7 @@ defmodule JS2ETest.Parsers.AnyOfParser do
       }
       """
       |> Poison.decode!()
-      |> AnyOfParser.parse(nil, nil, ["#", "anyOfExample"], "anyOfExample")
+      |> AnyOfParser.parse(parent, nil, ["#", "anyOfExample"], "anyOfExample")
 
     expected_object_type = %ObjectType{
       name: "0",
@@ -73,7 +75,9 @@ defmodule JS2ETest.Parsers.AnyOfParser do
       ]
     }
 
-    assert type_dict == %{
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
       "#/anyOfExample" => expected_any_of_type,
       "#/anyOfExample/0" => expected_object_type,
       "#/anyOfExample/1" => expected_primitive_type,

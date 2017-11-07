@@ -7,20 +7,21 @@ defmodule JS2ETest.Printers.UnionPrinter do
 
   test "print union type value" do
 
+    module_name = "Domain"
+
     schema_def = %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: %{}}
 
-    union_type_program =
+    result =
       %UnionType{
         name: "favoriteNumber",
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer"]
       }
-      |> UnionPrinter.print_type(schema_def, %{})
+      |> UnionPrinter.print_type(schema_def, %{}, module_name)
 
     expected_union_type_program =
       """
@@ -28,26 +29,28 @@ defmodule JS2ETest.Printers.UnionPrinter do
           = FavoriteNumber_F Float
           | FavoriteNumber_I Int
       """
+    union_type_program = result.printed_schema
 
     assert union_type_program == expected_union_type_program
   end
 
   test "print union type with null value" do
 
+    module_name = "Domain"
+
     schema_def = %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: %{}}
 
-    union_type_program =
+    result =
       %UnionType{
         name: "favoriteNumber",
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer", "null"]
       }
-      |> UnionPrinter.print_type(schema_def, %{})
+      |> UnionPrinter.print_type(schema_def, %{}, module_name)
 
     expected_union_type_program =
     """
@@ -55,26 +58,28 @@ defmodule JS2ETest.Printers.UnionPrinter do
         = FavoriteNumber_F Float
         | FavoriteNumber_I Int
     """
+    union_type_program = result.printed_schema
 
     assert union_type_program == expected_union_type_program
   end
 
   test "print union decoder" do
 
+    module_name = "Domain"
+
     schema_def = %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: %{}}
 
-    union_decoder_program =
+    result =
       %UnionType{
         name: "favoriteNumber",
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer"]
       }
-      |> UnionPrinter.print_decoder(schema_def, %{})
+      |> UnionPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_union_decoder_program =
     """
@@ -84,26 +89,28 @@ defmodule JS2ETest.Printers.UnionPrinter do
               , Decode.int |> andThen (succeed << FavoriteNumber_I)
               ]
     """
+    union_decoder_program = result.printed_schema
 
     assert union_decoder_program == expected_union_decoder_program
   end
 
   test "print union decoder with null value" do
 
+    module_name = "Domain"
+
     schema_def = %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: %{}}
 
-    union_decoder_program =
+    result =
       %UnionType{
         name: "favoriteNumber",
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer", "null"]
       }
-      |> UnionPrinter.print_decoder(schema_def, %{})
+      |> UnionPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_union_decoder_program =
     """
@@ -114,26 +121,28 @@ defmodule JS2ETest.Printers.UnionPrinter do
               , null Nothing
               ]
     """
+    union_decoder_program = result.printed_schema
 
     assert union_decoder_program == expected_union_decoder_program
   end
 
   test "print union encoder" do
 
+    module_name = "Domain"
+
     schema_def = %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: %{}}
 
-    union_encoder_program =
+    result =
       %UnionType{
         name: "favoriteNumber",
         path: ["#", "definitions", "favoriteNumber"],
         types: ["number", "integer"]
       }
-      |> UnionPrinter.print_encoder(schema_def, %{})
+      |> UnionPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_union_encoder_program =
     """
@@ -146,6 +155,7 @@ defmodule JS2ETest.Printers.UnionPrinter do
             FavoriteNumber_I intValue ->
                 Encode.int intValue
     """
+    union_encoder_program = result.printed_schema
 
     assert union_encoder_program == expected_union_encoder_program
   end

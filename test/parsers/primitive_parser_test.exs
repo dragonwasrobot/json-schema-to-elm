@@ -7,7 +7,7 @@ defmodule JS2ETest.Parsers.PrimitiveParser do
 
   test "parse primitive type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "type": "string"
@@ -21,7 +21,11 @@ defmodule JS2ETest.Parsers.PrimitiveParser do
       path: ["#", "primitive"],
       type: "string"}
 
-    assert type_dict == %{"#/primitive" => expected_primitive_type}
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
+      "#/primitive" => expected_primitive_type
+    }
   end
 
 end

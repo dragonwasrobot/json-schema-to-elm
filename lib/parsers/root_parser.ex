@@ -1,18 +1,20 @@
-defmodule JS2E.RootParser do
+defmodule JS2E.Parsers.RootParser do
   @moduledoc ~S"""
   Contains logic for verifying the schema version of a JSON schema file.
   """
 
   require Logger
-  import JS2E.Parsers.Util
+  import JS2E.Parsers.Util, only: [
+    parse_type: 4
+  ]
   alias JS2E.Parsers.{ArrayParser, DefinitionsParser,
                       ObjectParser, TupleParser, TypeReferenceParser}
+  alias JS2E.Parsers.{ErrorUtil, ParserResult, SchemaResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.SchemaDefinition
 
-  @spec parse_schema(map, String.t)
-  :: {:ok, Types.schemaDictionary} | {:error, [String.t]}
-  def parse_schema(root_node, module_name) do
+  @spec parse_schema(Types.schemaNode, String.t) :: SchemaResult.t
+  def parse_schema(root_node, schema_file_path) do
 
     with {:ok, _schema_version} <- parse_schema_version(root_node),
          {:ok, schema_id} <- parse_schema_id(root_node)
@@ -21,49 +23,52 @@ defmodule JS2E.RootParser do
         title = Map.get(root_node, "title", "")
         description = Map.get(root_node, "description")
 
-        handle_conflict = fn (key, value1, value2) ->
-          Logger.error "Collision in type dict, found two values, " <>
-            " '#{inspect value1}' and '#{inspect value2}' for key '#{key}'"
-          exit(:invalid)
-        end
+        definitions_parser_result = parse_definitions(root_node, schema_id)
+        root_parser_result = parse_root_object(root_node, schema_id, title)
 
-        definitions_type_dict = parse_definitions(root_node, schema_id)
-        root_type_dict = parse_root_object(root_node, schema_id, title)
+        %ParserResult{type_dict: type_dict,
+                      errors: errors,
+                      warnings: warnings} =
+          ParserResult.merge(root_parser_result, definitions_parser_result)
 
-        type_dict =
-          %{}
-          |> Map.merge(definitions_type_dict, handle_conflict)
-          |> Map.merge(root_type_dict, handle_conflict)
+        schema_dict = %{to_string(schema_id) => SchemaDefinition.new(
+                       schema_id, title, description, type_dict)}
+        schema_errors = (if length(errors) > 0 do
+          [{schema_file_path, errors}] else []
+        end)
+        schema_warnings = (if length(warnings) > 0 do
+          [{schema_file_path, warnings}] else []
+        end)
 
-        {:ok, %{to_string(schema_id) => SchemaDefinition.new(
-               schema_id, title, module_name, description, type_dict)}}
-
+        SchemaResult.new(schema_dict, schema_errors, schema_warnings)
     else
+
       {:error, error} ->
-        {:error, error}
+        schema_warnings = [{schema_file_path, []}]
+        schema_errors = [{schema_file_path, [error]}]
+        SchemaResult.new(%{}, schema_warnings, schema_errors)
     end
   end
 
-  @spec parse_definitions(map, URI.t) :: Types.typeDictionary
+  @spec parse_definitions(Types.schemaNode, URI.t) :: ParserResult.t
   defp parse_definitions(schema_root_node, schema_id) do
     if DefinitionsParser.type?(schema_root_node) do
-      schema_root_node
-      |> DefinitionsParser.parse(schema_id, nil, ["#"], "")
+      DefinitionsParser.parse(schema_root_node, schema_id, nil, ["#"], "")
     else
-      %{}
+      ParserResult.new(%{})
     end
   end
 
-  @spec parse_root_object(map, URI.t, String.t) :: Types.typeDictionary
+  @spec parse_root_object(map, URI.t, String.t) :: ParserResult.t
   defp parse_root_object(schema_root_node, schema_id, _title) do
 
     type_path = TypePath.from_string("#")
     name = "#"
 
     cond do
-      TypeReferenceParser.type?(schema_root_node) ->
+      ArrayParser.type?(schema_root_node) ->
         schema_root_node
-        |> TypeReferenceParser.parse(schema_id, schema_id, type_path, name)
+        |> parse_type(schema_id, [], name)
 
       ObjectParser.type?(schema_root_node) ->
         schema_root_node
@@ -73,13 +78,12 @@ defmodule JS2E.RootParser do
         schema_root_node
         |> parse_type(schema_id, [], name)
 
-      ArrayParser.type?(schema_root_node) ->
+      TypeReferenceParser.type?(schema_root_node) ->
         schema_root_node
-        |> parse_type(schema_id, [], name)
+        |> TypeReferenceParser.parse(schema_id, schema_id, type_path, name)
 
       true ->
-        Logger.debug "Found no valid root object"
-        %{}
+        ParserResult.new()
     end
   end
 
@@ -98,29 +102,41 @@ defmodule JS2E.RootParser do
       {:ok, "http://json-schema.org/draft-04/schema"}
 
       iex> schema = %{"$schema" => "http://example.org/my-own-schema"}
-      iex> schema |> parse_schema_version() |> elem(0)
-      :error
+      iex> {:error, error} = parse_schema_version(schema)
+      iex> error.error_type
+      :unsupported_schema_version
 
-      iex> parse_schema_version(%{})
-      {:error, "JSON Schema has no '$schema' keyword"}
+      iex> {:error, error} = parse_schema_version(%{})
+      iex> error.error_type
+      :missing_property
+
   """
-  @spec parse_schema_version(map) :: :ok | {:error, String.t}
-  def parse_schema_version(%{"$schema" => schema_str}) do
+  @spec parse_schema_version(Types.schemaNode)
+  :: {:ok, String.t} | {:error, ParserError.t}
+  def parse_schema_version(%{"$schema" => schema_str})
+  when is_binary(schema_str) do
 
     schema_version = schema_str |> URI.parse |> to_string
     if schema_version in @supported_versions do
       {:ok, schema_version}
 
     else
-      {:error, "Unsupported JSON schema version identifier " <>
-        "found in '$schema': '#{schema_str}', " <>
-        "supported versions are: #{inspect @supported_versions}"}
+      {:error, ErrorUtil.unsupported_schema_version(
+        to_string(@supported_versions), schema_str)}
     end
+  end
 
+  def parse_schema_version(%{"$schema" => schema}) do
+    schema_type = ErrorUtil.get_type(schema)
+    {:error, ErrorUtil.invalid_type("#", "$schema", "string", schema_type)}
   end
+
   def parse_schema_version(_schema) do
-    {:error, "JSON Schema has no '$schema' keyword"}
+    path = TypePath.from_string("#")
+    {:error, ErrorUtil.missing_property(path, "$schema")}
   end
+
+  @valid_uri_schemes ["http", "https", "urn"]
 
   @doc ~S"""
   Parses the ID of a JSON schema.
@@ -130,16 +146,35 @@ defmodule JS2E.RootParser do
       iex> parse_schema_id(%{"id" => "http://www.example.com/my-schema"})
       {:ok, URI.parse("http://www.example.com/my-schema")}
 
-      iex> parse_schema_id(%{})
-      {:error, "JSON schema has no 'id' property"}
+      iex> {:error, error} = parse_schema_id(%{"id" => "foo bar baz"})
+      iex> error.error_type
+      :invalid_uri
+
+      iex> {:error, error} = parse_schema_id(%{})
+      iex> error.error_type
+      :missing_property
 
   """
-  @spec parse_schema_id(map) :: {:ok, URI.t} | {:error, String.t}
+  @spec parse_schema_id(Types.schemaNode)
+  :: {:ok, URI.t} | {:error, ParserError.t}
   def parse_schema_id(%{"id" => schema_id}) when is_binary(schema_id) do
-    {:ok, URI.parse(schema_id)}
+    parsed_id = URI.parse(schema_id)
+
+    if parsed_id.scheme in @valid_uri_schemes do
+      {:ok, parsed_id}
+
+    else
+      {:error, ErrorUtil.invalid_uri("#", "id", schema_id)}
+    end
   end
-  def parse_schema_id(_) do
-    {:error, "JSON schema has no 'id' property"}
+
+  def parse_schema_id(%{"id" => schema_id}) do
+    schema_id_type = ErrorUtil.get_type(schema_id)
+    {:error, ErrorUtil.invalid_type("#", "id", "string", schema_id_type)}
+  end
+
+  def parse_schema_id(_schema_node) do
+    {:error, ErrorUtil.missing_property("#", "id")}
   end
 
 end

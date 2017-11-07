@@ -18,12 +18,13 @@ defmodule JS2E do
   """
 
   require Logger
-  import JS2E.Parser, only: [parse_schema_files: 2]
-  import JS2E.Printer, only: [print_schemas: 1]
+  import JS2E.Parser, only: [parse_schema_files: 1]
+  import JS2E.Printer, only: [print_schemas: 2]
+  alias JS2E.Parsers.{ParserWarning, ParserError}
+  alias JS2E.Printers.PrinterError
 
   @spec main([String.t]) :: :ok
   def main(args) do
-    Logger.debug "Arguments: #{inspect args}"
 
     {options, paths, errors} =
       OptionParser.parse(args, switches: [module_name: :string])
@@ -50,7 +51,7 @@ defmodule JS2E do
     JS2E.generate(files, output_path)
   end
 
-  @spec resolve_all_paths([String.t]) :: [String.t]
+  @spec resolve_all_paths([String.t]) :: [Path.t]
   defp resolve_all_paths(paths) do
     paths
     |> Enum.filter(&File.exists?/1)
@@ -106,21 +107,74 @@ defmodule JS2E do
   @spec generate([String.t], String.t) :: :ok
   def generate(schema_paths, module_name) do
 
-    with {:ok, schema_dict} <- parse_schema_files(schema_paths, module_name),
-         {:ok, printed_schemas} <- print_schemas(schema_dict)
-    do
+    Logger.info "Parsing JSON schema files!"
+    parser_result = parse_schema_files(schema_paths)
+    pretty_parser_warnings(parser_result.warnings)
 
-    Enum.each(printed_schemas, fn{file_path, file_content} ->
-      {:ok, file} = File.open file_path, [:write]
-      IO.binwrite file, file_content
-      File.close file
-      Logger.info "Created file: #{file_path}"
-    end)
+    if length(parser_result.errors) > 0 do
+      pretty_parser_errors(parser_result.errors)
 
     else
-      {:error, error} ->
-        Logger.error IO.ANSI.format([:red, error])
+      Logger.info "Converting to Elm code!"
+      printer_result = print_schemas(parser_result.schema_dict, module_name)
+
+      if length(printer_result.errors) > 0 do
+        pretty_printer_errors(printer_result.errors)
+
+      else
+        Logger.info "Printing Elm code to file(s)!"
+
+        file_dict = printer_result.file_dict
+        Enum.each(file_dict, fn {file_path, file_content} ->
+          {:ok, file} = File.open file_path, [:write]
+          IO.binwrite file, file_content
+          File.close file
+          Logger.info "Created file '#{file_path}'"
+        end)
+      end
     end
+  end
+
+  @spec pretty_parser_warnings([ParserWarning.t]) :: :ok
+  defp pretty_parser_warnings(warnings) do
+    warnings
+    |> Enum.each(fn {file_path, warnings} ->
+      if length(warnings) > 0 do
+        Logger.warn("Warnings generated while parsing file: #{file_path}")
+        Enum.each(warnings, fn warning ->
+          Logger.warn(ParserWarning.print(warning, file_path))
+        end)
+      end
+    end)
+    :ok
+  end
+
+  @spec pretty_parser_errors([ParserError.t]) :: :ok
+  defp pretty_parser_errors(errors) do
+    errors
+    |> Enum.each(fn {file_path, errors} ->
+      if length(errors) > 0 do
+        Logger.error("Errors generated while parsing file: #{file_path}")
+        Enum.each(errors, fn error ->
+          Logger.error(ParserError.print(error, file_path))
+        end)
+      end
+    end)
+    :ok
+  end
+
+  @spec pretty_printer_errors([PrinterError.t]) :: :ok
+  defp pretty_printer_errors(errors) do
+    errors
+    |> Enum.each(fn {file_path, errors} ->
+      if length(errors) > 0 do
+        Logger.error("Errors generated while printing file: #{file_path}")
+        Enum.each(errors, fn error ->
+          Logger.error(PrinterError.print(error, file_path))
+        end)
+      end
+    end)
+    :ok
   end
 
 end

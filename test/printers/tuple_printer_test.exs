@@ -7,6 +7,8 @@ defmodule JS2ETest.Printers.TuplePrinter do
 
   test "print 'tuple' type value" do
 
+    module_name = "Domain"
+
     type_dict = %{
       "#/shapePair/0" =>
       %TypeReference{name: "0",
@@ -35,17 +37,16 @@ defmodule JS2ETest.Printers.TuplePrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    tuple_type_program =
+    result =
       %TupleType{
         name: "shapePair",
         path: ["#", "shapePair"],
         items: [["#", "shapePair", "0"],
                 ["#", "shapePair", "1"]]
       }
-      |> TuplePrinter.print_type(schema_def, %{})
+      |> TuplePrinter.print_type(schema_def, %{}, module_name)
 
     expected_tuple_type_program =
       """
@@ -54,11 +55,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
           , Circle
           )
       """
+    tuple_type_program = result.printed_schema
 
     assert tuple_type_program == expected_tuple_type_program
   end
 
   test "print 'tuple' decoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/shapePair/0" =>
@@ -88,17 +92,16 @@ defmodule JS2ETest.Printers.TuplePrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    tuple_decoder_program =
+    result =
       %TupleType{
         name: "shapePair",
         path: ["#"],
         items: [["#", "shapePair", "0"],
                 ["#", "shapePair", "1"]]
       }
-      |> TuplePrinter.print_decoder(schema_def, %{})
+      |> TuplePrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_tuple_decoder_program =
     """
@@ -108,11 +111,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
             (index 0 squareDecoder)
             (index 1 circleDecoder)
     """
+    tuple_decoder_program = result.printed_schema
 
     assert tuple_decoder_program == expected_tuple_decoder_program
   end
 
   test "print 'tuple' encoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/shapePair/0" =>
@@ -142,17 +148,16 @@ defmodule JS2ETest.Printers.TuplePrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    tuple_encoder_program =
+    result =
       %TupleType{
         name: "shapePair",
         path: ["#"],
         items: [["#", "shapePair", "0"],
                 ["#", "shapePair", "1"]]
       }
-      |> TuplePrinter.print_encoder(schema_def, %{})
+      |> TuplePrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_tuple_encoder_program =
     """
@@ -167,6 +172,7 @@ defmodule JS2ETest.Printers.TuplePrinter do
         in
             list [encodedsquare, encodedcircle]
     """
+    tuple_encoder_program = result.printed_schema
 
     assert tuple_encoder_program == expected_tuple_encoder_program
   end

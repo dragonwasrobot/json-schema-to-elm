@@ -23,8 +23,12 @@ defmodule JS2E.Parsers.ObjectParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util
-  alias JS2E.{TypePath, Types}
+  import JS2E.Parsers.Util, only: [
+    create_type_dict: 3,
+    parse_type: 4
+  ]
+  alias JS2E.{Types, TypePath}
+  alias JS2E.Parsers.ParserResult
   alias JS2E.Types.ObjectType
 
   @doc ~S"""
@@ -56,37 +60,34 @@ defmodule JS2E.Parsers.ObjectParser do
   Parses a JSON schema object type into an `JS2E.Types.ObjectType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: Types.typeDictionary
+  @spec parse(Types.schemaNode, URI.t, URI.t, TypePath.t, String.t) :: ParserResult.t
   def parse(schema_node, parent_id, id, path, name) do
-    Logger.debug "Parsing '#{inspect path}' as ObjectType"
 
     required = Map.get(schema_node, "required", [])
 
-    descendants_type_dict =
+    child_types_result =
       schema_node
       |> Map.get("properties")
-      |> create_descendants_dict(parent_id, path)
-    Logger.debug "Descendants types dict: #{inspect descendants_type_dict}"
+      |> parse_child_types(parent_id, path)
 
-    property_type_ref_dict = create_property_dict(
-      descendants_type_dict, path)
-    Logger.debug "Property ref dict: #{inspect property_type_ref_dict}"
+    type_dict = create_property_dict(child_types_result.type_dict, path)
 
-    object_type = ObjectType.new(name, path, property_type_ref_dict, required)
-    Logger.debug "Parsed object type: #{inspect object_type}"
+    object_type = ObjectType.new(name, path, type_dict, required)
 
     object_type
     |> create_type_dict(path, id)
-    |> Map.merge(descendants_type_dict)
+    |> ParserResult.new()
+    |> ParserResult.merge(child_types_result)
   end
 
-  @spec create_descendants_dict(map, URI.t, TypePath.t) :: Types.typeDictionary
-  defp create_descendants_dict(node_properties, parent_id, path) do
-    node_properties
-    |> Enum.reduce(%{}, fn({child_name, child_node}, type_dict) ->
-      child_types = parse_type(child_node, parent_id, path, child_name)
+  @spec parse_child_types(map, URI.t, TypePath.t) :: ParserResult.t
+  defp parse_child_types(node_properties, parent_id, path) do
+    init_result = ParserResult.new()
 
-      Map.merge(type_dict, child_types)
+    node_properties
+    |> Enum.reduce(init_result, fn({child_name, child_node}, acc_result) ->
+      child_types = parse_type(child_node, parent_id, path, child_name)
+      ParserResult.merge(acc_result, child_types)
     end)
   end
 
@@ -104,15 +105,16 @@ defmodule JS2E.Parsers.ObjectParser do
   @spec create_property_dict(Types.typeDictionary, TypePath.t)
   :: Types.propertyDictionary
   def create_property_dict(type_dict, path) do
+
     type_dict
-    |> Enum.reduce(%{}, fn({child_path, child_type}, reference_dict) ->
+    |> Enum.reduce(%{}, fn({child_path, child_type}, acc_property_dict) ->
       child_type_path = TypePath.add_child(path, child_type.name)
 
       if child_type_path == TypePath.from_string(child_path) do
-        Map.merge(reference_dict, %{child_type.name => child_type_path})
-
+        child_property_dict = %{child_type.name => child_type_path}
+        Map.merge(acc_property_dict, child_property_dict)
       else
-        reference_dict
+        acc_property_dict
       end
     end)
   end

@@ -7,7 +7,7 @@ defmodule JS2ETest.Parsers.ObjectParser do
 
   test "parse object type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "type": "object",
@@ -55,11 +55,14 @@ defmodule JS2ETest.Parsers.ObjectParser do
       type: "number"
     }
 
-    assert type_dict == %{
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
       "#/circle" => expected_object_type,
       "#/circle/color" => expected_color_type_reference,
       "#/circle/title" => expected_title_primitive_type,
-      "#/circle/radius" => expected_radius_primitive_type}
+      "#/circle/radius" => expected_radius_primitive_type
+    }
   end
 
 end

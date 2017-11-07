@@ -7,6 +7,8 @@ defmodule JS2ETest.Printers.ObjectPrinter do
 
   test "print object type" do
 
+    module_name = "Domain"
+
     type_dict = %{
       "#/properties/color" =>
       %EnumType{name: "color",
@@ -29,10 +31,9 @@ defmodule JS2ETest.Printers.ObjectPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    object_type_program =
+    result =
       %ObjectType{
         name: "circle",
         path: "#",
@@ -42,7 +43,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
           "title" => ["#", "properties", "title"],
           "radius" => ["#", "properties", "radius"]}
       }
-      |> ObjectPrinter.print_type(schema_def, %{})
+      |> ObjectPrinter.print_type(schema_def, %{}, module_name)
 
     expected_object_type_program =
     """
@@ -52,11 +53,14 @@ defmodule JS2ETest.Printers.ObjectPrinter do
         , title : Maybe String
         }
     """
+    object_type_program = result.printed_schema
 
     assert object_type_program == expected_object_type_program
   end
 
   test "print object decoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/properties/color" =>
@@ -80,10 +84,9 @@ defmodule JS2ETest.Printers.ObjectPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    object_decoder_program =
+    result =
       %ObjectType{
         name: "circle",
         path: "#",
@@ -93,7 +96,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
           "title" => ["#", "properties", "title"],
           "radius" => ["#", "properties", "radius"]}
       }
-      |> ObjectPrinter.print_decoder(schema_def, %{})
+      |> ObjectPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_object_decoder_program =
     """
@@ -104,11 +107,14 @@ defmodule JS2ETest.Printers.ObjectPrinter do
             |> required "radius" Decode.float
             |> optional "title" (nullable Decode.string) Nothing
     """
+    object_decoder_program = result.printed_schema
 
     assert object_decoder_program == expected_object_decoder_program
   end
 
   test "print object encoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/properties/color" =>
@@ -132,10 +138,9 @@ defmodule JS2ETest.Printers.ObjectPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    object_encoder_program =
+    result =
       %ObjectType{
         name: "circle",
         path: "#",
@@ -145,7 +150,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
           "title" => ["#", "properties", "title"],
           "radius" => ["#", "properties", "radius"]}
       }
-      |> ObjectPrinter.print_encoder(schema_def, %{})
+      |> ObjectPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_object_encoder_program =
     """
@@ -169,6 +174,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
             object <|
                 color ++ radius ++ title
     """
+    object_encoder_program = result.printed_schema
 
     assert object_encoder_program == expected_object_encoder_program
   end

@@ -7,7 +7,7 @@ defmodule JS2ETest.Parsers.UnionParser do
 
   test "parse primitive union type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "type": ["number", "integer", "null"]
@@ -21,7 +21,11 @@ defmodule JS2ETest.Parsers.UnionParser do
       path: ["#", "union"],
       types: ["number", "integer", "null"]}
 
-    assert type_dict == %{"#/union" => expected_union_type}
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
+      "#/union" => expected_union_type
+    }
   end
 
 end

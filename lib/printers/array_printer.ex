@@ -4,112 +4,144 @@ defmodule JS2E.Printers.ArrayPrinter do
   A printer for printing an 'array' type decoder.
   """
 
-  @templates_location Application.get_env(:js2e, :templates_location)
-  @decoder_location Path.join(@templates_location, "array/decoder.elm.eex")
-  @encoder_location Path.join(@templates_location, "array/encoder.elm.eex")
-
   require Elixir.{EEx, Logger}
-  import JS2E.Printers.Util
-  alias JS2E.{Printer, Types}
+  import JS2E.Printers.Util, only: [
+    resolve_type: 3,
+    create_type_name: 3,
+    downcase_first: 1,
+    upcase_first: 1,
+    primitive_type?: 1,
+    determine_primitive_type: 1,
+    determine_primitive_type_decoder: 1,
+    determine_primitive_type_encoder: 1
+  ]
+  alias JS2E.Printers.{PrinterResult, ErrorUtil}
+  alias JS2E.Types
   alias JS2E.Types.{ArrayType, SchemaDefinition}
 
+  @templates_location Application.get_env(:js2e, :templates_location)
+
+  # Type
+
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary, String.t) :: PrinterResult.t
+  def print_type(%ArrayType{name: _name,
+                            path: _path,
+                            items: _items_path},
+    _schema_def, _schema_dict, _module_name) do
+    PrinterResult.new("")
+  end
+
+  # Decoder
+
+  @decoder_location Path.join(@templates_location, "array/decoder.elm.eex")
   EEx.function_from_file(:defp, :decoder_template, @decoder_location,
     [:decoder_name, :items_type_name, :items_decoder_name])
 
+  @impl JS2E.Printers.PrinterBehaviour
+  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
+    Types.schemaDictionary, String.t) :: PrinterResult.t
+  def print_decoder(%ArrayType{name: name,
+                               path: _path,
+                               items: items_path},
+    schema_def, schema_dict, _module_name) do
+
+    with {:ok, {items_type, _resolved_schema_def}} <- resolve_type(
+           items_path, schema_def, schema_dict),
+         {:ok, items_type_name} <- determine_type_name(items_type),
+         {:ok, items_decoder_name} <- determine_decoder_name(items_type)
+      do
+
+      "#{name}Decoder"
+      |> downcase_first
+      |> decoder_template(items_type_name, items_decoder_name)
+      |> PrinterResult.new()
+
+      else
+        {:error, error} ->
+          PrinterResult.new("", [error])
+    end
+  end
+
+  @spec determine_type_name(Types.typeDefinition)
+  :: {:ok, String.t} | {:error, PrinterError.t}
+  defp determine_type_name(items_type) do
+
+    if primitive_type?(items_type) do
+      determine_primitive_type(items_type.type)
+    else
+      items_type_name = items_type.name
+
+      if items_type_name == "#" do
+        {:ok, "Root"}
+      else
+        {:ok, upcase_first(items_type_name)}
+      end
+
+    end
+  end
+
+  @spec determine_decoder_name(Types.typeDefinition)
+  :: {:ok, String.t} | {:error, PrinterError.t}
+  defp determine_decoder_name(items_type) do
+
+    if primitive_type?(items_type) do
+      determine_primitive_type_decoder(items_type.type)
+    else
+      items_type_name = items_type.name
+
+      if items_type_name == "#" do
+        {:ok, "rootDecoder"}
+      else
+        {:ok, "#{items_type_name}Decoder"}
+      end
+    end
+  end
+
+  # Encoder
+
+  @encoder_location Path.join(@templates_location, "array/encoder.elm.eex")
   EEx.function_from_file(:defp, :encoder_template, @encoder_location,
     [:encoder_name, :argument_name, :items_type_name, :items_encoder_name])
 
   @impl JS2E.Printers.PrinterBehaviour
-  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary) :: String.t
-  def print_type(%ArrayType{name: _name,
-                            path: _path,
-                            items: _items_path}, _schema_def, _schema_dict) do
-    ""
-  end
-
-  @impl JS2E.Printers.PrinterBehaviour
-  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary) :: String.t
-  def print_decoder(%ArrayType{name: name,
-                               path: _path,
-                               items: items_path}, schema_def, schema_dict) do
-
-    {items_type, _resolved_schema_def} =
-      items_path
-      |> Printer.resolve_type!(schema_def, schema_dict)
-
-    items_type_name = determine_type_name(items_type)
-    items_decoder_name = determine_decoder_name(items_type)
-
-    decoder_name = downcase_first "#{name}Decoder"
-
-    decoder_template(decoder_name, items_type_name, items_decoder_name)
-  end
-
-  @spec determine_decoder_name(Types.typeDefinition) :: String.t
-  defp determine_decoder_name(items_type) do
-
-    if primitive_type?(items_type) do
-      determine_primitive_type_decoder!(items_type.type)
-    else
-      items_type_name = items_type.name
-
-      if items_type_name == "#" do
-        "rootDecoder"
-      else
-        "#{items_type_name}Decoder"
-      end
-    end
-  end
-
-  @spec determine_type_name(Types.typeDefinition) :: String.t
-  defp determine_type_name(items_type) do
-
-    if primitive_type?(items_type) do
-      determine_primitive_type!(items_type.type)
-    else
-      items_type_name = items_type.name
-
-      if items_type_name == "#" do
-        "Root"
-      else
-        upcase_first items_type_name
-      end
-
-    end
-  end
-
-  @impl JS2E.Printers.PrinterBehaviour
   @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary) :: String.t
-  def print_encoder(%ArrayType{name: name, path: _path, items: items_path},
-    schema_def, schema_dict) do
+    Types.schemaDictionary, String.t) :: PrinterResult.t
+  def print_encoder(%ArrayType{name: name,
+                               path: _path,
+                               items: items_path},
+    schema_def, schema_dict, _module_name) do
 
-    {items_type, _resolved_schema_def} =
-      items_path
-      |> Printer.resolve_type!(schema_def, schema_dict)
+    with {:ok, {items_type, _resolved_schema_def}} <- resolve_type(
+           items_path, schema_def, schema_dict),
+         {:ok, items_type_name} <- determine_type_name(items_type),
+         {:ok, items_encoder_name} <- determine_encoder_name(items_type)
+      do
 
-    items_type_name = determine_type_name(items_type)
-    items_encoder_name = determine_encoder_name(items_type)
+      "encode#{items_type_name}s"
+      |> encoder_template(name, items_type_name, items_encoder_name)
+      |> PrinterResult.new()
 
-    encoder_name = "encode#{items_type_name}s"
-
-    encoder_template(encoder_name, name, items_type_name, items_encoder_name)
+      else
+        {:error, error} ->
+          PrinterResult.new("", [error])
+    end
   end
 
-  @spec determine_encoder_name(Types.typeDefinition) :: String.t
+  @spec determine_encoder_name(Types.typeDefinition)
+  :: {:ok, String.t} | {:error, PrinterError.t}
   defp determine_encoder_name(items_type) do
 
     if primitive_type?(items_type) do
-      determine_primitive_type_encoder!(items_type.type)
+      determine_primitive_type_encoder(items_type.type)
     else
       items_type_name = items_type.name
 
       if items_type_name == "#" do
-        "encodeRoot"
+        {:ok, "encodeRoot"}
       else
-        "encode#{upcase_first items_type_name}"
+        {:ok, "encode#{upcase_first items_type_name}"}
       end
     end
   end

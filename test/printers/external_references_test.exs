@@ -5,8 +5,11 @@ defmodule JS2ETest.Printers.ExternalReferences do
   alias JS2E.Printer
   alias JS2E.Types.{EnumType, ObjectType, PrimitiveType,
                     TypeReference, SchemaDefinition}
+  alias JS2E.Printers.SchemaResult
 
   test "print external references" do
+
+    module_name = "Domain"
 
     schema_representations = %{
 
@@ -15,7 +18,6 @@ defmodule JS2ETest.Printers.ExternalReferences do
         description: "Schema for common types",
         id: URI.parse("http://example.com/definitions.json"),
         title: "Definitions",
-        module: "Domain",
         types: %{
 
           "#/definitions/color" =>
@@ -62,7 +64,6 @@ defmodule JS2ETest.Printers.ExternalReferences do
         %SchemaDefinition{
           id: URI.parse("http://example.com/circle.json"),
           title: "Circle",
-          module: "Domain",
           description: "Schema for a circle shape",
           types: %{
 
@@ -102,11 +103,12 @@ defmodule JS2ETest.Printers.ExternalReferences do
         }
     }
 
-    module_prefix = "Domain"
-    {:ok, elm_program} = Printer.print_schemas(schema_representations)
-    Logger.debug "#{inspect elm_program}"
+    schema_result = Printer.print_schemas(
+      schema_representations, module_name)
+    Logger.debug "#{inspect schema_result}"
 
-    circle_program = elm_program["./Domain/Circle.elm"]
+    file_dict = schema_result.file_dict
+    circle_program = file_dict["./Domain/Circle.elm"]
 
     assert circle_program ==
       """
@@ -180,7 +182,7 @@ defmodule JS2ETest.Printers.ExternalReferences do
                   center ++ color ++ radius
       """
 
-    definitions_program = elm_program["./Domain/Definitions.elm"]
+    definitions_program = file_dict["./Domain/Definitions.elm"]
 
     assert definitions_program ==
       """

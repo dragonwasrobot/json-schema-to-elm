@@ -30,7 +30,12 @@ defmodule JS2E.Parsers.AnyOfParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util
+  import JS2E.Parsers.Util, only: [
+    parse_child_types: 3,
+    create_types_list: 2,
+    create_type_dict: 3
+  ]
+  alias JS2E.Parsers.{ErrorUtil, ParserResult}
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.AnyOfType
 
@@ -50,7 +55,7 @@ defmodule JS2E.Parsers.AnyOfParser do
 
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec type?(map) :: boolean
+  @spec type?(Types.schemaNode) :: boolean
   def type?(schema_node) do
     any_of = schema_node["anyOf"]
     is_list(any_of) && length(any_of) > 0
@@ -60,28 +65,31 @@ defmodule JS2E.Parsers.AnyOfParser do
   Parses a JSON schema anyOf type into an `JS2E.Types.AnyOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: Types.typeDictionary
-  def parse(schema_node, parent_id, id, path, name) do
-    Logger.debug "Parsing '#{inspect path}' as anyOf type"
+  @spec parse(Types.schemaNode, URI.t, URI.t | nil, TypePath.t, String.t)
+  :: ParserResult.t
+  def parse(%{"anyOf" => any_of}, parent_id, id, path, name)
+  when is_list(any_of) do
 
-    descendants_types_dict =
-      schema_node
-      |> Map.get("anyOf")
-      |> create_descendants_type_dict(parent_id, path)
-    Logger.debug "Descendants types dict: #{inspect descendants_types_dict}"
+    child_types_result =
+      any_of
+      |> parse_child_types(parent_id, path)
 
     any_of_types =
-      descendants_types_dict
+      child_types_result.type_dict
       |> create_types_list(path)
-    Logger.debug "AnyOf types: #{inspect any_of_types}"
 
     any_of_type = AnyOfType.new(name, path, any_of_types)
-    Logger.debug "Parsed anyOf type: #{inspect any_of_type}"
 
     any_of_type
     |> create_type_dict(path, id)
-    |> Map.merge(descendants_types_dict)
+    |> ParserResult.new()
+    |> ParserResult.merge(child_types_result)
+  end
+
+  def parse(%{"anyOf" => any_of}, _parent_id, _id, path, _name) do
+    any_of_type = ErrorUtil.get_type(any_of)
+    error = ErrorUtil.invalid_type(path, "anyOf", "list", any_of_type)
+    ParserResult.new(%{}, [], [error])
   end
 
 end

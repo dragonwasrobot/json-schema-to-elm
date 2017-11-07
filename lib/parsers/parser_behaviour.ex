@@ -4,9 +4,10 @@ defmodule JS2E.Parsers.ParserBehaviour do
   """
 
   alias JS2E.{TypePath, Types}
+  alias JS2E.Parsers.ParserResult
 
-  @callback type?(map) :: boolean
+  @callback type?(Types.schemaNode) :: boolean
 
-  @callback parse(map, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: Types.typeDictionary
+  @callback parse(Types.schemaNode, URI.t, URI.t | nil, TypePath.t, String.t)
+  :: ParserResult.t
 end

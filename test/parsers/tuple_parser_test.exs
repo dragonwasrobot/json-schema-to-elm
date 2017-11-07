@@ -7,7 +7,7 @@ defmodule JS2ETest.Parsers.TupleParser do
 
   test "parse tuple type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "type": "array",
@@ -34,10 +34,13 @@ defmodule JS2ETest.Parsers.TupleParser do
       name: "1",
       path: ["#", "definitions", "circle"]}
 
-    assert type_dict == %{
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
       "#/shapePair" => expected_tuple_type,
       "#/shapePair/0" => expected_rectangle_type_reference,
-      "#/shapePair/1" => expected_circle_type_reference}
+      "#/shapePair/1" => expected_circle_type_reference
+    }
   end
 
 end
