@@ -13,14 +13,14 @@ defmodule JS2E.Printers.ObjectPrinter do
     downcase_first: 1,
     enum_type?: 1,
     one_of_type?: 1,
-    resolve_type: 3,
+    resolve_type: 4,
     split_ok_and_errors: 1,
     trim_newlines: 1,
     union_type?: 1,
     upcase_first: 1
   ]
-  alias JS2E.Printers.{PrinterResult, ErrorUtil}
-  alias JS2E.Types
+  alias JS2E.Printers.PrinterResult
+  alias JS2E.{TypePath, Types}
   alias JS2E.Types.{ObjectType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
@@ -35,13 +35,13 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec print_type(Types.typeDefinition, SchemaDefinition.t,
     Types.schemaDictionary, String.t) :: PrinterResult.t
   def print_type(%ObjectType{name: name,
-                             path: _path,
+                             path: path,
                              properties: properties,
                              required: required},
     schema_def, schema_dict, module_name) do
 
     type_name = create_root_name(name, schema_def)
-    fields_result = create_type_fields(properties, required,
+    fields_result = create_type_fields(properties, required, path,
       schema_def, schema_dict, module_name)
 
     {fields, errors} =
@@ -56,30 +56,34 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_type_fields(
     Types.propertyDictionary,
     [String.t],
+    TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary,
     String.t
   ) :: [{:ok, map} | {:error, PrinterError.t}]
-  defp create_type_fields(properties, required, schema_def,
+  defp create_type_fields(properties, required, parent, schema_def,
     schema_dict, module_name) do
     properties
-    |> Enum.map(&(create_type_field(&1, required, schema_def,
+    |> Enum.map(&(create_type_field(&1, required, parent, schema_def,
             schema_dict, module_name)))
   end
 
   @spec create_type_field(
     {String.t, String.t},
     [String.t],
+    TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary,
     String.t
   ) :: {:ok, map} | {:error, PrinterError.t}
   defp create_type_field({property_name, property_path},
-    required, schema_def, schema_dict, module_name) do
+    required, parent, schema_def, schema_dict, module_name) do
+
+    properties_path = TypePath.add_child(parent, "properties")
 
     field_type_result =
       property_path
-      |> resolve_type(schema_def, schema_dict)
+      |> resolve_type(properties_path, schema_def, schema_dict)
       |> create_type_name(schema_def, module_name)
       |> check_if_maybe(property_name, required)
 
@@ -116,7 +120,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
     Types.schemaDictionary, String.t) :: PrinterResult.t
   def print_decoder(%ObjectType{name: name,
-                                path: _path,
+                                path: path,
                                 properties: properties,
                                 required: required},
     schema_def, schema_dict, module_name) do
@@ -126,7 +130,7 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     {decoder_clauses, errors} =
       properties
-      |> create_decoder_properties(required, schema_def,
+      |> create_decoder_properties(required, path, schema_def,
     schema_dict, module_name)
     |> split_ok_and_errors()
 
@@ -138,16 +142,17 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_decoder_properties(
     Types.propertyDictionary,
     [String.t],
+    TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary,
     String.t
   ) :: [{:ok, map} | {:error, PrinterError.t}]
   defp create_decoder_properties(properties, required,
-    schema_def, schema_dict, module_name) do
+    parent, schema_def, schema_dict, module_name) do
 
     properties
     |> Enum.map(fn property ->
-      create_decoder_property(property, required, schema_def,
+      create_decoder_property(property, required, parent, schema_def,
         schema_dict, module_name)
     end)
   end
@@ -155,15 +160,16 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_decoder_property(
     {String.t, String.t},
     [String.t],
+    TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary,
     String.t
   ) :: {:ok, map} | {:error, PrinterError.t}
   defp create_decoder_property({property_name, property_path},
-    required, schema_def, schema_dict, module_name) do
+    required, parent, schema_def, schema_dict, module_name) do
 
     with {:ok, {resolved_type, resolved_schema}} <- resolve_type(
-           property_path, schema_def, schema_dict),
+           property_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <- create_decoder_name(
            {:ok, {resolved_type, resolved_schema}}, schema_def, module_name)
       do
@@ -255,7 +261,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
     Types.schemaDictionary, String.t) :: PrinterResult.t
   def print_encoder(%ObjectType{name: name,
-                                path: _path,
+                                path: path,
                                 properties: properties,
                                 required: required},
     schema_def, schema_dict, module_name) do
@@ -266,7 +272,7 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     {encoder_properties, errors} =
       properties
-      |> create_encoder_properties(required, schema_def,
+      |> create_encoder_properties(required, path, schema_def,
     schema_dict, module_name)
     |> split_ok_and_errors()
 
@@ -279,29 +285,31 @@ defmodule JS2E.Printers.ObjectPrinter do
   @spec create_encoder_properties(
     Types.propertyDictionary,
     [String.t],
+    TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary,
     String.t
   ) :: [{:ok, map} | {:error, PrinterError.t}]
   defp create_encoder_properties(properties, required,
-    schema_def, schema_dict, module_name) do
+    parent, schema_def, schema_dict, module_name) do
 
-    Enum.map(properties, &(create_encoder_property(&1, required,
+    Enum.map(properties, &(create_encoder_property(&1, required, parent,
               schema_def, schema_dict, module_name)))
   end
 
   @spec create_encoder_property(
     {String.t, Types.typeIdentifier},
     [String.t],
+    TypePath.t,
     SchemaDefinition.t,
     Types.schemaDictionary,
     String.t
   ) :: {:ok, map} | {:error, PrinterError.t}
   defp create_encoder_property({property_name, property_path}, required,
-    schema_def, schema_dict, module_name) do
+    parent, schema_def, schema_dict, module_name) do
 
     with {:ok, {resolved_type, resolved_schema}} <- resolve_type(
-           property_path, schema_def, schema_dict),
+           property_path, parent, schema_def, schema_dict),
          {:ok, encoder_name} <- create_encoder_name(
            {:ok, {resolved_type, resolved_schema}}, schema_def, module_name)
       do

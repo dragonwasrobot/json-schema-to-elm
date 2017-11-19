@@ -47,6 +47,7 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
     assert schema_result.schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
+        file_path: "examples/example.json",
         title: "Root",
         id: URI.parse("http://example.com/root.json"),
         types: %{

@@ -4,7 +4,7 @@ defmodule JS2ETest.Parsers.AllOfParser do
 
   require Logger
   alias JS2E.Types.{AllOfType, ObjectType, PrimitiveType, TypeReference}
-  alias JS2E.Parsers.{AllOfParser, ParserError, ParserWarning}
+  alias JS2E.Parsers.AllOfParser
 
   test "parse primitive all_of type" do
 
@@ -100,7 +100,6 @@ defmodule JS2ETest.Parsers.AllOfParser do
       |> AllOfParser.parse(nil, nil, ["#", "allOfExample"], "allOfExample")
 
     [error] = parser_result.errors
-    Logger.debug "Error: #{inspect error}"
 
     assert error.error_type == :type_mismatch
     assert error.identifier == ["#", "allOfExample"]

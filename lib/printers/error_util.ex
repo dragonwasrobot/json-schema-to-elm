@@ -6,10 +6,29 @@ defmodule JS2E.Printers.ErrorUtil do
   alias JS2E.{Types, TypePath}
   alias JS2E.Printers.{PrinterError}
 
-  @spec unresolved_reference(Types.typeIdentifier) :: PrinterError.t
-  def unresolved_reference(identifier) do
-    error_msg = "Could not resolve identifier: '#{identifier}'"
-    PrinterError.new("", :unresolved_reference, error_msg)
+  @spec unresolved_reference(
+    Types.typeIdentifier,
+    TypePath.t
+  ) :: PrinterError.t
+  def unresolved_reference(identifier, parent) do
+
+    printed_path = TypePath.to_string(parent)
+    printed_identifier = to_string(identifier)
+
+    error_msg =
+    """
+
+    The following reference at `#{printed_path}` could not be resolved
+
+        "$ref": "#{printed_identifier}"
+                #{red(String.duplicate("^", String.length(printed_identifier) + 2))}
+
+
+    Hint: See the specification section 9. "Base URI and dereferencing"
+    <http://json-schema.org/latest/json-schema-core.html#rfc.section.9>
+    """
+
+    PrinterError.new(parent, :unresolved_reference, error_msg)
   end
 
   @spec unknown_type(String.t) :: PrinterError.t
@@ -89,6 +108,10 @@ defmodule JS2E.Printers.ErrorUtil do
     |> to_string
     |> String.capitalize
     |> String.replace("_", " ")
+  end
+
+  defp red(str) do
+    IO.ANSI.format([:red, str])
   end
 
 end

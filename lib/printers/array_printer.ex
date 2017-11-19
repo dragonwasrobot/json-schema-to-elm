@@ -1,21 +1,20 @@
 defmodule JS2E.Printers.ArrayPrinter do
   @behaviour JS2E.Printers.PrinterBehaviour
-  @moduledoc """
+  @moduledoc ~S"""
   A printer for printing an 'array' type decoder.
   """
 
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util, only: [
-    resolve_type: 3,
-    create_type_name: 3,
-    downcase_first: 1,
-    upcase_first: 1,
-    primitive_type?: 1,
     determine_primitive_type: 1,
     determine_primitive_type_decoder: 1,
-    determine_primitive_type_encoder: 1
+    determine_primitive_type_encoder: 1,
+    downcase_first: 1,
+    primitive_type?: 1,
+    resolve_type: 4,
+    upcase_first: 1
   ]
-  alias JS2E.Printers.{PrinterResult, ErrorUtil}
+  alias JS2E.Printers.PrinterResult
   alias JS2E.Types
   alias JS2E.Types.{ArrayType, SchemaDefinition}
 
@@ -43,12 +42,12 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
     Types.schemaDictionary, String.t) :: PrinterResult.t
   def print_decoder(%ArrayType{name: name,
-                               path: _path,
+                               path: path,
                                items: items_path},
     schema_def, schema_dict, _module_name) do
 
     with {:ok, {items_type, _resolved_schema_def}} <- resolve_type(
-           items_path, schema_def, schema_dict),
+           items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_decoder_name} <- determine_decoder_name(items_type)
       do
@@ -109,12 +108,12 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
     Types.schemaDictionary, String.t) :: PrinterResult.t
   def print_encoder(%ArrayType{name: name,
-                               path: _path,
+                               path: path,
                                items: items_path},
     schema_def, schema_dict, _module_name) do
 
     with {:ok, {items_type, _resolved_schema_def}} <- resolve_type(
-           items_path, schema_def, schema_dict),
+           items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_encoder_name} <- determine_encoder_name(items_type)
       do

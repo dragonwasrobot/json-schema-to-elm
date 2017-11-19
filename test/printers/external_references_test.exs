@@ -5,7 +5,6 @@ defmodule JS2ETest.Printers.ExternalReferences do
   alias JS2E.Printer
   alias JS2E.Types.{EnumType, ObjectType, PrimitiveType,
                     TypeReference, SchemaDefinition}
-  alias JS2E.Printers.SchemaResult
 
   test "print external references" do
 
@@ -105,7 +104,6 @@ defmodule JS2ETest.Printers.ExternalReferences do
 
     schema_result = Printer.print_schemas(
       schema_representations, module_name)
-    Logger.debug "#{inspect schema_result}"
 
     file_dict = schema_result.file_dict
     circle_program = file_dict["./Domain/Circle.elm"]

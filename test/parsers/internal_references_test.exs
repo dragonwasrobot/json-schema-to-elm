@@ -73,6 +73,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
     assert schema_result.schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
+        file_path: "examples/example.json",
         description: "Demonstrates the different types of internal references",
         title: "Internal references",
         id: URI.parse("http://example.com/root.json"),

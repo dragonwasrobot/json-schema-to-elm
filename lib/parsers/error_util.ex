@@ -60,6 +60,15 @@ defmodule JS2E.Parsers.ErrorUtil do
     ParserError.new(identifier, :type_mismatch, error_msg)
   end
 
+  @spec schema_name_collision(Types.typeIdentifier) :: ParserError.t
+  def schema_name_collision(identifier) do
+    error_msg =
+    """
+    Found more than one schema with id: '#{identifier}'
+    """
+    ParserError.new(identifier, :name_collision, error_msg)
+  end
+
   @spec name_collision(Types.typeIdentifier) :: ParserError.t
   def name_collision(identifier) do
     error_msg = "Found more than one property with identifier: '#{identifier}'"
@@ -73,11 +82,35 @@ defmodule JS2E.Parsers.ErrorUtil do
     ParserError.new(identifier, :invalid_uri, error_msg)
   end
 
-  @spec unknown_node_type(Types.typeIdentifier, Types.node) :: ParserError.t
-  def unknown_node_type(identifier, schema_node) do
-    error_msg = "Could not parse node with value: " <>
-      "'#{inspect schema_node}' as its type could not be recognized."
-    ParserError.new(identifier, :unknown_node_type, error_msg)
+  @spec unknown_node_type(Types.typeIdentifier, String.t, Types.node)
+  :: ParserError.t
+  def unknown_node_type(identifier, name, schema_node) do
+
+    full_identifier =
+      identifier
+      |> TypePath.add_child(name)
+      |> TypePath.to_string
+
+    json_node = Poison.encode!(schema_node)
+    type_value = schema_node["type"]
+    error_msg =
+    """
+    The value of "type" at path: '#{full_identifier}' did not match a known node type.
+
+        "type": "#{type_value}"
+                #{String.duplicate("^", String.length(type_value) + 2)}
+
+    Was expecting one of the following types:
+
+    ["null", "boolean", "object", "array", "number", "integer", "string"]
+
+    Hint: See the specification section 6.25. "Validation keywords - type"
+    <http://json-schema.org/latest/json-schema-validation.html#rfc.section.6.25>
+    """
+
+ "Could not recognize node type: " <>
+      "'#{json_node}' as its type could not be recognized."
+    ParserError.new(full_identifier, :unknown_node_type, error_msg)
   end
 
   @spec pretty_print_error(ParserError.t) :: String.t
@@ -86,7 +119,7 @@ defmodule JS2E.Parsers.ErrorUtil do
                                       message: message}) do
     printed_id = pretty_identifier(identifier)
     printed_error_type = pretty_error_type(error_type)
-    "[error](#{printed_id}) - #{printed_error_type}: #{message}"
+    "(#{printed_id}) - #{printed_error_type}: #{message}"
   end
 
   @doc ~S"""

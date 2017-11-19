@@ -82,7 +82,7 @@ defmodule JS2E.Parsers.Util do
   :: ParserResult.t
   def parse_type(schema_node, parent_id, path, name) do
 
-    case determine_node_parser(schema_node, path) do
+    case determine_node_parser(schema_node, path, name) do
       {:ok, node_parser} ->
         id = determine_id(schema_node, parent_id)
         parent_id = determine_parent_id(id, parent_id)
@@ -94,9 +94,12 @@ defmodule JS2E.Parsers.Util do
     end
   end
 
-  @spec determine_node_parser(Types.schemaNode, Types.typeIdentifier)
-  :: {:ok, nodeParser} | {:error, ParserError.t}
-  defp determine_node_parser(schema_node, identifier) do
+  @spec determine_node_parser(
+    Types.schemaNode,
+    Types.typeIdentifier,
+    String.t
+  ) :: {:ok, nodeParser} | {:error, ParserError.t}
+  defp determine_node_parser(schema_node, identifier, name) do
 
     predicate_node_type_pairs = [
       {&AllOfParser.type?/1, &AllOfParser.parse/5},
@@ -121,7 +124,7 @@ defmodule JS2E.Parsers.Util do
     if node_parser != nil do
       {:ok, node_parser}
     else
-      {:error, ErrorUtil.unknown_node_type(identifier, schema_node)}
+      {:error, ErrorUtil.unknown_node_type(identifier, name, schema_node)}
     end
   end
 

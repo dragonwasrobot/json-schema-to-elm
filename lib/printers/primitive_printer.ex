@@ -1,6 +1,6 @@
 defmodule JS2E.Printers.PrimitivePrinter do
   @behaviour JS2E.Printers.PrinterBehaviour
-  @moduledoc """
+  @moduledoc ~S"""
   A printer for printing an 'object' type decoder.
   """
 

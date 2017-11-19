@@ -1,5 +1,5 @@
 defmodule JS2E.Printers.PreamblePrinter do
-  @moduledoc """
+  @moduledoc ~S"""
   A printer for printing a 'preamble' for a module.
   """
 
@@ -10,7 +10,7 @@ defmodule JS2E.Printers.PreamblePrinter do
   import JS2E.Printers.Util, only: [
     get_string_name: 1
   ]
-  alias JS2E.Printers.{PrinterResult, ErrorUtil}
+  alias JS2E.Printers.PrinterResult
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
@@ -88,8 +88,7 @@ defmodule JS2E.Printers.PreamblePrinter do
     %{required(String.t) => [TypeReference.t]},
     URI.t,
     Types.schemaDictionary
-  ) :: {:ok, %{required(String.t) => [TypeReference.t]}}
-  | {:error, PrinterError.t}
+  ) :: %{required(String.t) => [TypeReference.t]}
   defp resolve_dependency(type_ref, dependency_map, schema_uri, schema_dict) do
     type_ref_uri = URI.parse(type_ref.path)
 

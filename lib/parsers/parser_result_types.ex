@@ -128,7 +128,6 @@ defmodule JS2E.Parsers.ParserResult do
     %__MODULE__{type_dict: merged_type_dict,
                 warnings: merged_warnings,
                 errors: merged_errors}
-
   end
 end
 
@@ -161,7 +160,7 @@ defmodule JS2E.Parsers.SchemaResult do
   and a list of warnings and errors encountered while parsing.
   """
   @spec new(
-    Types.schemaDictionary,
+    [{Path.t, Types.schemaDictionary}],
     [{Path.t, ParserWarning.t}],
     [{Path.t, ParserError.t}]
   )

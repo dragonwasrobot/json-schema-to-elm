@@ -45,6 +45,8 @@ defmodule JS2E.Parsers.EnumParser do
   :: ParserResult.t
   def parse(%{"enum" => enum, "type" => type}, _parent_id, id, path, name) do
 
+    # TODO: Check that the enum values all have the same type
+
     enum_type = EnumType.new(name, path, type, enum)
 
     enum_type

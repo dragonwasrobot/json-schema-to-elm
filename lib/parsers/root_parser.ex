@@ -31,16 +31,19 @@ defmodule JS2E.Parsers.RootParser do
                       warnings: warnings} =
           ParserResult.merge(root_parser_result, definitions_parser_result)
 
-        schema_dict = %{to_string(schema_id) => SchemaDefinition.new(
-                       schema_id, title, description, type_dict)}
+        schema_dict =
+          %{to_string(schema_id) => SchemaDefinition.new(
+           schema_file_path, schema_id, title, description, type_dict)}
+
         schema_errors = (if length(errors) > 0 do
           [{schema_file_path, errors}] else []
         end)
+
         schema_warnings = (if length(warnings) > 0 do
           [{schema_file_path, warnings}] else []
         end)
 
-        SchemaResult.new(schema_dict, schema_errors, schema_warnings)
+        SchemaResult.new(schema_dict, schema_warnings, schema_errors)
     else
 
       {:error, error} ->

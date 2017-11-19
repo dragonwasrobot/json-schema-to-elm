@@ -1,6 +1,6 @@
 defmodule JS2E.Printers.TypeReferencePrinter do
   @behaviour JS2E.Printers.PrinterBehaviour
-  @moduledoc """
+  @moduledoc ~S"""
   A printer for printing a type reference decoder.
   """
 

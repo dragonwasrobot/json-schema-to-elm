@@ -13,7 +13,7 @@ defmodule JS2ETest.Parsers.ObjectParser do
         "type": "object",
         "properties": {
           "color": {
-            "$ref": "#/color"
+            "$ref": "#/definitions/color"
           },
           "title": {
             "type": "string"
@@ -22,7 +22,7 @@ defmodule JS2ETest.Parsers.ObjectParser do
             "type": "number"
           }
         },
-        "required": [ "color", "radius" ]
+        "required": ["color", "radius"]
       }
       """
       |> Poison.decode!()
@@ -40,7 +40,7 @@ defmodule JS2ETest.Parsers.ObjectParser do
 
     expected_color_type_reference = %TypeReference{
       name: "color",
-      path: ["#", "color"]
+      path: ["#", "definitions", "color"]
     }
 
     expected_title_primitive_type = %PrimitiveType{

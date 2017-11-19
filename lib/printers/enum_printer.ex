@@ -6,10 +6,8 @@ defmodule JS2E.Printers.EnumPrinter do
 
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util, only: [
-    create_type_name: 3,
     determine_primitive_type: 1,
     downcase_first: 1,
-    resolve_type: 3,
     split_ok_and_errors: 1,
     trim_newlines: 1,
     upcase_first: 1

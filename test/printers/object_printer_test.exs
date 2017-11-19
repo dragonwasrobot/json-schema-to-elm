@@ -36,7 +36,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     result =
       %ObjectType{
         name: "circle",
-        path: "#",
+        path: ["#"],
         required: ["color", "radius"],
         properties: %{
           "color" => ["#", "properties", "color"],
@@ -89,7 +89,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     result =
       %ObjectType{
         name: "circle",
-        path: "#",
+        path: ["#"],
         required: ["color", "radius"],
         properties: %{
           "color" => ["#", "properties", "color"],
@@ -143,7 +143,7 @@ defmodule JS2ETest.Printers.ObjectPrinter do
     result =
       %ObjectType{
         name: "circle",
-        path: "#",
+        path: ["#"],
         required: ["color", "radius"],
         properties: %{
           "color" => ["#", "properties", "color"],

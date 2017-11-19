@@ -508,32 +508,35 @@ defmodule JS2E.Printers.Util do
   end
 
   @spec resolve_type(
-    Types.typeIdentifier, SchemaDefinition.t, Types.schemaDictionary)
+    TypePath.t,
+    Types.typeIdentifier,
+    SchemaDefinition.t,
+    Types.schemaDictionary)
   :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
   | {:error, PrinterError.t}
-  def resolve_type(identifier, schema_def, schema_dict) do
+  def resolve_type(identifier, parent, schema_def, schema_dict) do
 
     resolved_result = (
       cond do
-
         identifier in ["string", "number", "integer", "boolean"] ->
           resolve_primitive_identifier(identifier, schema_def)
 
         TypePath.type_path?(identifier) ->
-          resolve_type_path_identifier(identifier, schema_def)
+          resolve_type_path_identifier(identifier, parent, schema_def)
 
         URI.parse(identifier).scheme != nil ->
-          resolve_uri_identifier(identifier, schema_dict)
+          resolve_uri_identifier(identifier, parent, schema_dict)
 
         true ->
-          {:error, ErrorUtil.unresolved_reference(identifier)}
+          {:error, ErrorUtil.unresolved_reference(identifier, parent)}
       end)
 
     case resolved_result do
       {:ok, {resolved_type, resolved_schema_def}} ->
 
         if get_string_name(resolved_type) == "TypeReference" do
-          resolve_type(resolved_type.path, resolved_schema_def, schema_dict)
+          resolve_type(resolved_type.path, parent,
+            resolved_schema_def, schema_dict)
         else
           {:ok, {resolved_type, resolved_schema_def}}
         end
@@ -551,10 +554,13 @@ defmodule JS2E.Printers.Util do
     {:ok, {primitive_type, schema_def}}
   end
 
-  @spec resolve_type_path_identifier(TypePath.t, SchemaDefinition.t)
+  @spec resolve_type_path_identifier(
+    TypePath.t,
+    TypePath.t,
+    SchemaDefinition.t)
   :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
   | {:error, PrinterError.t}
-  defp resolve_type_path_identifier(identifier, schema_def) do
+  defp resolve_type_path_identifier(identifier, parent, schema_def) do
 
     type_dict = schema_def.types
     resolved_type = type_dict[TypePath.to_string(identifier)]
@@ -562,14 +568,17 @@ defmodule JS2E.Printers.Util do
     if resolved_type != nil do
       {:ok, {resolved_type, schema_def}}
     else
-      {:error, ErrorUtil.unresolved_reference(identifier)}
+      {:error, ErrorUtil.unresolved_reference(identifier, parent)}
     end
   end
 
-  @spec resolve_uri_identifier(String.t, Types.schemaDictionary)
+  @spec resolve_uri_identifier(
+    TypePath.t,
+    String.t,
+    Types.schemaDictionary)
   :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
   | {:error, PrinterError.t}
-  defp resolve_uri_identifier(identifier, schema_dict) do
+  defp resolve_uri_identifier(identifier, parent, schema_dict) do
 
     schema_id = determine_schema_id(identifier)
     schema_def = schema_dict[schema_id]
@@ -586,11 +595,11 @@ defmodule JS2E.Printers.Util do
       if resolved_type != nil do
         {:ok, {resolved_type, schema_def}}
       else
-        {:error, ErrorUtil.unresolved_reference(identifier)}
+        {:error, ErrorUtil.unresolved_reference(identifier, parent)}
       end
 
     else
-      {:error, ErrorUtil.unresolved_reference(identifier)}
+      {:error, ErrorUtil.unresolved_reference(identifier, parent)}
     end
   end
 

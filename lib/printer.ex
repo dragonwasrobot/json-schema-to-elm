@@ -17,23 +17,13 @@ defmodule JS2E.Printer do
   @spec print_schemas(Types.schemaDictionary, String.t) :: SchemaResult
   def print_schemas(schema_dict, module_name \\ "") do
 
-    create_file_path = fn (schema_def) ->
-      title = schema_def.title
-
-      if module_name != "" do
-        "./#{module_name}/#{title}.elm"
-      else
-        "./#{title}.elm"
-      end
-    end
-
     schema_dict
     |> Enum.reduce(SchemaResult.new(), fn ({_id, schema_def}, acc) ->
       file_path = create_file_path(schema_def, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
       errors = (if length(result.errors) > 0 do
-        [{file_path, result.errors}] else []
+        [{schema_def.file_path, result.errors}] else []
       end)
 
       %{file_path => result.printed_schema}

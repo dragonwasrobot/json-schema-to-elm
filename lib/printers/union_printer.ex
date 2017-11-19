@@ -1,21 +1,17 @@
 defmodule JS2E.Printers.UnionPrinter do
   @behaviour JS2E.Printers.PrinterBehaviour
-  @moduledoc """
+  @moduledoc ~S"""
   A printer for printing an 'object' type decoder.
   """
 
   require Elixir.{EEx, Logger}
   import JS2E.Printers.Util, only: [
-    create_decoder_name: 3,
-    create_type_name: 3,
-    downcase_first: 1,
-    resolve_type: 3,
     split_ok_and_errors: 1,
     trim_newlines: 1,
     upcase_first: 1
   ]
   alias JS2E.Printers.{PrinterResult, ErrorUtil}
-  alias JS2E.{TypePath, Types}
+  alias JS2E.{Types}
   alias JS2E.Types.{UnionType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
@@ -27,8 +23,12 @@ defmodule JS2E.Printers.UnionPrinter do
     [:type_name, :clauses])
 
   @impl JS2E.Printers.PrinterBehaviour
-  @spec print_type(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary, String.t) :: PrinterResult.t
+  @spec print_type(
+    Types.typeDefinition,
+    SchemaDefinition.t,
+    Types.schemaDictionary,
+    String.t
+  ) :: PrinterResult.t
   def print_type(%UnionType{name: name,
                             path: _path,
                             types: types},
@@ -88,8 +88,11 @@ defmodule JS2E.Printers.UnionPrinter do
     [:decoder_name, :decoder_type, :nullable?, :clauses])
 
   @impl JS2E.Printers.PrinterBehaviour
-  @spec print_decoder(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary, String.t) :: PrinterResult.t
+  @spec print_decoder(
+    Types.typeDefinition,
+    SchemaDefinition.t,
+    Types.schemaDictionary,
+    String.t) :: PrinterResult.t
   def print_decoder(%UnionType{name: name,
                                path: _path,
                                types: types},
@@ -171,8 +174,12 @@ defmodule JS2E.Printers.UnionPrinter do
     [:encoder_name, :type_name, :argument_name, :cases])
 
   @impl JS2E.Printers.PrinterBehaviour
-  @spec print_encoder(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary, String.t) :: PrinterResult.t
+  @spec print_encoder(
+    Types.typeDefinition,
+    SchemaDefinition.t,
+    Types.schemaDictionary,
+    String.t
+  ) :: PrinterResult.t
   def print_encoder(%UnionType{name: name,
                               path: _path,
                               types: types},
