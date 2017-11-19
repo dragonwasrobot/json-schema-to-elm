@@ -1,5 +1,5 @@
 defmodule JS2E.Printers.PreamblePrinter do
-  @moduledoc """
+  @moduledoc ~S"""
   A printer for printing a 'preamble' for a module.
   """
 
@@ -7,26 +7,30 @@ defmodule JS2E.Printers.PreamblePrinter do
   @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
 
   require Elixir.{EEx, Logger}
-  import JS2E.Printers.Util
+  import JS2E.Printers.Util, only: [
+    get_string_name: 1
+  ]
+  alias JS2E.Printers.PrinterResult
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
   EEx.function_from_file(:defp, :preamble_template, @preamble_location,
     [:prefix, :title, :description, :imports])
 
-  @spec print_preamble(SchemaDefinition.t, Types.schemaDictionary) :: String.t
+  @spec print_preamble(SchemaDefinition.t, Types.schemaDictionary, String.t)
+  :: PrinterResult.t
   def print_preamble(%SchemaDefinition{id: _id,
                                        title: title,
-                                       module: module_name,
                                        description: description,
                                        types: _type_dict} = schema_def,
-    schema_dict) do
+    schema_dict, module_name) do
 
-    prefix = create_prefix(module_name)
+    imports = create_imports(schema_def, schema_dict)
 
-    imports = schema_def |> create_imports(schema_dict)
-
-    preamble_template(prefix, title, description, imports)
+    module_name
+    |> create_prefix()
+    |> preamble_template(title, description, imports)
+    |> PrinterResult.new()
   end
 
   @spec create_prefix(String.t) :: String.t
@@ -41,7 +45,7 @@ defmodule JS2E.Printers.PreamblePrinter do
   @spec create_imports(
     SchemaDefinition.t,
     Types.schemaDictionary
-  ) :: [map]
+  ) :: [String.t]
   defp create_imports(schema_def, schema_dict) do
     schema_id = schema_def.id
     type_dict = schema_def.types
@@ -86,7 +90,7 @@ defmodule JS2E.Printers.PreamblePrinter do
     Types.schemaDictionary
   ) :: %{required(String.t) => [TypeReference.t]}
   defp resolve_dependency(type_ref, dependency_map, schema_uri, schema_dict) do
-    type_ref_uri = URI.parse(type_ref.path)
+    type_ref_uri = URI.parse(type_ref.path |> to_string)
 
     cond do
       has_relative_path?(type_ref_uri) ->
@@ -119,7 +123,7 @@ defmodule JS2E.Printers.PreamblePrinter do
     %{required(String.t) => TypeReference.t},
     SchemaDefinition.t,
     Types.schemaDictionary
-  ) :: [String.t]
+  ) :: [{:ok, String.t} | {:error, PrinterError.t}]
   defp create_dependencies(dependency_map, _schema_def, schema_dict) do
 
     dependency_map

@@ -16,8 +16,8 @@ defmodule JS2E.Types.TupleType do
 
       %TupleType{name: "shapePair",
                  path: ["#", "rectangles"],
-                 items: [["#", "shapePair", "0"],
-                         ["#", "shapePair", "1"]}
+                 items: [["#", "shapePair", "items", "0"],
+                         ["#", "shapePair", "items", "1"]}
 
   Elm code generated:
 

@@ -13,7 +13,7 @@ defmodule JS2E.Mixfile do
      # Packaging
      escript: [
        main_module: JS2E,
-       name: "js2e"
+       name: "js2e",
      ],
 
      # Dialyxir

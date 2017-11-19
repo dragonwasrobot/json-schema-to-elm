@@ -29,6 +29,11 @@ folder which contains an example of a pair of JSON schemas and their
 corresponding Elm output. Likewise, representations of each of the different
 JSON schema types are described in the `lib/types` folder.
 
+The tool aims to produce `elm-make`-like errors if something is missing,
+mispelled or cannot be resolved in the supplied JSON schema file(s). If you
+experience errors that look more like stack traces, feel free to open an issue
+so it can be fixed.
+
 ## Example
 
 If we supply `js2e` with the following JSON schema file, `definitions.json`:
@@ -269,7 +274,30 @@ encodeCircle circle =
                 ++ radius
 ```
 
-## Tests
+## Contributing
+
+If you feel like something is missing/wrong or if I've misinterpreted the JSON
+schema spec, feel free to open an issue so we can discuss a solution.
+
+### Development
+
+As noted in the installation section, the project is written
+in [Elixir](http://elixir-lang.org/) - as I found it to be a more suitable tool
+for the job than Elm, and uses the `mix` tool for building.
+
+#### Compiling
+
+Install dependencies
+
+    mix deps.get
+
+Compile project
+
+    mix compile
+
+and you are good to go.
+
+#### Tests
 
 Run the standard mix task
 

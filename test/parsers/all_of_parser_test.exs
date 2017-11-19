@@ -1,12 +1,14 @@
 defmodule JS2ETest.Parsers.AllOfParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.AllOfParser, import: true
 
+  require Logger
   alias JS2E.Types.{AllOfType, ObjectType, PrimitiveType, TypeReference}
   alias JS2E.Parsers.AllOfParser
 
   test "parse primitive all_of type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "allOf": [
@@ -32,21 +34,21 @@ defmodule JS2ETest.Parsers.AllOfParser do
       }
       """
       |> Poison.decode!()
-      |> AllOfParser.parse(nil, nil, ["#", "allOfExample"], "allOfExample")
+      |> AllOfParser.parse(nil, nil, ["#", "schema"], "schema")
 
     expected_object_type = %ObjectType{
       name: "0",
-      path: ["#", "allOfExample", "0"],
+      path: ["#", "schema", "allOf", "0"],
       required: ["color", "radius"],
       properties: %{
-        "color" => ["#", "allOfExample", "0", "color"],
-        "title" => ["#", "allOfExample", "0", "title"],
-        "radius" => ["#", "allOfExample", "0", "radius"]}
+        "color" => ["#", "schema", "allOf", "0", "properties", "color"],
+        "title" => ["#", "schema", "allOf", "0", "properties", "title"],
+        "radius" => ["#", "schema", "allOf", "0", "properties", "radius"]}
     }
 
     expected_primitive_type = %PrimitiveType{
       name: "1",
-      path: ["#", "allOfExample", "1"],
+      path: ["#", "schema", "allOf", "1"],
       type: "string"}
 
     expected_color_type = %TypeReference{
@@ -55,30 +57,32 @@ defmodule JS2ETest.Parsers.AllOfParser do
 
     expected_radius_type = %PrimitiveType{
       name: "radius",
-      path: ["#", "allOfExample", "0", "radius"],
+      path: ["#", "schema", "allOf", "0", "properties", "radius"],
       type: "number"}
 
     expected_title_type = %PrimitiveType{
       name: "title",
-      path: ["#", "allOfExample", "0", "title"],
+      path: ["#", "schema", "allOf", "0", "properties", "title"],
       type: "string"}
 
     expected_all_of_type = %AllOfType{
-      name: "allOfExample",
-      path: ["#", "allOfExample"],
+      name: "schema",
+      path: ["#", "schema"],
       types: [
-        ["#", "allOfExample", "0"],
-        ["#", "allOfExample", "1"]
+        ["#", "schema", "allOf", "0"],
+        ["#", "schema", "allOf", "1"]
       ]
     }
 
-    assert type_dict == %{
-      "#/allOfExample" => expected_all_of_type,
-      "#/allOfExample/0" => expected_object_type,
-      "#/allOfExample/1" => expected_primitive_type,
-      "#/allOfExample/0/color" => expected_color_type,
-      "#/allOfExample/0/radius" => expected_radius_type,
-      "#/allOfExample/0/title" => expected_title_type
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
+      "#/schema" => expected_all_of_type,
+      "#/schema/allOf/0" => expected_object_type,
+      "#/schema/allOf/1" => expected_primitive_type,
+      "#/schema/allOf/0/properties/color" => expected_color_type,
+      "#/schema/allOf/0/properties/radius" => expected_radius_type,
+      "#/schema/allOf/0/properties/title" => expected_title_type
     }
   end
 

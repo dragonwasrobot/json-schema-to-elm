@@ -11,29 +11,47 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   """
 
   require Logger
-  alias JS2E.{TypePath, Types}
-  alias JS2E.Parsers.Util
+  import JS2E.Parsers.Util, only: [
+    create_type_dict: 3
+  ]
+  alias JS2E.{Types, TypePath}
+  alias JS2E.Parsers.ParserResult
   alias JS2E.Types.TypeReference
+
+  @doc ~S"""
+  Returns true if the json subschema represents a reference to another schema.
+
+  ## Examples
+
+  iex> type?(%{})
+  false
+
+  iex> type?(%{"$ref" => "#foo"})
+  true
+
+  """
+  @impl JS2E.Parsers.ParserBehaviour
+  @spec type?(map) :: boolean
+  def type?(%{"$ref" => ref}) when is_binary(ref), do: true
+  def type?(_schema_node), do: false
 
   @doc ~S"""
   Parses a JSON schema type reference into an `JS2E.Types.TypeReference`.
   """
   @impl JS2E.Parsers.ParserBehaviour
   @spec parse(map, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: Types.typeDictionary
-  def parse(schema_node, _parent_id, id, path, name) do
-    Logger.debug "parsing '#{inspect path}' as TypeReference"
+  :: ParserResult.t
+  def parse(%{"$ref" => ref}, _parent_id, id, path, name) do
 
     ref_path =
-      schema_node
-      |> Map.get("$ref")
+      ref
       |> to_type_identifier
 
     type_reference = TypeReference.new(name, ref_path)
-    Logger.debug "Parsed type reference: #{inspect type_reference}"
 
     type_reference
-    |> Util.create_type_dict(path, id)
+    |> create_type_dict(path, id)
+    |> ParserResult.new()
   end
 
   @spec to_type_identifier(String.t) :: Types.typeIdentifier

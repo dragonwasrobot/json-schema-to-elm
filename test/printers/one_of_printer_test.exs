@@ -7,6 +7,8 @@ defmodule JS2ETest.Printers.OneOfPrinter do
 
   test "print 'one of' type value" do
 
+    module_name = "Domain"
+
     type_dict = %{
       "#/shape/0" =>
       %TypeReference{name: "square",
@@ -35,17 +37,16 @@ defmodule JS2ETest.Printers.OneOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    one_of_type_program =
+    result =
       %OneOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "shape", "0"],
                 ["#", "shape", "1"]]
       }
-      |> OneOfPrinter.print_type(schema_def, %{})
+      |> OneOfPrinter.print_type(schema_def, %{}, module_name)
 
     expected_one_of_type_program =
       """
@@ -53,11 +54,14 @@ defmodule JS2ETest.Printers.OneOfPrinter do
           = Shape_Sq Square
           | Shape_Ci Circle
       """
+    one_of_type_program = result.printed_schema
 
     assert one_of_type_program == expected_one_of_type_program
   end
 
   test "print 'one of' decoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/definitions/square" =>
@@ -79,17 +83,16 @@ defmodule JS2ETest.Printers.OneOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    one_of_decoder_program =
+    result =
       %OneOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> OneOfPrinter.print_decoder(schema_def, %{})
+      |> OneOfPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_one_of_decoder_program =
     """
@@ -99,11 +102,14 @@ defmodule JS2ETest.Printers.OneOfPrinter do
               , circleDecoder
               ]
     """
+    one_of_decoder_program = result.printed_schema
 
     assert one_of_decoder_program == expected_one_of_decoder_program
   end
 
   test "print 'one of' encoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/definitions/square" =>
@@ -125,17 +131,16 @@ defmodule JS2ETest.Printers.OneOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    one_of_encoder_program =
+    result =
       %OneOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> OneOfPrinter.print_encoder(schema_def, %{})
+      |> OneOfPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_one_of_encoder_program =
     """
@@ -148,6 +153,7 @@ defmodule JS2ETest.Printers.OneOfPrinter do
             Shape_Ci circle ->
                 encodeCircle circle
     """
+    one_of_encoder_program = result.printed_schema
 
     assert one_of_encoder_program == expected_one_of_encoder_program
   end

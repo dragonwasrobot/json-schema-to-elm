@@ -19,8 +19,8 @@ defmodule JS2E.Types.AllOfType do
 
       %AllOfType{name: "shape",
                  path: ["#", "shape"],
-                 types: [["#", "shape", "0"],
-                         ["#", "shape", "1"]]}
+                 types: [["#", "shape", "allOf", "0"],
+                         ["#", "shape", "allOf", "1"]]}
 
   Elm code generated:
 

@@ -7,6 +7,8 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
 
   test "print 'any of' type value" do
 
+    module_name = "Domain"
+
     type_dict = %{
       "#/shape/0" =>
       %TypeReference{name: "square",
@@ -35,17 +37,16 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    any_of_type_program =
+    result =
       %AnyOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "shape", "0"],
                 ["#", "shape", "1"]]
       }
-      |> AnyOfPrinter.print_type(schema_def, %{})
+      |> AnyOfPrinter.print_type(schema_def, %{}, module_name)
 
     expected_any_of_type_program =
       """
@@ -55,10 +56,14 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
           }
       """
 
+    any_of_type_program = result.printed_schema
+
     assert any_of_type_program == expected_any_of_type_program
   end
 
   test "print 'any of' decoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/definitions/square" =>
@@ -80,17 +85,16 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    any_of_decoder_program =
+    result =
       %AnyOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AnyOfPrinter.print_decoder(schema_def, %{})
+      |> AnyOfPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_any_of_decoder_program =
     """
@@ -101,10 +105,14 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
             |> optional "circle" (nullable circleDecoder) Nothing
     """
 
+    any_of_decoder_program = result.printed_schema
+
     assert any_of_decoder_program == expected_any_of_decoder_program
   end
 
   test "print 'any of' encoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/definitions/square" =>
@@ -126,17 +134,16 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    any_of_encoder_program =
+    result =
       %AnyOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AnyOfPrinter.print_encoder(schema_def, %{})
+      |> AnyOfPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_any_of_encoder_program =
     """
@@ -162,6 +169,8 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
             object <|
                 square ++ circle
     """
+
+    any_of_encoder_program = result.printed_schema
 
     assert any_of_encoder_program == expected_any_of_encoder_program
   end

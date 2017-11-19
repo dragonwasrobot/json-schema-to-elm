@@ -1,12 +1,13 @@
 defmodule JS2ETest.Parsers.ArrayParser do
   use ExUnit.Case
+  doctest JS2E.Parsers.ArrayParser, import: true
 
   alias JS2E.Types.{ArrayType, TypeReference}
   alias JS2E.Parsers.ArrayParser
 
   test "parse array type" do
 
-    type_dict =
+    parser_result =
       ~S"""
       {
         "type": "array",
@@ -27,9 +28,12 @@ defmodule JS2ETest.Parsers.ArrayParser do
       name: "items",
       path: ["#", "definitions", "rectangle"]}
 
-    assert type_dict == %{
+    assert parser_result.errors == []
+    assert parser_result.warnings == []
+    assert parser_result.type_dict == %{
       "#/rectangles" => expected_array_type,
-      "#/rectangles/items" => expected_type_reference}
+      "#/rectangles/items" => expected_type_reference
+    }
   end
 
 end

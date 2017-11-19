@@ -7,6 +7,8 @@ defmodule JS2ETest.Printers.AllOfPrinter do
 
   test "print 'all of' type value" do
 
+    module_name = "Domain"
+
     type_dict = %{
       "#/shape/0" =>
       %TypeReference{name: "square",
@@ -35,17 +37,18 @@ defmodule JS2ETest.Printers.AllOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    all_of_type_program =
+    result =
       %AllOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "shape", "0"],
                 ["#", "shape", "1"]]
       }
-      |> AllOfPrinter.print_type(schema_def, %{})
+      |> AllOfPrinter.print_type(schema_def, %{}, module_name)
+
+    all_of_type_program = result.printed_schema
 
     expected_all_of_type_program =
       """
@@ -60,6 +63,8 @@ defmodule JS2ETest.Printers.AllOfPrinter do
 
   test "print 'all of' decoder" do
 
+    module_name = "Domain"
+
     type_dict = %{
       "#/definitions/square" =>
       %ObjectType{name: "square",
@@ -80,17 +85,16 @@ defmodule JS2ETest.Printers.AllOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    all_of_decoder_program =
+    result =
       %AllOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AllOfPrinter.print_decoder(schema_def, %{})
+      |> AllOfPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_all_of_decoder_program =
     """
@@ -101,10 +105,14 @@ defmodule JS2ETest.Printers.AllOfPrinter do
             |> required "circle" circleDecoder
     """
 
+    all_of_decoder_program = result.printed_schema
+
     assert all_of_decoder_program == expected_all_of_decoder_program
   end
 
   test "print 'all of' encoder" do
+
+    module_name = "Domain"
 
     type_dict = %{
       "#/definitions/square" =>
@@ -126,17 +134,16 @@ defmodule JS2ETest.Printers.AllOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      module: "Domain",
       types: type_dict}
 
-    all_of_encoder_program =
+    result =
       %AllOfType{
         name: "shape",
         path: ["#", "definitions", "shape"],
         types: [["#", "definitions", "square"],
                 ["#", "definitions", "circle"]]
       }
-      |> AllOfPrinter.print_encoder(schema_def, %{})
+      |> AllOfPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_all_of_encoder_program =
     """
@@ -152,6 +159,8 @@ defmodule JS2ETest.Printers.AllOfPrinter do
             object <|
                 square ++ circle
     """
+
+    all_of_encoder_program = result.printed_schema
 
     assert all_of_encoder_program == expected_all_of_encoder_program
   end

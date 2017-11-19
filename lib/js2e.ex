@@ -18,11 +18,13 @@ defmodule JS2E do
   """
 
   require Logger
-  alias JS2E.{Parser, Printer}
+  import JS2E.Parser, only: [parse_schema_files: 1]
+  import JS2E.Printer, only: [print_schemas: 2]
+  alias JS2E.Parsers.{ParserWarning, ParserError}
+  alias JS2E.Printers.PrinterError
 
   @spec main([String.t]) :: :ok
   def main(args) do
-    Logger.debug "Arguments: #{inspect args}"
 
     {options, paths, errors} =
       OptionParser.parse(args, switches: [module_name: :string])
@@ -33,15 +35,15 @@ defmodule JS2E do
     end
 
     if length(errors) > 0 do
-      IO.puts "Error: Found one or more errors in the supplied options"
+      print_error("Error: Found one or more errors in the supplied options")
       exit({:unknown_arguments, errors})
     end
 
     files = resolve_all_paths(paths)
-    Logger.debug "Files: #{inspect files}"
 
     if length(files) == 0 do
-      IO.puts "Error: Could not find any JSON files in path: #{inspect paths}"
+      print_error("Error: Could not find any " <>
+        "JSON files in path: #{inspect paths}")
       exit(:no_files)
     end
 
@@ -49,7 +51,7 @@ defmodule JS2E do
     JS2E.generate(files, output_path)
   end
 
-  @spec resolve_all_paths([String.t]) :: [String.t]
+  @spec resolve_all_paths([String.t]) :: [Path.t]
   defp resolve_all_paths(paths) do
     paths
     |> Enum.filter(&File.exists?/1)
@@ -103,18 +105,144 @@ defmodule JS2E do
   end
 
   @spec generate([String.t], String.t) :: :ok
-  def generate(json_schema_paths, module_name) do
+  def generate(schema_paths, module_name) do
 
-    schema_dict = Parser.parse_schema_files(json_schema_paths, module_name)
-    printed_schemas = Printer.print_schemas(schema_dict)
+    Logger.info "Parsing JSON schema files!"
+    parser_result = parse_schema_files(schema_paths)
+    pretty_parser_warnings(parser_result.warnings)
 
-    printed_schemas
-    |> Enum.each(fn{file_path, file_content} ->
-      {:ok, file} = File.open file_path, [:write]
-      IO.binwrite file, file_content
-      File.close file
-      Logger.info "Created file: #{file_path}"
+    if length(parser_result.errors) > 0 do
+      pretty_parser_errors(parser_result.errors)
+
+    else
+      Logger.info "Converting to Elm code!"
+      printer_result = print_schemas(parser_result.schema_dict, module_name)
+
+      if length(printer_result.errors) > 0 do
+        pretty_printer_errors(printer_result.errors)
+
+      else
+        Logger.info "Printing Elm code to file(s)!"
+
+        file_dict = printer_result.file_dict
+        Enum.each(file_dict, fn {file_path, file_content} ->
+          {:ok, file} = File.open file_path, [:write]
+          IO.binwrite file, file_content
+          File.close file
+          Logger.info "Created file '#{file_path}'"
+        end)
+      end
+    end
+  end
+
+  @spec pretty_parser_warnings([ParserWarning.t]) :: :ok
+  defp pretty_parser_warnings(warnings) do
+    warnings
+    |> Enum.each(fn {file_path, warnings} ->
+      if length(warnings) > 0 do
+
+        warning_header()
+
+        warnings
+        |> Enum.group_by(fn warning -> warning.warning_type end)
+        |> Enum.each(fn {warning_type, warnings} ->
+          pretty_warning_type =
+            warning_type
+            |> to_string
+            |> String.replace("_", " ")
+            |> String.downcase
+
+          padding = String.duplicate("-",
+            74 - String.length(pretty_warning_type) - String.length(file_path))
+
+          warnings
+          |> Enum.each(fn warning ->
+            print_header("--- #{pretty_warning_type} #{padding} #{file_path}\n")
+            IO.puts warning.message
+          end)
+        end)
+
+      end
     end)
+    :ok
+  end
+
+  @spec pretty_parser_errors([ParserError.t]) :: :ok
+  defp pretty_parser_errors(errors) do
+    errors
+    |> Enum.each(fn {file_path, errors} ->
+      if length(errors) > 0 do
+
+        errors
+        |> Enum.group_by(fn err -> err.error_type end)
+        |> Enum.each(fn {error_type, errors} ->
+          pretty_error_type =
+            error_type
+            |> to_string
+            |> String.replace("_", " ")
+            |> String.upcase
+
+          padding = String.duplicate("-",
+            74 - String.length(pretty_error_type) - String.length(file_path))
+
+          errors
+          |> Enum.each(fn error ->
+            print_header("--- #{pretty_error_type} #{padding} #{file_path}\n")
+            IO.puts error.message
+          end)
+        end)
+      end
+    end)
+
+    :ok
+  end
+
+  @spec pretty_printer_errors([PrinterError.t]) :: :ok
+  defp pretty_printer_errors(errors) do
+
+    errors
+    |> Enum.each(fn {file_path, errors} ->
+      if length(errors) > 0 do
+
+        errors
+        |> Enum.group_by(fn err -> err.error_type end)
+        |> Enum.each(fn {error_type, errors} ->
+
+          pretty_error_type =
+            error_type
+            |> to_string
+            |> String.replace("_", " ")
+            |> String.upcase
+
+          padding = String.duplicate("-",
+            74 - String.length(pretty_error_type) - String.length(file_path))
+
+          errors
+          |> Enum.each(fn error ->
+            print_header("--- #{pretty_error_type} #{padding} #{file_path}\n")
+            IO.puts error.message
+          end)
+        end)
+
+      end
+    end)
+    :ok
+  end
+
+  defp print_error(str) do
+    IO.puts IO.ANSI.format([:cyan, str])
+  end
+
+  defp print_header(str) do
+    IO.puts IO.ANSI.format([:cyan, str])
+  end
+
+  defp warning_header do
+    header = String.duplicate("^", 35) <>
+      " WARNINGS " <>
+      String.duplicate("^", 35)
+
+    IO.puts IO.ANSI.format([:yellow, header])
   end
 
 end

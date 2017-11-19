@@ -1,12 +1,13 @@
 defmodule JS2ETest.Parsers.InternalReferences do
   use ExUnit.Case
 
-  alias JS2E.{Types, Parser}
+  alias JS2E.Types
   alias Types.{PrimitiveType, TypeReference, SchemaDefinition}
+  alias JS2E.Parsers.RootParser
 
   test "parse internal references" do
 
-    schema_dict =
+    schema_result =
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
@@ -41,7 +42,7 @@ defmodule JS2ETest.Parsers.InternalReferences do
       }
       """
       |> Poison.decode!()
-      |> Parser.parse_schema("Domain")
+      |> RootParser.parse_schema("examples/example.json")
 
     expected_root_type_reference = %TypeReference{
       name: "#",
@@ -67,12 +68,14 @@ defmodule JS2ETest.Parsers.InternalReferences do
       path: ["#", "definitions", "C"],
       type: "integer"}
 
-    assert schema_dict == %{
+    assert schema_result.errors == []
+    assert schema_result.warnings == []
+    assert schema_result.schema_dict == %{
       "http://example.com/root.json" =>
       %SchemaDefinition{
+        file_path: "examples/example.json",
         description: "Demonstrates the different types of internal references",
         title: "Internal references",
-        module: "Domain",
         id: URI.parse("http://example.com/root.json"),
         types: %{
           "#" => expected_root_type_reference,
