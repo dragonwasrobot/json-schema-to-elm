@@ -87,10 +87,4 @@ defmodule JS2E.Parsers.AllOfParser do
     |> ParserResult.merge(child_types_result)
   end
 
-  def parse(%{"allOf" => all_of}, _parent_id, _id, path, _name) do
-    all_of_type = ErrorUtil.get_type(all_of)
-    error = ErrorUtil.invalid_type(path, "allOf", "list", all_of_type)
-    ParserResult.new(%{}, [], [error])
-  end
-
 end

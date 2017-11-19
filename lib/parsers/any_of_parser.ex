@@ -88,10 +88,4 @@ defmodule JS2E.Parsers.AnyOfParser do
     |> ParserResult.merge(child_types_result)
   end
 
-  def parse(%{"anyOf" => any_of}, _parent_id, _id, path, _name) do
-    any_of_type = ErrorUtil.get_type(any_of)
-    error = ErrorUtil.invalid_type(path, "anyOf", "list", any_of_type)
-    ParserResult.new(%{}, [], [error])
-  end
-
 end
