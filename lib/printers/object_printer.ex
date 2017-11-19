@@ -79,10 +79,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp create_type_field({property_name, property_path},
     required, parent, schema_def, schema_dict, module_name) do
 
-    properties_path =
-      parent
-      # |> TypePath.add_child("properties")
-      |> TypePath.add_child(property_name)
+    properties_path = TypePath.add_child(parent, property_name)
 
     field_type_result =
       property_path
@@ -171,10 +168,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp create_decoder_property({property_name, property_path},
     required, parent, schema_def, schema_dict, module_name) do
 
-    properties_path =
-      parent
-      # |> TypePath.add_child("properties")
-      |> TypePath.add_child(property_name)
+    properties_path = TypePath.add_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <- resolve_type(
            property_path, properties_path, schema_def, schema_dict),
@@ -316,10 +310,7 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp create_encoder_property({property_name, property_path}, required,
     parent, schema_def, schema_dict, module_name) do
 
-    properties_path =
-      parent
-      # |> TypePath.add_child("properties")
-      |> TypePath.add_child(property_name)
+    properties_path = TypePath.add_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <- resolve_type(
            property_path, properties_path, schema_def, schema_dict),
