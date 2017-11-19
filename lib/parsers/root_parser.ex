@@ -125,7 +125,7 @@ defmodule JS2E.Parsers.RootParser do
 
     else
       {:error, ErrorUtil.unsupported_schema_version(
-        to_string(@supported_versions), schema_str)}
+        schema_str, @supported_versions)}
     end
   end
 
@@ -172,8 +172,7 @@ defmodule JS2E.Parsers.RootParser do
   end
 
   def parse_schema_id(%{"id" => schema_id}) do
-    schema_id_type = ErrorUtil.get_type(schema_id)
-    {:error, ErrorUtil.invalid_type("#", "id", "string", schema_id_type)}
+    {:error, ErrorUtil.invalid_type("#", "id", "string", schema_id)}
   end
 
   def parse_schema_id(_schema_node) do

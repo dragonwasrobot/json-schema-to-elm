@@ -11,8 +11,7 @@ or similar.
 
 - Clone this repository: `git clone
   git@github.com:dragonwasrobot/json-schema-to-elm.git`
-- Build an executable: `MIX_ENV=prod mix build` (or `MIX_ENV=dev mix build`
-  for debug logging)
+- Build an executable: `MIX_ENV=prod mix build`
 - An executable, `js2e`, has now been created in your current working directory.
 
 ## Usage
@@ -277,15 +276,16 @@ encodeCircle circle =
 
 ## Contributing
 
-If you feel like something is missing/wrong or I've misinterpreted the JSON
+If you feel like something is missing/wrong or if I've misinterpreted the JSON
 schema spec, feel free to open an issue so we can discuss a solution.
 
 ### Development
 
 As noted in the installation section, the project is written
-in [elixir](http://elixir-lang.org/) and uses the `mix` build tool.
+in [Elixir](http://elixir-lang.org/) - as I found it to be a more suitable tool
+for the job than Elm, and uses the `mix` tool for building.
 
-#### Building
+#### Compiling
 
 Install dependencies
 

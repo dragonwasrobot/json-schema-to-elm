@@ -90,7 +90,7 @@ defmodule JS2E.Printers.PreamblePrinter do
     Types.schemaDictionary
   ) :: %{required(String.t) => [TypeReference.t]}
   defp resolve_dependency(type_ref, dependency_map, schema_uri, schema_dict) do
-    type_ref_uri = URI.parse(type_ref.path)
+    type_ref_uri = URI.parse(type_ref.path |> to_string)
 
     cond do
       has_relative_path?(type_ref_uri) ->

@@ -34,12 +34,26 @@ defmodule JS2E.Parsers.ErrorUtil do
   def get_type(value) when is_nil(value), do: "null"
   def get_type(_value), do: "unknown"
 
-  @spec unsupported_schema_version(String.t, String.t) :: ParserError.t
-  def unsupported_schema_version(expected, actual) do
+  @spec unsupported_schema_version(String.t, [String.t]) :: ParserError.t
+  def unsupported_schema_version(supplied_value, supported_versions) do
 
     root_path = TypePath.from_string("#")
-    error_msg = "Unsupported JSON schema version found in '$schema': " <>
-      "'#{actual}'. Supported versions are: '#{expected}'"
+    stringified_value = sanitize_value(supplied_value)
+
+    error_msg =
+    """
+    Unsupported JSON schema version found at '#'.
+
+        "$schema": #{stringified_value}
+                   #{error_markings(stringified_value)}
+
+    Was expecting one of the following types:
+
+        #{inspect supported_versions}
+
+    Hint: See the specification section 7. "The '$schema' keyword"
+    <http://json-schema.org/latest/json-schema-core.html#rfc.section.7>
+    """
 
     ParserError.new(root_path, :unsupported_schema_version, error_msg)
   end
@@ -47,38 +61,81 @@ defmodule JS2E.Parsers.ErrorUtil do
   @spec missing_property(Types.typeIdentifier, String.t)
   :: ParserError.t
   def missing_property(identifier, property) do
-    error_msg = "Missing property: '#{property}' for schema: '#{identifier}'"
+
+    full_identifier = print_identifier(identifier)
+
+    error_msg =
+    """
+    Could not find property '#{property}' at '#{full_identifier}'
+    """
+
     ParserError.new(identifier, :missing_property, error_msg)
   end
 
   @spec invalid_type(Types.typeIdentifier, String.t, String.t, String.t)
   :: ParserError.t
-  def invalid_type(identifier, property, expected, actual) do
-    error_msg = "Expected value of property: '#{property}' " <>
-      "to be of type: '#{expected}' " <>
-      "but was of type: '#{actual}'."
+  def invalid_type(identifier, property, expected_type, actual_value) do
+
+    actual_type = get_type(actual_value)
+    stringified_value = sanitize_value(actual_value)
+
+    full_identifier = print_identifier(identifier)
+
+    error_msg =
+    """
+    Expected value of property '#{property}' at '#{full_identifier}'
+    to be of type '#{expected_type}' but found a value of type '#{actual_type}'
+
+        "#{property}": #{stringified_value}
+                       #{error_markings(stringified_value)}
+
+    """
+
     ParserError.new(identifier, :type_mismatch, error_msg)
   end
 
   @spec schema_name_collision(Types.typeIdentifier) :: ParserError.t
   def schema_name_collision(identifier) do
+
+    full_identifier = print_identifier(identifier)
+
     error_msg =
     """
-    Found more than one schema with id: '#{identifier}'
+    Found more than one schema with id: '#{full_identifier}'
     """
+
     ParserError.new(identifier, :name_collision, error_msg)
   end
 
   @spec name_collision(Types.typeIdentifier) :: ParserError.t
   def name_collision(identifier) do
-    error_msg = "Found more than one property with identifier: '#{identifier}'"
+
+    full_identifier = print_identifier(identifier)
+
+    error_msg =
+    """
+    Found more than one property with identifier '#{full_identifier}'
+    """
+
     ParserError.new(identifier, :name_collision, error_msg)
   end
 
   @spec invalid_uri(Types.typeIdentifier, String.t, String.t) :: ParserError.t
   def invalid_uri(identifier, property, actual) do
-    error_msg = "Could not parse property '#{property}' with value " <>
-      "'#{actual}' into a valid URI."
+
+    full_identifier = print_identifier(identifier)
+    stringified_value = sanitize_value(actual)
+
+    error_msg =
+    """
+    Could not parse property '#{property}' at '#{full_identifier}' into a valid URI.
+
+        "id": #{stringified_value}
+              #{error_markings(stringified_value)}
+
+    Hint: See URI specification section 3. "Syntax Components"
+    <https://tools.ietf.org/html/rfc3986#section-3>
+    """
     ParserError.new(identifier, :invalid_uri, error_msg)
   end
 
@@ -91,83 +148,56 @@ defmodule JS2E.Parsers.ErrorUtil do
       |> TypePath.add_child(name)
       |> TypePath.to_string
 
-    json_node = Poison.encode!(schema_node)
-    type_value = schema_node["type"]
+    stringified_value = sanitize_value(schema_node["type"])
+
     error_msg =
     """
-    The value of "type" at path: '#{full_identifier}' did not match a known node type.
+    The value of "type" at '#{full_identifier}' did not match a known node type
 
-        "type": "#{type_value}"
-                #{red(String.duplicate("^", String.length(type_value) + 2))}
+        "type": #{stringified_value}
+                #{error_markings(stringified_value)}
 
-    Was expecting one of the following types:
+    Was expecting one of the following types
 
-    ["null", "boolean", "object", "array", "number", "integer", "string"]
+        ["null", "boolean", "object", "array", "number", "integer", "string"]
 
     Hint: See the specification section 6.25. "Validation keywords - type"
     <http://json-schema.org/latest/json-schema-validation.html#rfc.section.6.25>
     """
 
- "Could not recognize node type: " <>
-      "'#{json_node}' as its type could not be recognized."
     ParserError.new(full_identifier, :unknown_node_type, error_msg)
   end
 
-  @spec pretty_print_error(ParserError.t) :: String.t
-  def pretty_print_error(%ParserError{identifier: identifier,
-                                      error_type: error_type,
-                                      message: message}) do
-    printed_id = pretty_identifier(identifier)
-    printed_error_type = pretty_error_type(error_type)
-    "(#{printed_id}) - #{printed_error_type}: #{message}"
-  end
+  @spec print_identifier(Types.typeIdentifier) :: String.t
+  defp print_identifier(identifier) do
 
-  @doc ~S"""
-  Pretty prints an identifier.
-
-  ## Examples
-
-      iex> pretty_identifier(JS2E.TypePath.from_string("#/definitions/foo"))
-      "#/definitions/foo"
-
-      iex> pretty_identifier(URI.parse("http://www.example.com/root.json#bar"))
-      "http://www.example.com/root.json#bar"
-
-      iex> pretty_identifier("#qux")
-      "#qux"
-
-  """
-  @spec pretty_identifier(Types.typeIdentifier) :: String.t
-  def pretty_identifier(identifier) do
-    cond do
-      TypePath.type_path?(identifier) ->
-        TypePath.to_string(identifier)
-
-      is_map(identifier) ->
-        URI.to_string(identifier)
-
-      identifier ->
-        identifier
+    if TypePath.type_path?(identifier) do
+      TypePath.to_string(identifier)
+    else
+      to_string(identifier)
     end
   end
 
-  @doc ~S"""
-  Pretty prints an error type.
+  @spec sanitize_value(any) :: String.t
+  defp sanitize_value(raw_value) do
+    cond do
+      is_map(raw_value) ->
+        Poison.encode!(raw_value)
 
-  ## Examples
+      TypePath.type_path?(raw_value) ->
+        TypePath.to_string(raw_value)
 
-      iex> pretty_error_type(:dangling_reference)
-      "Dangling reference"
-
-  """
-  @spec pretty_error_type(ParserError.error_type) :: String.t
-  def pretty_error_type(error_type) do
-    error_type
-    |> to_string
-    |> String.capitalize
-    |> String.replace("_", " ")
+      true ->
+        inspect(raw_value)
+    end
   end
 
+  @spec error_markings(String.t) :: String.t
+  defp error_markings(value) do
+    red(String.duplicate("^", String.length(value)))
+  end
+
+  @spec red(String.t) :: list
   defp red(str) do
     IO.ANSI.format([:red, str])
   end

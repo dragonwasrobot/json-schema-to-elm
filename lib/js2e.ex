@@ -40,7 +40,6 @@ defmodule JS2E do
     end
 
     files = resolve_all_paths(paths)
-    Logger.debug "Files: #{inspect files}"
 
     if length(files) == 0 do
       print_error("Error: Could not find any " <>

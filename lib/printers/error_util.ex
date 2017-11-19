@@ -13,15 +13,15 @@ defmodule JS2E.Printers.ErrorUtil do
   def unresolved_reference(identifier, parent) do
 
     printed_path = TypePath.to_string(parent)
-    printed_identifier = to_string(identifier)
+    stringified_value = sanitize_value(identifier)
 
     error_msg =
     """
 
     The following reference at `#{printed_path}` could not be resolved
 
-        "$ref": "#{printed_identifier}"
-                #{red(String.duplicate("^", String.length(printed_identifier) + 2))}
+        "$ref": #{stringified_value}
+                #{error_markings(stringified_value)}
 
 
     Hint: See the specification section 9. "Base URI and dereferencing"
@@ -55,61 +55,36 @@ defmodule JS2E.Printers.ErrorUtil do
     PrinterError.new(file_name, :name_collision, error_msg)
   end
 
-  @spec pretty_print_error(PrinterError.t) :: String.t
-  def pretty_print_error(%PrinterError{identifier: identifier,
-                                      error_type: error_type,
-                                      message: message}) do
-    printed_id = pretty_identifier(identifier)
-    printed_error_type = pretty_error_type(error_type)
-    "[error](#{printed_id}) - #{printed_error_type}: #{message}"
-  end
+  @spec print_identifier(Types.typeIdentifier) :: String.t
+  defp print_identifier(identifier) do
 
-  @doc ~S"""
-  Pretty prints an identifier.
-
-  ## Examples
-
-      iex> pretty_identifier(JS2E.TypePath.from_string("#/definitions/foo"))
-      "#/definitions/foo"
-
-      iex> pretty_identifier(URI.parse("http://www.example.com/root.json#bar"))
-      "http://www.example.com/root.json#bar"
-
-      iex> pretty_identifier("#qux")
-      "#qux"
-
-  """
-  @spec pretty_identifier(Types.typeIdentifier) :: String.t
-  def pretty_identifier(identifier) do
-    cond do
-      TypePath.type_path?(identifier) ->
-        TypePath.to_string(identifier)
-
-      is_map(identifier) ->
-        URI.to_string(identifier)
-
-      identifier ->
-        identifier
+    if TypePath.type_path?(identifier) do
+      TypePath.to_string(identifier)
+    else
+      to_string(identifier)
     end
   end
 
-  @doc ~S"""
-  Pretty prints an error type.
+  @spec sanitize_value(any) :: String.t
+  defp sanitize_value(raw_value) do
+    cond do
+      is_map(raw_value) ->
+        Poison.encode!(raw_value)
 
-  ## Examples
+      TypePath.type_path?(raw_value) ->
+        TypePath.to_string(raw_value)
 
-      iex> pretty_error_type(:dangling_reference)
-      "Dangling reference"
-
-  """
-  @spec pretty_error_type(PrinterError.error_type) :: String.t
-  def pretty_error_type(error_type) do
-    error_type
-    |> to_string
-    |> String.capitalize
-    |> String.replace("_", " ")
+      true ->
+        inspect(raw_value)
+    end
   end
 
+  @spec error_markings(String.t) :: String.t
+  defp error_markings(value) do
+    red(String.duplicate("^", String.length(value)))
+  end
+
+  @spec red(String.t) :: list
   defp red(str) do
     IO.ANSI.format([:red, str])
   end
