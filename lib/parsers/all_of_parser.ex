@@ -70,13 +70,15 @@ defmodule JS2E.Parsers.AllOfParser do
   def parse(%{"allOf" => all_of}, parent_id, id, path, name)
   when is_list(all_of) do
 
+    child_path = TypePath.add_child(path, "allOf")
+
     child_types_result =
       all_of
-      |> parse_child_types(parent_id, path)
+      |> parse_child_types(parent_id, child_path)
 
     all_of_types =
       child_types_result.type_dict
-      |> create_types_list(path)
+      |> create_types_list(child_path)
 
     all_of_type = AllOfType.new(name, path, all_of_types)
 

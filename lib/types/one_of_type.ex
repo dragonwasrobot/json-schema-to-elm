@@ -19,8 +19,8 @@ defmodule JS2E.Types.OneOfType do
 
       %OneOfType{name: "shape",
                  path: ["#", "shape"],
-                 types: [["#", "shape", "0"],
-                         ["#", "shape", "1"]]}
+                 types: [["#", "shape", "oneOf", "0"],
+                         ["#", "shape", "oneOf", "1"]]}
 
   Elm code generated:
 

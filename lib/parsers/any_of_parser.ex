@@ -70,13 +70,15 @@ defmodule JS2E.Parsers.AnyOfParser do
   def parse(%{"anyOf" => any_of}, parent_id, id, path, name)
   when is_list(any_of) do
 
+    child_path = TypePath.add_child(path, "anyOf")
+
     child_types_result =
       any_of
-      |> parse_child_types(parent_id, path)
+      |> parse_child_types(parent_id, child_path)
 
     any_of_types =
       child_types_result.type_dict
-      |> create_types_list(path)
+      |> create_types_list(child_path)
 
     any_of_type = AnyOfType.new(name, path, any_of_types)
 

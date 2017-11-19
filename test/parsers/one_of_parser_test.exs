@@ -33,21 +33,21 @@ defmodule JS2ETest.Parsers.OneOfParser do
       }
       """
       |> Poison.decode!()
-      |> OneOfParser.parse(nil, nil, ["#", "oneOfExample"], "oneOfExample")
+      |> OneOfParser.parse(nil, nil, ["#", "schema"], "schema")
 
     expected_object_type = %ObjectType{
       name: "0",
-      path: ["#", "oneOfExample", "0"],
+      path: ["#", "schema", "oneOf", "0"],
       required: ["color", "radius"],
       properties: %{
-        "color" => ["#", "oneOfExample", "0", "color"],
-        "title" => ["#", "oneOfExample", "0", "title"],
-        "radius" => ["#", "oneOfExample", "0", "radius"]}
+        "color" => ["#", "schema", "oneOf", "0", "properties", "color"],
+        "title" => ["#", "schema", "oneOf", "0", "properties", "title"],
+        "radius" => ["#", "schema", "oneOf", "0","properties",  "radius"]}
     }
 
     expected_primitive_type = %PrimitiveType{
       name: "1",
-      path: ["#", "oneOfExample", "1"],
+      path: ["#", "schema", "oneOf", "1"],
       type: "string"}
 
     expected_color_type = %TypeReference{
@@ -56,32 +56,32 @@ defmodule JS2ETest.Parsers.OneOfParser do
 
     expected_radius_type = %PrimitiveType{
       name: "radius",
-      path: ["#", "oneOfExample", "0", "radius"],
+      path: ["#", "schema", "oneOf", "0", "properties", "radius"],
       type: "number"}
 
     expected_title_type = %PrimitiveType{
       name: "title",
-      path: ["#", "oneOfExample", "0", "title"],
+      path: ["#", "schema", "oneOf", "0", "properties", "title"],
       type: "string"}
 
     expected_one_of_type = %OneOfType{
-      name: "oneOfExample",
-      path: ["#", "oneOfExample"],
+      name: "schema",
+      path: ["#", "schema"],
       types: [
-        ["#", "oneOfExample", "0"],
-        ["#", "oneOfExample", "1"]
+        ["#", "schema", "oneOf", "0"],
+        ["#", "schema", "oneOf", "1"]
       ]
     }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
     assert parser_result.type_dict == %{
-      "#/oneOfExample" => expected_one_of_type,
-      "#/oneOfExample/0" => expected_object_type,
-      "#/oneOfExample/1" => expected_primitive_type,
-      "#/oneOfExample/0/color" => expected_color_type,
-      "#/oneOfExample/0/radius" => expected_radius_type,
-      "#/oneOfExample/0/title" => expected_title_type
+      "#/schema" => expected_one_of_type,
+      "#/schema/oneOf/0" => expected_object_type,
+      "#/schema/oneOf/1" => expected_primitive_type,
+      "#/schema/oneOf/0/properties/color" => expected_color_type,
+      "#/schema/oneOf/0/properties/radius" => expected_radius_type,
+      "#/schema/oneOf/0/properties/title" => expected_title_type
     }
   end
 

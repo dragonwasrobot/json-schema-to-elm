@@ -33,9 +33,9 @@ defmodule JS2ETest.Parsers.ObjectParser do
       path: ["#", "circle"],
       required: ["color", "radius"],
       properties: %{
-        "color" => ["#", "circle", "color"],
-        "title" => ["#", "circle", "title"],
-        "radius" => ["#", "circle", "radius"]}
+        "color" => ["#", "circle", "properties", "color"],
+        "title" => ["#", "circle", "properties", "title"],
+        "radius" => ["#", "circle", "properties", "radius"]}
     }
 
     expected_color_type_reference = %TypeReference{
@@ -45,13 +45,13 @@ defmodule JS2ETest.Parsers.ObjectParser do
 
     expected_title_primitive_type = %PrimitiveType{
       name: "title",
-      path: ["#", "circle", "title"],
+      path: ["#", "circle", "properties", "title"],
       type: "string"
     }
 
     expected_radius_primitive_type = %PrimitiveType{
       name: "radius",
-      path: ["#", "circle", "radius"],
+      path: ["#", "circle", "properties", "radius"],
       type: "number"
     }
 
@@ -59,9 +59,9 @@ defmodule JS2ETest.Parsers.ObjectParser do
     assert parser_result.warnings == []
     assert parser_result.type_dict == %{
       "#/circle" => expected_object_type,
-      "#/circle/color" => expected_color_type_reference,
-      "#/circle/title" => expected_title_primitive_type,
-      "#/circle/radius" => expected_radius_primitive_type
+      "#/circle/properties/color" => expected_color_type_reference,
+      "#/circle/properties/title" => expected_title_primitive_type,
+      "#/circle/properties/radius" => expected_radius_primitive_type
     }
   end
 

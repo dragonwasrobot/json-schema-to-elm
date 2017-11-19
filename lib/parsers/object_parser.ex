@@ -60,17 +60,20 @@ defmodule JS2E.Parsers.ObjectParser do
   Parses a JSON schema object type into an `JS2E.Types.ObjectType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.schemaNode, URI.t, URI.t, TypePath.t, String.t) :: ParserResult.t
+  @spec parse(Types.schemaNode, URI.t, URI.t, TypePath.t, String.t)
+  :: ParserResult.t
   def parse(schema_node, parent_id, id, path, name) do
 
     required = Map.get(schema_node, "required", [])
 
+    child_path = TypePath.add_child(path, "properties")
+
     child_types_result =
       schema_node
       |> Map.get("properties")
-      |> parse_child_types(parent_id, path)
+      |> parse_child_types(parent_id, child_path)
 
-    type_dict = create_property_dict(child_types_result.type_dict, path)
+    type_dict = create_property_dict(child_types_result.type_dict, child_path)
 
     object_type = ObjectType.new(name, path, type_dict, required)
 
@@ -81,12 +84,12 @@ defmodule JS2E.Parsers.ObjectParser do
   end
 
   @spec parse_child_types(map, URI.t, TypePath.t) :: ParserResult.t
-  defp parse_child_types(node_properties, parent_id, path) do
+  defp parse_child_types(node_properties, parent_id, child_path) do
     init_result = ParserResult.new()
 
     node_properties
     |> Enum.reduce(init_result, fn({child_name, child_node}, acc_result) ->
-      child_types = parse_type(child_node, parent_id, path, child_name)
+      child_types = parse_type(child_node, parent_id, child_path, child_name)
       ParserResult.merge(acc_result, child_types)
     end)
   end

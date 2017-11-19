@@ -58,13 +58,15 @@ defmodule JS2E.Parsers.TupleParser do
   def parse(%{"items" => items}, parent_id, id, path, name)
   when is_list(items) do
 
+    child_path = TypePath.add_child(path, "items")
+
     child_types_result =
       items
-      |> parse_child_types(parent_id, path)
+      |> parse_child_types(parent_id, child_path)
 
     tuple_types =
       child_types_result.type_dict
-      |> create_types_list(path)
+      |> create_types_list(child_path)
 
     tuple_type = TupleType.new(name, path, tuple_types)
 

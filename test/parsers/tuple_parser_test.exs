@@ -23,8 +23,8 @@ defmodule JS2ETest.Parsers.TupleParser do
     expected_tuple_type = %TupleType{
       name: "shapePair",
       path: ["#", "shapePair"],
-      items: [["#", "shapePair", "0"],
-              ["#", "shapePair", "1"]]}
+      items: [["#", "shapePair", "items", "0"],
+              ["#", "shapePair", "items", "1"]]}
 
     expected_rectangle_type_reference = %TypeReference{
       name: "0",
@@ -38,8 +38,8 @@ defmodule JS2ETest.Parsers.TupleParser do
     assert parser_result.warnings == []
     assert parser_result.type_dict == %{
       "#/shapePair" => expected_tuple_type,
-      "#/shapePair/0" => expected_rectangle_type_reference,
-      "#/shapePair/1" => expected_circle_type_reference
+      "#/shapePair/items/0" => expected_rectangle_type_reference,
+      "#/shapePair/items/1" => expected_circle_type_reference
     }
   end
 

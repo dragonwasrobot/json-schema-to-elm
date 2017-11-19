@@ -70,13 +70,15 @@ defmodule JS2E.Parsers.OneOfParser do
   def parse(%{"oneOf" => one_of}, parent_id, id, path, name)
   when is_list(one_of) do
 
+    child_path = TypePath.add_child(path, "oneOf")
+
     child_types_result =
       one_of
-      |> parse_child_types(parent_id, path)
+      |> parse_child_types(parent_id, child_path)
 
     one_of_types =
       child_types_result.type_dict
-      |> create_types_list(path)
+      |> create_types_list(child_path)
 
     one_of_type = OneOfType.new(name, path, one_of_types)
 
