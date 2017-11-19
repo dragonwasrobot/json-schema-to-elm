@@ -35,9 +35,8 @@ defmodule JS2E.Parsers.AllOfParser do
     create_types_list: 2,
     create_type_dict: 3
   ]
-  alias JS2E.Parsers.ErrorUtil
+  alias JS2E.Parsers.{ErrorUtil, ParserResult}
   alias JS2E.{Types, TypePath}
-  alias JS2E.Parsers.ParserResult
   alias JS2E.Types.AllOfType
 
   @doc ~S"""

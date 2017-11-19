@@ -56,7 +56,8 @@ defmodule JS2E.Printers.OneOfPrinter do
   ) :: [{:ok, map} | {:error, PrinterError.t}]
   defp create_type_clauses(type_clauses, name, parent, schema_def, schema_dict) do
     type_clauses
-    |> Enum.map(&(create_type_clause(&1, name, parent, schema_def, schema_dict)))
+    |> Enum.map(&(create_type_clause(&1, name, parent,
+            schema_def, schema_dict)))
   end
 
   @spec create_type_clause(

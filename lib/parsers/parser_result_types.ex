@@ -21,15 +21,6 @@ defmodule JS2E.Parsers.ParserError do
                 message: message}
   end
 
-  @doc ~S"""
-  Pretty prints a `ParserError`.
-  """
-  @spec print(t, Path.t) :: String.t
-  def print(%__MODULE__{identifier: identifier,
-                        error_type: error_type,
-                        message: message}, file_path) do
-    "('#{file_path}#{identifier}'): #{message}"
-  end
 end
 
 defmodule JS2E.Parsers.ParserWarning do
@@ -55,15 +46,6 @@ defmodule JS2E.Parsers.ParserWarning do
                 message: message}
   end
 
-  @doc ~S"""
-  Pretty prints a `ParserWarning`.
-  """
-  @spec print(t, Path.t) :: String.t
-  def print(%__MODULE__{identifier: identifier,
-                        warning_type: warning_type,
-                        message: message}, file_path) do
-    "('#{file_path}#{identifier}'): #{message}"
-  end
 end
 
 defmodule JS2E.Parsers.ParserResult do
@@ -195,8 +177,8 @@ defmodule JS2E.Parsers.SchemaResult do
       |> Enum.map(&ErrorUtil.name_collision/1)
 
     merged_schema_dict = Map.merge(schema_dict1, schema_dict2)
-    merged_warnings = warnings1 ++ warnings2
-    merged_errors = collisions ++ errors1 ++ errors2
+    merged_warnings = Enum.uniq(warnings1 ++ warnings2)
+    merged_errors = Enum.uniq(collisions ++ errors1 ++ errors2)
 
     %__MODULE__{schema_dict: merged_schema_dict,
                 warnings: merged_warnings,

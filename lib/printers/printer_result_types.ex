@@ -22,15 +22,6 @@ defmodule JS2E.Printers.PrinterError do
                 message: message}
   end
 
-  @doc ~S"""
-  Pretty prints a `PrinterError`.
-  """
-  @spec print(t, Path.t) :: String.t
-  def print(%__MODULE__{identifier: identifier,
-                        error_type: error_type,
-                        message: message}, file_path) do
-    "('#{file_path}#{identifier}'): #{message}"
-  end
 end
 
 defmodule JS2E.Printers.PrinterResult do
@@ -123,9 +114,6 @@ defmodule JS2E.Printers.SchemaResult do
                 errors: errors1},
     %__MODULE__{file_dict: file_dict2,
                 errors: errors2}) do
-
-    keys1 = file_dict1 |> Map.keys() |> MapSet.new()
-    keys2 = file_dict2 |> Map.keys() |> MapSet.new()
 
     merged_file_dict = Map.merge(file_dict1, file_dict2)
     merged_errors = errors1 ++ errors2

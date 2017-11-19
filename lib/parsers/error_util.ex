@@ -98,7 +98,7 @@ defmodule JS2E.Parsers.ErrorUtil do
     The value of "type" at path: '#{full_identifier}' did not match a known node type.
 
         "type": "#{type_value}"
-                #{String.duplicate("^", String.length(type_value) + 2)}
+                #{red(String.duplicate("^", String.length(type_value) + 2))}
 
     Was expecting one of the following types:
 
@@ -166,6 +166,10 @@ defmodule JS2E.Parsers.ErrorUtil do
     |> to_string
     |> String.capitalize
     |> String.replace("_", " ")
+  end
+
+  defp red(str) do
+    IO.ANSI.format([:red, str])
   end
 
 end
