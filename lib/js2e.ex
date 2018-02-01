@@ -18,10 +18,11 @@ defmodule JS2E do
   """
 
   require Logger
-  import JS2E.Parser, only: [parse_schema_files: 1]
-  import JS2E.Printer, only: [print_schemas: 2]
-  alias JS2E.Parsers.{ParserWarning, ParserError}
-  alias JS2E.Printers.PrinterError
+  alias JS2E.Parser
+  alias Parser.ParserWarning
+  alias Parser.ParserError
+  alias JS2E.Printer
+  alias JS2E.Printer.PrinterError
 
   @spec main([String.t]) :: :ok
   def main(args) do
@@ -108,7 +109,7 @@ defmodule JS2E do
   def generate(schema_paths, module_name) do
 
     Logger.info "Parsing JSON schema files!"
-    parser_result = parse_schema_files(schema_paths)
+    parser_result = Parser.parse_schema_files(schema_paths)
     pretty_parser_warnings(parser_result.warnings)
 
     if length(parser_result.errors) > 0 do
@@ -116,7 +117,7 @@ defmodule JS2E do
 
     else
       Logger.info "Converting to Elm code!"
-      printer_result = print_schemas(parser_result.schema_dict, module_name)
+      printer_result = Printer.print_schemas(parser_result.schema_dict, module_name)
 
       if length(printer_result.errors) > 0 do
         pretty_printer_errors(printer_result.errors)
@@ -135,7 +136,7 @@ defmodule JS2E do
     end
   end
 
-  @spec pretty_parser_warnings([ParserWarning.t]) :: :ok
+  @spec pretty_parser_warnings([ParserWarning.t()]) :: :ok
   defp pretty_parser_warnings(warnings) do
     warnings
     |> Enum.each(fn {file_path, warnings} ->
@@ -167,7 +168,7 @@ defmodule JS2E do
     :ok
   end
 
-  @spec pretty_parser_errors([ParserError.t]) :: :ok
+  @spec pretty_parser_errors([ParserError.t()]) :: :ok
   defp pretty_parser_errors(errors) do
     errors
     |> Enum.each(fn {file_path, errors} ->

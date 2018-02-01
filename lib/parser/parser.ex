@@ -13,8 +13,7 @@ defmodule JS2E.Parser do
   def parse_schema_files(schema_paths) do
     init_schema_result = SchemaResult.new()
 
-    schema_paths
-    |> Enum.reduce(init_schema_result, fn (schema_path, acc) ->
+    Enum.reduce(schema_paths, init_schema_result, fn (schema_path, acc) ->
       schema_path
       |> File.read!
       |> Poison.decode!
