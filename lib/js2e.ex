@@ -153,7 +153,7 @@ defmodule JS2E do
             |> String.downcase
 
           padding = String.duplicate("-",
-            74 - String.length(pretty_warning_type) - String.length(file_path))
+            max(0, 74 - String.length(pretty_warning_type) - String.length(file_path)))
 
           warnings
           |> Enum.each(fn warning ->
@@ -183,7 +183,7 @@ defmodule JS2E do
             |> String.upcase
 
           padding = String.duplicate("-",
-            74 - String.length(pretty_error_type) - String.length(file_path))
+            max(0, 74 - String.length(pretty_error_type) - String.length(file_path)))
 
           errors
           |> Enum.each(fn error ->
@@ -215,7 +215,7 @@ defmodule JS2E do
             |> String.upcase
 
           padding = String.duplicate("-",
-            74 - String.length(pretty_error_type) - String.length(file_path))
+            max(0, 74 - String.length(pretty_error_type) - String.length(file_path)))
 
           errors
           |> Enum.each(fn error ->
