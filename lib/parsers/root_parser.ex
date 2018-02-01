@@ -23,8 +23,11 @@ defmodule JS2E.Parsers.RootParser do
         title = Map.get(root_node, "title", "")
         description = Map.get(root_node, "description")
 
-        definitions_parser_result = parse_definitions(root_node, schema_id)
-        root_parser_result = parse_root_object(root_node, schema_id, title)
+        root_node_no_def = Map.delete(root_node, "definitions")
+        root_node_only_def = Map.take(root_node, ["$schema", "id", "title", "definitions"])
+
+        definitions_parser_result = parse_definitions(root_node_only_def, schema_id)
+        root_parser_result = parse_root_object(root_node_no_def, schema_id, title)
 
         %ParserResult{type_dict: type_dict,
                       errors: errors,
