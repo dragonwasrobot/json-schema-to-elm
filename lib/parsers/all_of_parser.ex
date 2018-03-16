@@ -69,7 +69,8 @@ defmodule JS2E.Parsers.AllOfParser do
   Parses a JSON schema allOf type into an `JS2E.Types.AllOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"allOf" => all_of}, parent_id, id, path, name)
       when is_list(all_of) do
     child_path = TypePath.add_child(path, "allOf")

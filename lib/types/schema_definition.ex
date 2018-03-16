@@ -15,7 +15,8 @@ defmodule JS2E.Types.SchemaDefinition do
 
   defstruct [:file_path, :id, :title, :description, :types]
 
-  @spec new(Path.t(), URI.t(), String.t(), String.t(), Types.typeDictionary()) :: t
+  @spec new(Path.t(), URI.t(), String.t(), String.t(), Types.typeDictionary()) ::
+          t
   def new(file_path, id, title, description, types) do
     %__MODULE__{
       file_path: file_path,

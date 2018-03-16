@@ -57,7 +57,11 @@ defmodule JS2E.Types.TupleType do
 
   alias JS2E.TypePath
 
-  @type t :: %__MODULE__{name: String.t(), path: TypePath.t(), items: TypePath.t()}
+  @type t :: %__MODULE__{
+          name: String.t(),
+          path: TypePath.t(),
+          items: TypePath.t()
+        }
 
   defstruct [:name, :path, :items]
 

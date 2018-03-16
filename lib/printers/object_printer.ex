@@ -31,7 +31,10 @@ defmodule JS2E.Printers.ObjectPrinter do
   # Type
 
   @type_location Path.join(@templates_location, "object/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [:type_name, :fields])
+  EEx.function_from_file(:defp, :type_template, @type_location, [
+    :type_name,
+    :fields
+  ])
 
   @impl JS2E.Printers.PrinterBehaviour
   @spec print_type(
@@ -41,7 +44,12 @@ defmodule JS2E.Printers.ObjectPrinter do
           String.t()
         ) :: PrinterResult.t()
   def print_type(
-        %ObjectType{name: name, path: path, properties: properties, required: required},
+        %ObjectType{
+          name: name,
+          path: path,
+          properties: properties,
+          required: required
+        },
         schema_def,
         schema_dict,
         module_name
@@ -49,7 +57,14 @@ defmodule JS2E.Printers.ObjectPrinter do
     type_name = create_root_name(name, schema_def)
 
     fields_result =
-      create_type_fields(properties, required, path, schema_def, schema_dict, module_name)
+      create_type_fields(
+        properties,
+        required,
+        path,
+        schema_def,
+        schema_dict,
+        module_name
+      )
 
     {fields, errors} =
       fields_result
@@ -68,9 +83,25 @@ defmodule JS2E.Printers.ObjectPrinter do
           Types.schemaDictionary(),
           String.t()
         ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_type_fields(properties, required, parent, schema_def, schema_dict, module_name) do
+  defp create_type_fields(
+         properties,
+         required,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
     properties
-    |> Enum.map(&create_type_field(&1, required, parent, schema_def, schema_dict, module_name))
+    |> Enum.map(
+      &create_type_field(
+        &1,
+        required,
+        parent,
+        schema_def,
+        schema_dict,
+        module_name
+      )
+    )
   end
 
   @spec create_type_field(
@@ -106,8 +137,11 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  @spec check_if_maybe({:ok, String.t()} | {:error, PrinterError.t()}, String.t(), boolean) ::
-          String.t()
+  @spec check_if_maybe(
+          {:ok, String.t()} | {:error, PrinterError.t()},
+          String.t(),
+          boolean
+        ) :: String.t()
   defp check_if_maybe({:error, error}, _pn, _rq), do: {:error, error}
 
   defp check_if_maybe({:ok, field_name}, property_name, required) do
@@ -135,7 +169,12 @@ defmodule JS2E.Printers.ObjectPrinter do
           String.t()
         ) :: PrinterResult.t()
   def print_decoder(
-        %ObjectType{name: name, path: path, properties: properties, required: required},
+        %ObjectType{
+          name: name,
+          path: path,
+          properties: properties,
+          required: required
+        },
         schema_def,
         schema_dict,
         module_name
@@ -145,7 +184,13 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     {decoder_clauses, errors} =
       properties
-      |> create_decoder_properties(required, path, schema_def, schema_dict, module_name)
+      |> create_decoder_properties(
+        required,
+        path,
+        schema_def,
+        schema_dict,
+        module_name
+      )
       |> split_ok_and_errors()
 
     decoder_name
@@ -171,7 +216,14 @@ defmodule JS2E.Printers.ObjectPrinter do
        ) do
     properties
     |> Enum.map(fn property ->
-      create_decoder_property(property, required, parent, schema_def, schema_dict, module_name)
+      create_decoder_property(
+        property,
+        required,
+        parent,
+        schema_def,
+        schema_dict,
+        module_name
+      )
     end)
   end
 
@@ -196,7 +248,11 @@ defmodule JS2E.Printers.ObjectPrinter do
     with {:ok, {resolved_type, resolved_schema}} <-
            resolve_type(property_path, properties_path, schema_def, schema_dict),
          {:ok, decoder_name} <-
-           create_decoder_name({:ok, {resolved_type, resolved_schema}}, schema_def, module_name) do
+           create_decoder_name(
+             {:ok, {resolved_type, resolved_schema}},
+             schema_def,
+             module_name
+           ) do
       is_required = property_name in required
 
       cond do
@@ -226,10 +282,16 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  @spec create_decoder_union_clause(String.t(), String.t(), boolean) :: {:ok, map}
+  @spec create_decoder_union_clause(String.t(), String.t(), boolean) ::
+          {:ok, map}
   defp create_decoder_union_clause(property_name, decoder_name, is_required) do
     if is_required do
-      {:ok, %{option: "required", property_name: property_name, decoder: decoder_name}}
+      {:ok,
+       %{
+         option: "required",
+         property_name: property_name,
+         decoder: decoder_name
+       }}
     else
       {:ok,
        %{
@@ -240,8 +302,14 @@ defmodule JS2E.Printers.ObjectPrinter do
     end
   end
 
-  @spec create_decoder_enum_clause(String.t(), String.t(), String.t(), boolean) :: {:ok, map}
-  defp create_decoder_enum_clause(property_name, property_type_decoder, decoder_name, is_required) do
+  @spec create_decoder_enum_clause(String.t(), String.t(), String.t(), boolean) ::
+          {:ok, map}
+  defp create_decoder_enum_clause(
+         property_name,
+         property_type_decoder,
+         decoder_name,
+         is_required
+       ) do
     if is_required do
       {:ok,
        %{
@@ -254,15 +322,23 @@ defmodule JS2E.Printers.ObjectPrinter do
        %{
          option: "optional",
          property_name: property_name,
-         decoder: "(#{property_type_decoder} " <> "|> andThen #{decoder_name} |> maybe) Nothing"
+         decoder:
+           "(#{property_type_decoder} " <>
+             "|> andThen #{decoder_name} |> maybe) Nothing"
        }}
     end
   end
 
-  @spec create_decoder_normal_clause(String.t(), String.t(), boolean) :: {:ok, map}
+  @spec create_decoder_normal_clause(String.t(), String.t(), boolean) ::
+          {:ok, map}
   defp create_decoder_normal_clause(property_name, decoder_name, is_required) do
     if is_required do
-      {:ok, %{option: "required", property_name: property_name, decoder: decoder_name}}
+      {:ok,
+       %{
+         option: "required",
+         property_name: property_name,
+         decoder: decoder_name
+       }}
     else
       {:ok,
        %{
@@ -291,7 +367,12 @@ defmodule JS2E.Printers.ObjectPrinter do
           String.t()
         ) :: PrinterResult.t()
   def print_encoder(
-        %ObjectType{name: name, path: path, properties: properties, required: required},
+        %ObjectType{
+          name: name,
+          path: path,
+          properties: properties,
+          required: required
+        },
         schema_def,
         schema_dict,
         module_name
@@ -302,7 +383,13 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     {encoder_properties, errors} =
       properties
-      |> create_encoder_properties(required, path, schema_def, schema_dict, module_name)
+      |> create_encoder_properties(
+        required,
+        path,
+        schema_def,
+        schema_dict,
+        module_name
+      )
       |> split_ok_and_errors()
 
     encoder_name
@@ -329,7 +416,14 @@ defmodule JS2E.Printers.ObjectPrinter do
        ) do
     Enum.map(
       properties,
-      &create_encoder_property(&1, required, parent, schema_def, schema_dict, module_name)
+      &create_encoder_property(
+        &1,
+        required,
+        parent,
+        schema_def,
+        schema_dict,
+        module_name
+      )
     )
   end
 
@@ -354,10 +448,15 @@ defmodule JS2E.Printers.ObjectPrinter do
     with {:ok, {resolved_type, resolved_schema}} <-
            resolve_type(property_path, properties_path, schema_def, schema_dict),
          {:ok, encoder_name} <-
-           create_encoder_name({:ok, {resolved_type, resolved_schema}}, schema_def, module_name) do
+           create_encoder_name(
+             {:ok, {resolved_type, resolved_schema}},
+             schema_def,
+             module_name
+           ) do
       is_required = property_name in required
 
-      {:ok, %{name: property_name, encoder_name: encoder_name, required: is_required}}
+      {:ok,
+       %{name: property_name, encoder_name: encoder_name, required: is_required}}
     else
       {:error, error} ->
         {:error, error}

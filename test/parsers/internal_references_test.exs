@@ -43,9 +43,16 @@ defmodule JS2ETest.Parsers.InternalReferences do
       |> Poison.decode!()
       |> RootParser.parse_schema("examples/example.json")
 
-    expected_root_type_reference = %TypeReference{name: "#", path: ["#", "definitions", "C"]}
+    expected_root_type_reference = %TypeReference{
+      name: "#",
+      path: ["#", "definitions", "C"]
+    }
 
-    expected_type_a = %PrimitiveType{name: "A", path: ["#", "definitions", "A"], type: "string"}
+    expected_type_a = %PrimitiveType{
+      name: "A",
+      path: ["#", "definitions", "A"],
+      type: "string"
+    }
 
     expected_type_x = %PrimitiveType{
       name: "X",
@@ -59,7 +66,11 @@ defmodule JS2ETest.Parsers.InternalReferences do
       type: "number"
     }
 
-    expected_type_c = %PrimitiveType{name: "C", path: ["#", "definitions", "C"], type: "integer"}
+    expected_type_c = %PrimitiveType{
+      name: "C",
+      path: ["#", "definitions", "C"],
+      type: "integer"
+    }
 
     assert schema_result.errors == []
     assert schema_result.warnings == []
@@ -67,12 +78,14 @@ defmodule JS2ETest.Parsers.InternalReferences do
     assert schema_result.schema_dict == %{
              "http://example.com/root.json" => %SchemaDefinition{
                file_path: "examples/example.json",
-               description: "Demonstrates the different types of internal references",
+               description:
+                 "Demonstrates the different types of internal references",
                title: "Internal references",
                id: URI.parse("http://example.com/root.json"),
                types: %{
                  "#" => expected_root_type_reference,
-                 "http://example.com/root.json#" => expected_root_type_reference,
+                 "http://example.com/root.json#" =>
+                   expected_root_type_reference,
                  "#/definitions/A" => expected_type_a,
                  "http://example.com/root.json#foo" => expected_type_a,
                  "#/definitions/B/definitions/X" => expected_type_x,
@@ -80,7 +93,8 @@ defmodule JS2ETest.Parsers.InternalReferences do
                  "#/definitions/B/definitions/Y" => expected_type_y,
                  "http://example.com/t/inner.json" => expected_type_y,
                  "#/definitions/C" => expected_type_c,
-                 "urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f" => expected_type_c
+                 "urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f" =>
+                   expected_type_c
                }
              }
            }

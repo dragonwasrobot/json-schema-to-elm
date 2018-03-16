@@ -19,7 +19,11 @@ defmodule JS2E.Printers.PrinterError do
   """
   @spec new(Types.typeIdentifier(), atom, String.t()) :: t
   def new(identifier, error_type, message) do
-    %__MODULE__{identifier: identifier, error_type: error_type, message: message}
+    %__MODULE__{
+      identifier: identifier,
+      error_type: error_type,
+      message: message
+    }
   end
 end
 
@@ -56,11 +60,16 @@ defmodule JS2E.Printers.PrinterResult do
 
   """
   @spec merge(PrinterResult.t(), PrinterResult.t()) :: PrinterResult.t()
-  def merge(%__MODULE__{printed_schema: printed_schema1, errors: errors1}, %__MODULE__{
-        printed_schema: printed_schema2,
-        errors: errors2
-      }) do
-    merged_schema = String.trim(printed_schema1) <> "\n\n\n" <> String.trim(printed_schema2)
+  def merge(
+        %__MODULE__{printed_schema: printed_schema1, errors: errors1},
+        %__MODULE__{
+          printed_schema: printed_schema2,
+          errors: errors2
+        }
+      ) do
+    merged_schema =
+      String.trim(printed_schema1) <> "\n\n\n" <> String.trim(printed_schema2)
+
     merged_errors = Enum.uniq(errors1 ++ errors2)
 
     %__MODULE__{printed_schema: merged_schema, errors: merged_errors}

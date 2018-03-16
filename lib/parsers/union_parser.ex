@@ -42,7 +42,8 @@ defmodule JS2E.Parsers.UnionParser do
   Parses a JSON schema union type into an `JS2E.Types.UnionType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(map, URI.t(), URI.t(), TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"type" => types}, _parent_id, id, path, name) do
     union_type = UnionType.new(name, path, types)
 

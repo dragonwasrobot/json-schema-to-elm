@@ -9,8 +9,14 @@ defmodule JS2ETest.Printers.AnyOfPrinter do
     module_name = "Domain"
 
     type_dict = %{
-      "#/shape/0" => %TypeReference{name: "square", path: ["#", "definitions", "square"]},
-      "#/shape/1" => %TypeReference{name: "circle", path: ["#", "definitions", "circle"]},
+      "#/shape/0" => %TypeReference{
+        name: "square",
+        path: ["#", "definitions", "square"]
+      },
+      "#/shape/1" => %TypeReference{
+        name: "circle",
+        path: ["#", "definitions", "circle"]
+      },
       "#/definitions/square" => %ObjectType{
         name: "square",
         path: ["#"],

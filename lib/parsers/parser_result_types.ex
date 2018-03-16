@@ -18,7 +18,11 @@ defmodule JS2E.Parsers.ParserError do
   """
   @spec new(Types.typeIdentifier(), atom, String.t()) :: t
   def new(identifier, error_type, message) do
-    %__MODULE__{identifier: identifier, error_type: error_type, message: message}
+    %__MODULE__{
+      identifier: identifier,
+      error_type: error_type,
+      message: message
+    }
   end
 end
 
@@ -42,7 +46,11 @@ defmodule JS2E.Parsers.ParserWarning do
   """
   @spec new(Types.typeIdentifier(), atom, String.t()) :: t
   def new(identifier, warning_type, message) do
-    %__MODULE__{identifier: identifier, warning_type: warning_type, message: message}
+    %__MODULE__{
+      identifier: identifier,
+      warning_type: warning_type,
+      message: message
+    }
   end
 end
 
@@ -88,11 +96,18 @@ defmodule JS2E.Parsers.ParserResult do
 
   """
   @spec merge(ParserResult.t(), ParserResult.t()) :: ParserResult.t()
-  def merge(%__MODULE__{type_dict: type_dict1, warnings: warnings1, errors: errors1}, %__MODULE__{
-        type_dict: type_dict2,
-        warnings: warnings2,
-        errors: errors2
-      }) do
+  def merge(
+        %__MODULE__{
+          type_dict: type_dict1,
+          warnings: warnings1,
+          errors: errors1
+        },
+        %__MODULE__{
+          type_dict: type_dict2,
+          warnings: warnings2,
+          errors: errors2
+        }
+      ) do
     keys1 = type_dict1 |> Map.keys() |> MapSet.new()
     keys2 = type_dict2 |> Map.keys() |> MapSet.new()
 
@@ -105,7 +120,11 @@ defmodule JS2E.Parsers.ParserResult do
     merged_warnings = warnings1 |> Enum.concat(warnings2)
     merged_errors = collisions |> Enum.concat(errors1) |> Enum.concat(errors2)
 
-    %__MODULE__{type_dict: merged_type_dict, warnings: merged_warnings, errors: merged_errors}
+    %__MODULE__{
+      type_dict: merged_type_dict,
+      warnings: merged_warnings,
+      errors: merged_errors
+    }
   end
 end
 
@@ -139,9 +158,13 @@ defmodule JS2E.Parsers.SchemaResult do
   dictionary corresponding to the succesfully parsed JSON schema files,
   and a list of warnings and errors encountered while parsing.
   """
-  @spec new([{Path.t(), Types.schemaDictionary()}], [{Path.t(), ParserWarning.t()}], [
-          {Path.t(), ParserError.t()}
-        ]) :: t
+  @spec new(
+          [{Path.t(), Types.schemaDictionary()}],
+          [{Path.t(), ParserWarning.t()}],
+          [
+            {Path.t(), ParserError.t()}
+          ]
+        ) :: t
   def new(schema_dict, warnings \\ [], errors \\ []) do
     %__MODULE__{schema_dict: schema_dict, warnings: warnings, errors: errors}
   end
@@ -153,8 +176,16 @@ defmodule JS2E.Parsers.SchemaResult do
   """
   @spec merge(SchemaResult.t(), SchemaResult.t()) :: SchemaResult.t()
   def merge(
-        %__MODULE__{schema_dict: schema_dict1, warnings: warnings1, errors: errors1},
-        %__MODULE__{schema_dict: schema_dict2, warnings: warnings2, errors: errors2}
+        %__MODULE__{
+          schema_dict: schema_dict1,
+          warnings: warnings1,
+          errors: errors1
+        },
+        %__MODULE__{
+          schema_dict: schema_dict2,
+          warnings: warnings2,
+          errors: errors2
+        }
       ) do
     keys1 = schema_dict1 |> Map.keys() |> MapSet.new()
     keys2 = schema_dict2 |> Map.keys() |> MapSet.new()
@@ -168,6 +199,10 @@ defmodule JS2E.Parsers.SchemaResult do
     merged_warnings = Enum.uniq(warnings1 ++ warnings2)
     merged_errors = Enum.uniq(collisions ++ errors1 ++ errors2)
 
-    %__MODULE__{schema_dict: merged_schema_dict, warnings: merged_warnings, errors: merged_errors}
+    %__MODULE__{
+      schema_dict: merged_schema_dict,
+      warnings: merged_warnings,
+      errors: merged_errors
+    }
   end
 end

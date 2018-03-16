@@ -46,8 +46,13 @@ defmodule JS2E.Parsers.EnumParser do
   Parses a JSON schema enum type into an `JS2E.Types.EnumType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.schemaNode(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
-          ParserResult.t()
+  @spec parse(
+          Types.schemaNode(),
+          URI.t(),
+          URI.t() | nil,
+          TypePath.t(),
+          String.t()
+        ) :: ParserResult.t()
   def parse(%{"enum" => enum, "type" => type}, _parent_id, id, path, name) do
     # TODO: Check that the enum values all have the same type
 

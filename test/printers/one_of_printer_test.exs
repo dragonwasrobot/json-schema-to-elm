@@ -9,8 +9,14 @@ defmodule JS2ETest.Printers.OneOfPrinter do
     module_name = "Domain"
 
     type_dict = %{
-      "#/shape/0" => %TypeReference{name: "square", path: ["#", "definitions", "square"]},
-      "#/shape/1" => %TypeReference{name: "circle", path: ["#", "definitions", "circle"]},
+      "#/shape/0" => %TypeReference{
+        name: "square",
+        path: ["#", "definitions", "square"]
+      },
+      "#/shape/1" => %TypeReference{
+        name: "circle",
+        path: ["#", "definitions", "circle"]
+      },
       "#/definitions/square" => %ObjectType{
         name: "square",
         path: ["#"],
@@ -48,8 +54,8 @@ defmodule JS2ETest.Printers.OneOfPrinter do
 
     expected_one_of_type_program = """
     type Shape
-        = Shape_Sq Square
-        | Shape_Ci Circle
+        = ShapeSq Square
+        | ShapeCi Circle
     """
 
     one_of_type_program = result.printed_schema
@@ -99,8 +105,8 @@ defmodule JS2ETest.Printers.OneOfPrinter do
     expected_one_of_decoder_program = """
     shapeDecoder : Decoder Shape
     shapeDecoder =
-        oneOf [ squareDecoder
-              , circleDecoder
+        oneOf [ squareDecoder |> andThen (succeed << ShapeSq)
+              , circleDecoder |> andThen (succeed << ShapeCi)
               ]
     """
 
@@ -152,10 +158,10 @@ defmodule JS2ETest.Printers.OneOfPrinter do
     encodeShape : Shape -> Value
     encodeShape shape =
         case shape of
-            Shape_Sq square ->
+            ShapeSq square ->
                 encodeSquare square
 
-            Shape_Ci circle ->
+            ShapeCi circle ->
                 encodeCircle circle
     """
 

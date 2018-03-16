@@ -24,7 +24,10 @@ defmodule JS2E.Printers.EnumPrinter do
   # Type
 
   @type_location Path.join(@templates_location, "enum/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [:type_name, :clauses])
+  EEx.function_from_file(:defp, :type_template, @type_location, [
+    :type_name,
+    :clauses
+  ])
 
   @impl JS2E.Printers.PrinterBehaviour
   @spec print_type(
@@ -93,8 +96,9 @@ defmodule JS2E.Printers.EnumPrinter do
     end
   end
 
-  @spec create_decoder_cases([String.t()], String.t()) ::
-          [{:ok, map} | {:error, PrinterError.t()}]
+  @spec create_decoder_cases([String.t()], String.t()) :: [
+          {:ok, map} | {:error, PrinterError.t()}
+        ]
   defp create_decoder_cases(values, type_name) do
     Enum.map(values, fn value ->
       with {:ok, raw_value} <- create_decoder_case(value, type_name),
@@ -162,8 +166,9 @@ defmodule JS2E.Printers.EnumPrinter do
     |> PrinterResult.new(errors)
   end
 
-  @spec create_encoder_cases([String.t() | number], String.t()) ::
-          [{:ok, map} | {:error, PrinterError.t()}]
+  @spec create_encoder_cases([String.t() | number], String.t()) :: [
+          {:ok, map} | {:error, PrinterError.t()}
+        ]
   defp create_encoder_cases(values, type_name) do
     Enum.map(values, fn value ->
       with {:ok, elm_value} <- create_elm_value(value, type_name),
@@ -200,7 +205,8 @@ defmodule JS2E.Printers.EnumPrinter do
     end
   end
 
-  @spec create_elm_value(String.t(), String.t()) :: {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec create_elm_value(String.t(), String.t()) ::
+          {:ok, String.t()} | {:error, PrinterError.t()}
   defp create_elm_value(value, type_name) do
     case type_name do
       "string" ->

@@ -3,15 +3,25 @@ defmodule JS2ETest.Printers.ExternalReferences do
 
   require Logger
   alias JS2E.Printer
-  alias JS2E.Types.{EnumType, ObjectType, PrimitiveType, TypeReference, SchemaDefinition}
+
+  alias JS2E.Types.{
+    EnumType,
+    ObjectType,
+    PrimitiveType,
+    TypeReference,
+    SchemaDefinition
+  }
 
   test "print external references" do
-    module_name = "Domain"
+    module_name = "Data"
+
+    definitions_schema_id = "http://example.com/definitions.json"
+    circle_schema_id = "http://example.com/circle.json"
 
     schema_representations = %{
-      "http://example.com/definitions.json" => %SchemaDefinition{
+      definitions_schema_id => %SchemaDefinition{
         description: "Schema for common types",
-        id: URI.parse("http://example.com/definitions.json"),
+        id: URI.parse(definitions_schema_id),
         title: "Definitions",
         types: %{
           "#/definitions/color" => %EnumType{
@@ -56,8 +66,8 @@ defmodule JS2ETest.Printers.ExternalReferences do
           }
         }
       },
-      "http://example.com/circle.json" => %SchemaDefinition{
-        id: URI.parse("http://example.com/circle.json"),
+      circle_schema_id => %SchemaDefinition{
+        id: URI.parse(circle_schema_id),
         title: "Circle",
         description: "Schema for a circle shape",
         types: %{
@@ -79,7 +89,11 @@ defmodule JS2ETest.Printers.ExternalReferences do
             name: "color",
             path: URI.parse("http://example.com/definitions.json#color")
           },
-          "#/radius" => %PrimitiveType{name: "radius", path: ["#", "radius"], type: "number"},
+          "#/radius" => %PrimitiveType{
+            name: "radius",
+            path: ["#", "radius"],
+            type: "number"
+          },
           "http://example.com/circle.json#" => %ObjectType{
             name: "circle",
             path: "#",
@@ -97,11 +111,11 @@ defmodule JS2ETest.Printers.ExternalReferences do
     schema_result = Printer.print_schemas(schema_representations, module_name)
 
     file_dict = schema_result.file_dict
-    circle_program = file_dict["./Domain/Circle.elm"]
+    circle_program = file_dict["./Data/Circle.elm"]
 
     assert circle_program ==
              """
-             module Domain.Circle exposing (..)
+             module Data.Circle exposing (..)
 
              -- Schema for a circle shape
 
@@ -132,12 +146,12 @@ defmodule JS2ETest.Printers.ExternalReferences do
                      , object
                      , list
                      )
-             import Domain.Definitions
+             import Data.Definitions
 
 
              type alias Circle =
-                 { center : Domain.Definitions.Point
-                 , color : Maybe Domain.Definitions.Color
+                 { center : Data.Definitions.Point
+                 , color : Maybe Data.Definitions.Color
                  , radius : Float
                  }
 
@@ -145,8 +159,8 @@ defmodule JS2ETest.Printers.ExternalReferences do
              circleDecoder : Decoder Circle
              circleDecoder =
                  decode Circle
-                     |> required "center" Domain.Definitions.pointDecoder
-                     |> optional "color" (Decode.string |> andThen Domain.Definitions.colorDecoder |> maybe) Nothing
+                     |> required "center" Data.Definitions.pointDecoder
+                     |> optional "color" (Decode.string |> andThen Data.Definitions.colorDecoder |> maybe) Nothing
                      |> required "radius" Decode.float
 
 
@@ -154,12 +168,12 @@ defmodule JS2ETest.Printers.ExternalReferences do
              encodeCircle circle =
                  let
                      center =
-                         [ ( "center", Domain.Definitions.encodePoint circle.center ) ]
+                         [ ( "center", Data.Definitions.encodePoint circle.center ) ]
 
                      color =
                          case circle.color of
                              Just color ->
-                                 [ ( "color", Domain.Definitions.encodeColor color ) ]
+                                 [ ( "color", Data.Definitions.encodeColor color ) ]
 
                              Nothing ->
                                  []
@@ -171,11 +185,11 @@ defmodule JS2ETest.Printers.ExternalReferences do
                          center ++ color ++ radius
              """
 
-    definitions_program = file_dict["./Domain/Definitions.elm"]
+    definitions_program = file_dict["./Data/Definitions.elm"]
 
     assert definitions_program ==
              """
-             module Domain.Definitions exposing (..)
+             module Data.Definitions exposing (..)
 
              -- Schema for common types
 

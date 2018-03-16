@@ -1,4 +1,4 @@
-module Domain.Circle exposing (..)
+module Data.Circle exposing (..)
 
 -- Schema for a circle shape
 
@@ -29,12 +29,12 @@ import Json.Encode as Encode
         , object
         , list
         )
-import Domain.Definitions
+import Data.Definitions
 
 
 type alias Circle =
-    { center : Domain.Definitions.Point
-    , color : Maybe Domain.Definitions.Color
+    { center : Data.Definitions.Point
+    , color : Maybe Data.Definitions.Color
     , radius : Float
     }
 
@@ -42,8 +42,8 @@ type alias Circle =
 circleDecoder : Decoder Circle
 circleDecoder =
     decode Circle
-        |> required "center" Domain.Definitions.pointDecoder
-        |> optional "color" (Decode.string |> andThen Domain.Definitions.colorDecoder |> maybe) Nothing
+        |> required "center" Data.Definitions.pointDecoder
+        |> optional "color" (Decode.string |> andThen Data.Definitions.colorDecoder |> maybe) Nothing
         |> required "radius" Decode.float
 
 
@@ -51,12 +51,12 @@ encodeCircle : Circle -> Value
 encodeCircle circle =
     let
         center =
-            [ ( "center", Domain.Definitions.encodePoint circle.center ) ]
+            [ ( "center", Data.Definitions.encodePoint circle.center ) ]
 
         color =
             case circle.color of
                 Just color ->
-                    [ ( "color", Domain.Definitions.encodeColor color ) ]
+                    [ ( "color", Data.Definitions.encodeColor color ) ]
 
                 Nothing ->
                     []

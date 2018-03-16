@@ -22,7 +22,10 @@ defmodule JS2E.Printers.UnionPrinter do
   # Type
 
   @type_location Path.join(@templates_location, "union/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [:type_name, :clauses])
+  EEx.function_from_file(:defp, :type_template, @type_location, [
+    :type_name,
+    :clauses
+  ])
 
   @impl JS2E.Printers.PrinterBehaviour
   @spec print_type(
@@ -48,14 +51,17 @@ defmodule JS2E.Printers.UnionPrinter do
     |> PrinterResult.new(errors)
   end
 
-  @spec create_type_clauses([String.t()], String.t()) :: [{:ok, map} | {:error, PrinterError.t()}]
+  @spec create_type_clauses([String.t()], String.t()) :: [
+          {:ok, map} | {:error, PrinterError.t()}
+        ]
   defp create_type_clauses(type_ids, name) do
     type_ids
     |> Enum.filter(&(&1 != "null"))
     |> Enum.map(&to_type_clause(&1, name))
   end
 
-  @spec to_type_clause(String.t(), String.t()) :: {:ok, map} | {:error, PrinterError.t()}
+  @spec to_type_clause(String.t(), String.t()) ::
+          {:ok, map} | {:error, PrinterError.t()}
   defp to_type_clause(type_id, name) do
     type_name = upcase_first(name)
 
@@ -124,8 +130,9 @@ defmodule JS2E.Printers.UnionPrinter do
     end
   end
 
-  @spec create_clause_decoders([String.t()], String.t(), boolean) ::
-          [{:ok, map} | {:error, PrinterError.t()}]
+  @spec create_clause_decoders([String.t()], String.t(), boolean) :: [
+          {:ok, map} | {:error, PrinterError.t()}
+        ]
   defp create_clause_decoders(type_ids, type_name, nullable?) do
     type_ids
     |> Enum.filter(fn type_id -> type_id != "null" end)
@@ -164,7 +171,12 @@ defmodule JS2E.Printers.UnionPrinter do
             "succeed"
           end
 
-        {:ok, %{decoder_name: decoder_name, constructor_name: constructor_name, wrapper: wrapper}}
+        {:ok,
+         %{
+           decoder_name: decoder_name,
+           constructor_name: constructor_name,
+           wrapper: wrapper
+         }}
 
       {:error, error} ->
         {:error, error}
@@ -208,14 +220,16 @@ defmodule JS2E.Printers.UnionPrinter do
     |> PrinterResult.new(errors)
   end
 
-  @spec create_encoder_cases([String.t()], String.t()) ::
-          [{:ok, map} | {:error, PrinterError.t()}]
+  @spec create_encoder_cases([String.t()], String.t()) :: [
+          {:ok, map} | {:error, PrinterError.t()}
+        ]
   defp create_encoder_cases(type_ids, name) do
     type_ids
     |> Enum.map(&create_encoder_clause(&1, name))
   end
 
-  @spec create_encoder_clause(String.t(), String.t()) :: {:ok, map} | {:error, PrinterError.t()}
+  @spec create_encoder_clause(String.t(), String.t()) ::
+          {:ok, map} | {:error, PrinterError.t()}
   defp create_encoder_clause(type_id, name) do
     type_id_result =
       case type_id do

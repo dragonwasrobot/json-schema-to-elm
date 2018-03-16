@@ -8,11 +8,7 @@ defmodule JS2E.Printers.PreamblePrinter do
 
   require Elixir.{EEx, Logger}
 
-  import JS2E.Printers.Util,
-    only: [
-      get_string_name: 1
-    ]
-
+  alias JS2E.Printers.Util
   alias JS2E.Printers.PrinterResult
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
@@ -24,11 +20,18 @@ defmodule JS2E.Printers.PreamblePrinter do
     :imports
   ])
 
-  @spec print_preamble(SchemaDefinition.t(), Types.schemaDictionary(), String.t()) ::
-          PrinterResult.t()
+  @spec print_preamble(
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
   def print_preamble(
-        %SchemaDefinition{id: _id, title: title, description: description, types: _type_dict} =
-          schema_def,
+        %SchemaDefinition{
+          id: _id,
+          title: title,
+          description: description,
+          types: _type_dict
+        } = schema_def,
         schema_dict,
         module_name
       ) do
@@ -67,7 +70,7 @@ defmodule JS2E.Printers.PreamblePrinter do
   defp get_type_references(type_dict) do
     type_dict
     |> Enum.reduce([], fn {_path, type}, types ->
-      if get_string_name(type) == "TypeReference" do
+      if Util.get_string_name(type) == "TypeReference" do
         [type | types]
       else
         types
@@ -107,7 +110,7 @@ defmodule JS2E.Printers.PreamblePrinter do
       has_different_absolute_path?(type_ref_uri, schema_uri) ->
         type_ref_schema_uri =
           type_ref_uri
-          |> URI.merge("#")
+          |> Map.put(:fragment, nil)
           |> to_string
 
         type_ref_schema_def = schema_dict[type_ref_schema_uri]
