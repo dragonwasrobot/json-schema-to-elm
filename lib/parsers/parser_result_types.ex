@@ -5,22 +5,21 @@ defmodule JS2E.Parsers.ParserError do
 
   alias JS2E.Types
 
-  @type t :: %__MODULE__{identifier: Types.typeIdentifier,
-                         error_type: atom,
-                         message: String.t}
+  @type t :: %__MODULE__{
+          identifier: Types.typeIdentifier(),
+          error_type: atom,
+          message: String.t()
+        }
 
   defstruct [:identifier, :error_type, :message]
 
   @doc ~S"""
   Constructs a `ParserError`.
   """
-  @spec new(Types.typeIdentifier, atom, String.t) :: t
+  @spec new(Types.typeIdentifier(), atom, String.t()) :: t
   def new(identifier, error_type, message) do
-    %__MODULE__{identifier: identifier,
-                error_type: error_type,
-                message: message}
+    %__MODULE__{identifier: identifier, error_type: error_type, message: message}
   end
-
 end
 
 defmodule JS2E.Parsers.ParserWarning do
@@ -30,22 +29,21 @@ defmodule JS2E.Parsers.ParserWarning do
 
   alias JS2E.Types
 
-  @type t :: %__MODULE__{identifier: Types.typeIdentifier,
-                         warning_type: atom,
-                         message: String.t}
+  @type t :: %__MODULE__{
+          identifier: Types.typeIdentifier(),
+          warning_type: atom,
+          message: String.t()
+        }
 
   defstruct [:identifier, :warning_type, :message]
 
   @doc ~S"""
   Constructs a `ParserWarning`.
   """
-  @spec new(Types.typeIdentifier, atom, String.t) :: t
+  @spec new(Types.typeIdentifier(), atom, String.t()) :: t
   def new(identifier, warning_type, message) do
-    %__MODULE__{identifier: identifier,
-                warning_type: warning_type,
-                message: message}
+    %__MODULE__{identifier: identifier, warning_type: warning_type, message: message}
   end
-
 end
 
 defmodule JS2E.Parsers.ParserResult do
@@ -58,9 +56,11 @@ defmodule JS2E.Parsers.ParserResult do
   alias JS2E.Types
   alias JS2E.Parsers.{ErrorUtil, ParserError, ParserWarning}
 
-  @type t :: %__MODULE__{type_dict: Types.typeDictionary,
-                         warnings: [ParserWarning.t],
-                         errors: [ParserError.t]}
+  @type t :: %__MODULE__{
+          type_dict: Types.typeDictionary(),
+          warnings: [ParserWarning.t()],
+          errors: [ParserError.t()]
+        }
 
   defstruct [:type_dict, :warnings, :errors]
 
@@ -77,11 +77,9 @@ defmodule JS2E.Parsers.ParserResult do
   succesfully parsed part of a JSON schema object, and a list of warnings and
   errors encountered while parsing.
   """
-  @spec new(Types.typeDictionary, [ParserWarning.t], [ParserError.t]) :: t
+  @spec new(Types.typeDictionary(), [ParserWarning.t()], [ParserError.t()]) :: t
   def new(type_dict, warnings \\ [], errors \\ []) do
-    %__MODULE__{type_dict: type_dict,
-                warnings: warnings,
-                errors: errors}
+    %__MODULE__{type_dict: type_dict, warnings: warnings, errors: errors}
   end
 
   @doc ~S"""
@@ -89,12 +87,12 @@ defmodule JS2E.Parsers.ParserResult do
   type dictionaries to the list of errors in the merged `ParserResult`.
 
   """
-  @spec merge(ParserResult.t, ParserResult.t) :: ParserResult.t
-  def merge(
-    %__MODULE__{type_dict: type_dict1, warnings: warnings1, errors: errors1},
-    %__MODULE__{type_dict: type_dict2, warnings: warnings2, errors: errors2}
-  ) do
-
+  @spec merge(ParserResult.t(), ParserResult.t()) :: ParserResult.t()
+  def merge(%__MODULE__{type_dict: type_dict1, warnings: warnings1, errors: errors1}, %__MODULE__{
+        type_dict: type_dict2,
+        warnings: warnings2,
+        errors: errors2
+      }) do
     keys1 = type_dict1 |> Map.keys() |> MapSet.new()
     keys2 = type_dict2 |> Map.keys() |> MapSet.new()
 
@@ -107,9 +105,7 @@ defmodule JS2E.Parsers.ParserResult do
     merged_warnings = warnings1 |> Enum.concat(warnings2)
     merged_errors = collisions |> Enum.concat(errors1) |> Enum.concat(errors2)
 
-    %__MODULE__{type_dict: merged_type_dict,
-                warnings: merged_warnings,
-                errors: merged_errors}
+    %__MODULE__{type_dict: merged_type_dict, warnings: merged_warnings, errors: merged_errors}
   end
 end
 
@@ -124,9 +120,11 @@ defmodule JS2E.Parsers.SchemaResult do
   alias JS2E.Parsers.{ErrorUtil, ParserError, ParserWarning}
   alias JS2E.Types
 
-  @type t :: %__MODULE__{schema_dict: Types.schemaDictionary,
-                         warnings: [{Path.t, ParserWarning.t}],
-                         errors: [{Path.t, ParserError.t}]}
+  @type t :: %__MODULE__{
+          schema_dict: Types.schemaDictionary(),
+          warnings: [{Path.t(), ParserWarning.t()}],
+          errors: [{Path.t(), ParserError.t()}]
+        }
 
   defstruct [:schema_dict, :warnings, :errors]
 
@@ -141,16 +139,11 @@ defmodule JS2E.Parsers.SchemaResult do
   dictionary corresponding to the succesfully parsed JSON schema files,
   and a list of warnings and errors encountered while parsing.
   """
-  @spec new(
-    [{Path.t, Types.schemaDictionary}],
-    [{Path.t, ParserWarning.t}],
-    [{Path.t, ParserError.t}]
-  )
-  :: t
+  @spec new([{Path.t(), Types.schemaDictionary()}], [{Path.t(), ParserWarning.t()}], [
+          {Path.t(), ParserError.t()}
+        ]) :: t
   def new(schema_dict, warnings \\ [], errors \\ []) do
-    %__MODULE__{schema_dict: schema_dict,
-                warnings: warnings,
-                errors: errors}
+    %__MODULE__{schema_dict: schema_dict, warnings: warnings, errors: errors}
   end
 
   @doc ~S"""
@@ -158,16 +151,11 @@ defmodule JS2E.Parsers.SchemaResult do
   schema dictionaries to the list of errors in the merged `SchemaResult`.
 
   """
-  @spec merge(SchemaResult.t, SchemaResult.t) :: SchemaResult.t
+  @spec merge(SchemaResult.t(), SchemaResult.t()) :: SchemaResult.t()
   def merge(
-    %__MODULE__{schema_dict: schema_dict1,
-                warnings: warnings1,
-                errors: errors1},
-    %__MODULE__{schema_dict: schema_dict2,
-                warnings: warnings2,
-                errors: errors2}
-  ) do
-
+        %__MODULE__{schema_dict: schema_dict1, warnings: warnings1, errors: errors1},
+        %__MODULE__{schema_dict: schema_dict2, warnings: warnings2, errors: errors2}
+      ) do
     keys1 = schema_dict1 |> Map.keys() |> MapSet.new()
     keys2 = schema_dict2 |> Map.keys() |> MapSet.new()
 
@@ -180,9 +168,6 @@ defmodule JS2E.Parsers.SchemaResult do
     merged_warnings = Enum.uniq(warnings1 ++ warnings2)
     merged_errors = Enum.uniq(collisions ++ errors1 ++ errors2)
 
-    %__MODULE__{schema_dict: merged_schema_dict,
-                warnings: merged_warnings,
-                errors: merged_errors}
-
+    %__MODULE__{schema_dict: merged_schema_dict, warnings: merged_warnings, errors: merged_errors}
   end
 end

@@ -4,38 +4,52 @@ defmodule JS2E.Parsers.Util do
   """
 
   require Logger
-  alias JS2E.Parsers.{AllOfParser, AnyOfParser, ArrayParser, EnumParser,
-                      DefinitionsParser, ObjectParser, OneOfParser,
-                      PrimitiveParser, TupleParser, TypeReferenceParser,
-                      UnionParser}
+
+  alias JS2E.Parsers.{
+    AllOfParser,
+    AnyOfParser,
+    ArrayParser,
+    EnumParser,
+    DefinitionsParser,
+    ObjectParser,
+    OneOfParser,
+    PrimitiveParser,
+    TupleParser,
+    TypeReferenceParser,
+    UnionParser
+  }
+
   alias JS2E.Parsers.{ErrorUtil, ParserError, ParserResult}
   alias JS2E.{TypePath, Types}
 
-  @type nodeParser :: (
-    Types.node, URI.t, URI.t, TypePath.t, String.t -> ParserResult.t
-  )
+  @type nodeParser ::
+          (Types.node(), URI.t(), URI.t(), TypePath.t(), String.t() -> ParserResult.t())
 
   @doc ~S"""
   Creates a new type dictionary based on the given type definition
   and an optional ID.
   """
   @spec create_type_dict(
-    Types.typeDefinition,
-    TypePath.t,
-    URI.t | nil
-  ) :: Types.typeDictionary
+          Types.typeDefinition(),
+          TypePath.t(),
+          URI.t() | nil
+        ) :: Types.typeDictionary()
   def create_type_dict(type_def, path, id) do
-
     string_path = path |> TypePath.to_string()
 
-    type_dict = (if id != nil do
-      string_id = if type_def.name == "#" do "#{id}#" else "#{id}" end
+    type_dict =
+      if id != nil do
+        string_id =
+          if type_def.name == "#" do
+            "#{id}#"
+          else
+            "#{id}"
+          end
 
-      %{string_path => type_def,
-        string_id => type_def}
-    else
-      %{string_path => type_def}
-    end)
+        %{string_path => type_def, string_id => type_def}
+      else
+        %{string_path => type_def}
+      end
 
     type_dict
   end
@@ -43,11 +57,10 @@ defmodule JS2E.Parsers.Util do
   @doc ~S"""
   Returns a list of type paths when given a type dictionary.
   """
-  @spec create_types_list(Types.typeDictionary, TypePath.t) :: [TypePath.t]
+  @spec create_types_list(Types.typeDictionary(), TypePath.t()) :: [TypePath.t()]
   def create_types_list(type_dict, path) do
     type_dict
-    |> Enum.reduce(%{}, fn({child_abs_path, child_type}, reference_dict) ->
-
+    |> Enum.reduce(%{}, fn {child_abs_path, child_type}, reference_dict ->
       child_type_path = TypePath.add_child(path, child_type.name)
 
       if child_type_path == TypePath.from_string(child_abs_path) do
@@ -55,7 +68,6 @@ defmodule JS2E.Parsers.Util do
       else
         reference_dict
       end
-
     end)
     |> Map.values()
   end
@@ -64,13 +76,11 @@ defmodule JS2E.Parsers.Util do
   Parse a list of JSON schema objects that have a child relation to another
   schema object with the specified `parent_id`.
   """
-  @spec parse_child_types([Types.schemaNode], URI.t, TypePath.t)
-  :: ParserResult.t
+  @spec parse_child_types([Types.schemaNode()], URI.t(), TypePath.t()) :: ParserResult.t()
   def parse_child_types(child_nodes, parent_id, path)
-  when is_list(child_nodes) do
-
+      when is_list(child_nodes) do
     child_nodes
-    |> Enum.reduce({ParserResult.new(), 0}, fn (child_node, {result, idx}) ->
+    |> Enum.reduce({ParserResult.new(), 0}, fn child_node, {result, idx} ->
       child_name = to_string(idx)
       child_result = parse_type(child_node, parent_id, path, child_name)
       {ParserResult.merge(result, child_result), idx + 1}
@@ -78,10 +88,8 @@ defmodule JS2E.Parsers.Util do
     |> elem(0)
   end
 
-  @spec parse_type(Types.schemaNode, URI.t, TypePath.t, String.t)
-  :: ParserResult.t
+  @spec parse_type(Types.schemaNode(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
   def parse_type(schema_node, parent_id, path, name) do
-
     case determine_node_parser(schema_node, path, name) do
       {:ok, node_parser} ->
         id = determine_id(schema_node, parent_id)
@@ -95,12 +103,11 @@ defmodule JS2E.Parsers.Util do
   end
 
   @spec determine_node_parser(
-    Types.schemaNode,
-    Types.typeIdentifier,
-    String.t
-  ) :: {:ok, nodeParser} | {:error, ParserError.t}
+          Types.schemaNode(),
+          Types.typeIdentifier(),
+          String.t()
+        ) :: {:ok, nodeParser} | {:error, ParserError.t()}
   defp determine_node_parser(schema_node, identifier, name) do
-
     predicate_node_type_pairs = [
       {&AllOfParser.type?/1, &AllOfParser.parse/5},
       {&AnyOfParser.type?/1, &AnyOfParser.parse/5},
@@ -118,8 +125,9 @@ defmodule JS2E.Parsers.Util do
     node_parser =
       predicate_node_type_pairs
       |> Enum.find({nil, nil}, fn {pred?, _node_parser} ->
-      pred?.(schema_node)
-    end) |> elem(1)
+        pred?.(schema_node)
+      end)
+      |> elem(1)
 
     if node_parser != nil do
       {:ok, node_parser}
@@ -128,7 +136,7 @@ defmodule JS2E.Parsers.Util do
     end
   end
 
-  @spec determine_id(map, URI.t) :: (URI.t | nil)
+  @spec determine_id(map, URI.t()) :: URI.t() | nil
   defp determine_id(schema_node, parent_id) do
     id = schema_node["id"]
 
@@ -140,13 +148,12 @@ defmodule JS2E.Parsers.Util do
       else
         URI.merge(parent_id, id_uri)
       end
-
     else
       nil
     end
   end
 
-  @spec determine_parent_id(URI.t | nil, URI.t) :: URI.t
+  @spec determine_parent_id(URI.t() | nil, URI.t()) :: URI.t()
   defp determine_parent_id(id, parent_id) do
     if id != nil && id.scheme != "urn" do
       id
@@ -154,5 +161,4 @@ defmodule JS2E.Parsers.Util do
       parent_id
     end
   end
-
 end

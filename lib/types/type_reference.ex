@@ -45,15 +45,12 @@ defmodule JS2E.Types.TypeReference do
 
   alias JS2E.Types
 
-  @type t :: %__MODULE__{name: String.t,
-                         path: Types.typeIdentifier}
+  @type t :: %__MODULE__{name: String.t(), path: Types.typeIdentifier()}
 
   defstruct [:name, :path]
 
-  @spec new(String.t, Types.typeIdentifier) :: t
+  @spec new(String.t(), Types.typeIdentifier()) :: t
   def new(name, path) do
-    %__MODULE__{name: name,
-                path: path}
+    %__MODULE__{name: name, path: path}
   end
-
 end

@@ -6,7 +6,6 @@ defmodule JS2ETest.Parsers.TypeReferenceParser do
   alias JS2E.Parsers.TypeReferenceParser
 
   test "parse type reference" do
-
     parser_result =
       ~S"""
       {
@@ -18,13 +17,14 @@ defmodule JS2ETest.Parsers.TypeReferenceParser do
 
     expected_type_reference = %TypeReference{
       name: "typeRef",
-      path: ["#", "definitions", "targetTypeId"]}
+      path: ["#", "definitions", "targetTypeId"]
+    }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
-    assert parser_result.type_dict == %{
-      "#/typeRef" => expected_type_reference
-    }
-  end
 
+    assert parser_result.type_dict == %{
+             "#/typeRef" => expected_type_reference
+           }
+  end
 end

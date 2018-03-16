@@ -64,17 +64,12 @@ defmodule JS2E.Types.OneOfType do
 
   alias JS2E.TypePath
 
-  @type t :: %__MODULE__{name: String.t,
-                         path: TypePath.t,
-                         types: [TypePath.t]}
+  @type t :: %__MODULE__{name: String.t(), path: TypePath.t(), types: [TypePath.t()]}
 
   defstruct [:name, :path, :types]
 
-  @spec new(String.t, TypePath.t, [TypePath.t]) :: t
+  @spec new(String.t(), TypePath.t(), [TypePath.t()]) :: t
   def new(name, path, types) do
-    %__MODULE__{name: name,
-                path: path,
-                types: types}
+    %__MODULE__{name: name, path: path, types: types}
   end
-
 end
