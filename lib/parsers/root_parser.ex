@@ -36,14 +36,22 @@ defmodule JS2E.Parsers.RootParser do
         ])
 
       root_parser_result = parse_root_object(root_node_no_def, schema_id, title)
-      definitions_parser_result = parse_definitions(root_node_only_def, schema_id)
+
+      definitions_parser_result =
+        parse_definitions(root_node_only_def, schema_id)
 
       %ParserResult{type_dict: type_dict, errors: errors, warnings: warnings} =
         ParserResult.merge(root_parser_result, definitions_parser_result)
 
       schema_dict = %{
         to_string(schema_id) =>
-          SchemaDefinition.new(schema_file_path, schema_id, title, description, type_dict)
+          SchemaDefinition.new(
+            schema_file_path,
+            schema_id,
+            title,
+            description,
+            type_dict
+          )
       }
 
       schema_errors =
@@ -130,7 +138,8 @@ defmodule JS2E.Parsers.RootParser do
       :missing_property
 
   """
-  @spec parse_schema_version(Types.schemaNode()) :: {:ok, String.t()} | {:error, ParserError.t()}
+  @spec parse_schema_version(Types.schemaNode()) ::
+          {:ok, String.t()} | {:error, ParserError.t()}
   def parse_schema_version(%{"$schema" => schema_str})
       when is_binary(schema_str) do
     schema_version = schema_str |> URI.parse() |> to_string
@@ -138,7 +147,8 @@ defmodule JS2E.Parsers.RootParser do
     if schema_version in @supported_versions do
       {:ok, schema_version}
     else
-      {:error, ErrorUtil.unsupported_schema_version(schema_str, @supported_versions)}
+      {:error,
+       ErrorUtil.unsupported_schema_version(schema_str, @supported_versions)}
     end
   end
 
@@ -174,7 +184,8 @@ defmodule JS2E.Parsers.RootParser do
       :missing_property
 
   """
-  @spec parse_schema_id(Types.schemaNode()) :: {:ok, URI.t()} | {:error, ParserError.t()}
+  @spec parse_schema_id(Types.schemaNode()) ::
+          {:ok, URI.t()} | {:error, ParserError.t()}
   def parse_schema_id(%{"$id" => schema_id}) when is_binary(schema_id) do
     do_parse_schema_id(schema_id)
   end
@@ -195,7 +206,8 @@ defmodule JS2E.Parsers.RootParser do
     {:error, ErrorUtil.missing_property("#", "id")}
   end
 
-  @spec do_parse_schema_id(String.t()) :: {:ok, URI.t()} | {:error, ParserError.t()}
+  @spec do_parse_schema_id(String.t()) ::
+          {:ok, URI.t()} | {:error, ParserError.t()}
   defp do_parse_schema_id(schema_id) do
     parsed_id = schema_id |> URI.parse()
 

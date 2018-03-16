@@ -68,8 +68,13 @@ defmodule JS2E.Parsers.AnyOfParser do
   Parses a JSON schema anyOf type into an `JS2E.Types.AnyOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.schemaNode(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
-          ParserResult.t()
+  @spec parse(
+          Types.schemaNode(),
+          URI.t(),
+          URI.t() | nil,
+          TypePath.t(),
+          String.t()
+        ) :: ParserResult.t()
   def parse(%{"anyOf" => any_of}, parent_id, id, path, name)
       when is_list(any_of) do
     child_path = TypePath.add_child(path, "anyOf")

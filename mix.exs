@@ -52,8 +52,7 @@ defmodule JS2E.Mixfile do
 
   defp aliases do
     [
-      build: ["deps.get", "compile", "escript.build"],
-      fmt: "format config/*.exs lib/**/*.ex test/**/*.exs"
+      build: ["deps.get", "compile", "escript.build"]
     ]
   end
 end

@@ -56,7 +56,8 @@ defmodule JS2E.Parsers.TupleParser do
   Parses a JSON schema array type into an `JS2E.Types.TupleType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"items" => items}, parent_id, id, path, name)
       when is_list(items) do
     child_path = TypePath.add_child(path, "items")

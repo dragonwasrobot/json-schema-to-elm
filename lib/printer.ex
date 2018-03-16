@@ -56,13 +56,32 @@ defmodule JS2E.Printer do
       |> filter_aliases
       |> Enum.sort(&(&1.name < &2.name))
 
-    types_result = merge_results(values, schema_def, schema_dict, module_name, &Util.print_type/4)
+    types_result =
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &Util.print_type/4
+      )
 
     decoders_result =
-      merge_results(values, schema_def, schema_dict, module_name, &Util.print_decoder/4)
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &Util.print_decoder/4
+      )
 
     encoders_result =
-      merge_results(values, schema_def, schema_dict, module_name, &Util.print_encoder/4)
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &Util.print_encoder/4
+      )
 
     printer_result =
       preamble_result

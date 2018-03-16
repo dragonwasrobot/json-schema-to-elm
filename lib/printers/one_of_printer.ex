@@ -23,7 +23,10 @@ defmodule JS2E.Printers.OneOfPrinter do
   # Type
 
   @type_location Path.join(@templates_location, "one_of/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [:type_name, :clauses])
+  EEx.function_from_file(:defp, :type_template, @type_location, [
+    :type_name,
+    :clauses
+  ])
 
   @impl JS2E.Printers.PrinterBehaviour
   @spec print_type(
@@ -130,9 +133,17 @@ defmodule JS2E.Printers.OneOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
-  defp create_decoder_clauses(type_clauses, name, parent, schema_def, schema_dict) do
+  defp create_decoder_clauses(
+         type_clauses,
+         name,
+         parent,
+         schema_def,
+         schema_dict
+       ) do
     type_clauses
-    |> Enum.map(&create_decoder_clause(&1, name, parent, schema_def, schema_dict))
+    |> Enum.map(
+      &create_decoder_clause(&1, name, parent, schema_def, schema_dict)
+    )
   end
 
   @spec create_decoder_clause(
@@ -142,7 +153,13 @@ defmodule JS2E.Printers.OneOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  defp create_decoder_clause(type_clause_id, name, parent, schema_def, schema_dict) do
+  defp create_decoder_clause(
+         type_clause_id,
+         name,
+         parent,
+         schema_def,
+         schema_dict
+       ) do
     case resolve_type(type_clause_id, parent, schema_def, schema_dict) do
       {:ok, {type_clause, _resolved_schema_def}} ->
         type_prefix =
@@ -153,7 +170,8 @@ defmodule JS2E.Printers.OneOfPrinter do
 
         success_name = "#{upcase_first(name)}#{type_prefix}"
 
-        {:ok, "#{type_clause.name}Decoder |> andThen (succeed << #{success_name})"}
+        {:ok,
+         "#{type_clause.name}Decoder |> andThen (succeed << #{success_name})"}
 
       {:error, error} ->
         {:error, error}
@@ -206,7 +224,9 @@ defmodule JS2E.Printers.OneOfPrinter do
         ) :: [{:ok, map} | {:error, PrinterError.t()}]
   defp create_encoder_cases(types, name, parent, schema_def, schema_dict) do
     types
-    |> Enum.map(&create_encoder_clause(&1, name, parent, schema_def, schema_dict))
+    |> Enum.map(
+      &create_encoder_clause(&1, name, parent, schema_def, schema_dict)
+    )
   end
 
   @spec create_encoder_clause(

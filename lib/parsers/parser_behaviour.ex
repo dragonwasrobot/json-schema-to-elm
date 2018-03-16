@@ -8,6 +8,11 @@ defmodule JS2E.Parsers.ParserBehaviour do
 
   @callback type?(Types.schemaNode()) :: boolean
 
-  @callback parse(Types.schemaNode(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
-              ParserResult.t()
+  @callback parse(
+              Types.schemaNode(),
+              URI.t(),
+              URI.t() | nil,
+              TypePath.t(),
+              String.t()
+            ) :: ParserResult.t()
 end

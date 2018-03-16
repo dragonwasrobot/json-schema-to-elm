@@ -49,7 +49,8 @@ defmodule JS2E.Parsers.DefinitionsParser do
   Parses a JSON schema 'definitions' property into a map of types.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"definitions" => definitions}, parent_id, _id, path, _name) do
     child_path =
       path

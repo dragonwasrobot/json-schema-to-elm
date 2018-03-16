@@ -63,7 +63,8 @@ defmodule JS2E.Parsers.ObjectParser do
   Parses a JSON schema object type into an `JS2E.Types.ObjectType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.schemaNode(), URI.t(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(Types.schemaNode(), URI.t(), URI.t(), TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(schema_node, parent_id, id, path, name) do
     required = Map.get(schema_node, "required", [])
 
@@ -106,7 +107,8 @@ defmodule JS2E.Parsers.ObjectParser do
       %{}
 
   """
-  @spec create_property_dict(Types.typeDictionary(), TypePath.t()) :: Types.propertyDictionary()
+  @spec create_property_dict(Types.typeDictionary(), TypePath.t()) ::
+          Types.propertyDictionary()
   def create_property_dict(type_dict, path) do
     type_dict
     |> Enum.reduce(%{}, fn {child_path, child_type}, acc_property_dict ->

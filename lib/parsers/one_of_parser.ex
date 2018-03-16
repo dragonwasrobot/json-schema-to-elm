@@ -68,7 +68,8 @@ defmodule JS2E.Parsers.OneOfParser do
   Parses a JSON schema oneOf type into an `JS2E.Types.OneOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.node(), URI.t(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(Types.node(), URI.t(), URI.t(), TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"oneOf" => one_of}, parent_id, id, path, name)
       when is_list(one_of) do
     child_path = TypePath.add_child(path, "oneOf")

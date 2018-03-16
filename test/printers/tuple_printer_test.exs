@@ -9,8 +9,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
     module_name = "Domain"
 
     type_dict = %{
-      "#/shapePair/0" => %TypeReference{name: "0", path: ["#", "definitions", "square"]},
-      "#/shapePair/1" => %TypeReference{name: "1", path: ["#", "definitions", "circle"]},
+      "#/shapePair/0" => %TypeReference{
+        name: "0",
+        path: ["#", "definitions", "square"]
+      },
+      "#/shapePair/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
+      },
       "#/definitions/square" => %ObjectType{
         name: "square",
         path: ["#"],
@@ -62,8 +68,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
     module_name = "Domain"
 
     type_dict = %{
-      "#/shapePair/0" => %TypeReference{name: "0", path: ["#", "definitions", "square"]},
-      "#/shapePair/1" => %TypeReference{name: "1", path: ["#", "definitions", "circle"]},
+      "#/shapePair/0" => %TypeReference{
+        name: "0",
+        path: ["#", "definitions", "square"]
+      },
+      "#/shapePair/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
+      },
       "#/definitions/square" => %ObjectType{
         name: "square",
         path: ["#"],
@@ -116,8 +128,14 @@ defmodule JS2ETest.Printers.TuplePrinter do
     module_name = "Domain"
 
     type_dict = %{
-      "#/shapePair/0" => %TypeReference{name: "0", path: ["#", "definitions", "square"]},
-      "#/shapePair/1" => %TypeReference{name: "1", path: ["#", "definitions", "circle"]},
+      "#/shapePair/0" => %TypeReference{
+        name: "0",
+        path: ["#", "definitions", "square"]
+      },
+      "#/shapePair/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
+      },
       "#/definitions/square" => %ObjectType{
         name: "square",
         path: ["#"],

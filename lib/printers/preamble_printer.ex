@@ -20,11 +20,18 @@ defmodule JS2E.Printers.PreamblePrinter do
     :imports
   ])
 
-  @spec print_preamble(SchemaDefinition.t(), Types.schemaDictionary(), String.t()) ::
-          PrinterResult.t()
+  @spec print_preamble(
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
   def print_preamble(
-        %SchemaDefinition{id: _id, title: title, description: description, types: _type_dict} =
-          schema_def,
+        %SchemaDefinition{
+          id: _id,
+          title: title,
+          description: description,
+          types: _type_dict
+        } = schema_def,
         schema_dict,
         module_name
       ) do

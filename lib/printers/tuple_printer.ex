@@ -30,7 +30,10 @@ defmodule JS2E.Printers.TuplePrinter do
   # Type
 
   @type_location Path.join(@templates_location, "tuple/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [:type_name, :type_fields])
+  EEx.function_from_file(:defp, :type_template, @type_location, [
+    :type_name,
+    :type_fields
+  ])
 
   @impl JS2E.Printers.PrinterBehaviour
   @spec print_type(
@@ -65,7 +68,9 @@ defmodule JS2E.Printers.TuplePrinter do
         ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
   defp create_type_fields(types, parent, schema_def, schema_dict, module_name) do
     types
-    |> Enum.map(&create_type_field(&1, parent, schema_def, schema_dict, module_name))
+    |> Enum.map(
+      &create_type_field(&1, parent, schema_def, schema_dict, module_name)
+    )
   end
 
   @spec create_type_field(
@@ -75,7 +80,13 @@ defmodule JS2E.Printers.TuplePrinter do
           Types.schemaDictionary(),
           String.t()
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  defp create_type_field(type_path, parent, schema_def, schema_dict, module_name) do
+  defp create_type_field(
+         type_path,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
     type_path
     |> resolve_type(parent, schema_def, schema_dict)
     |> create_type_name(schema_def, module_name)
@@ -123,9 +134,17 @@ defmodule JS2E.Printers.TuplePrinter do
           Types.schemaDictionary(),
           String.t()
         ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_decoder_clauses(type_paths, parent, schema_def, schema_dict, module_name) do
+  defp create_decoder_clauses(
+         type_paths,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
     type_paths
-    |> Enum.map(&create_decoder_clause(&1, parent, schema_def, schema_dict, module_name))
+    |> Enum.map(
+      &create_decoder_clause(&1, parent, schema_def, schema_dict, module_name)
+    )
   end
 
   @spec create_decoder_clause(
@@ -135,7 +154,13 @@ defmodule JS2E.Printers.TuplePrinter do
           Types.schemaDictionary(),
           String.t()
         ) :: {:ok, map} | {:error, PrinterError.t()}
-  defp create_decoder_clause(type_path, parent, schema_def, schema_dict, module_name) do
+  defp create_decoder_clause(
+         type_path,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
     with {:ok, {property_type, resolved_schema_def}} <-
            resolve_type(type_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <-
@@ -173,7 +198,8 @@ defmodule JS2E.Printers.TuplePrinter do
 
   @spec create_decoder_enum_clause(String.t(), String.t()) :: {:ok, map}
   defp create_decoder_enum_clause(property_type_decoder, decoder_name) do
-    {:ok, %{property_decoder: property_type_decoder, decoder_name: decoder_name}}
+    {:ok,
+     %{property_decoder: property_type_decoder, decoder_name: decoder_name}}
   end
 
   @spec create_decoder_normal_clause(String.t()) :: {:ok, map}
@@ -224,7 +250,13 @@ defmodule JS2E.Printers.TuplePrinter do
           Types.schemaDictionary(),
           String.t()
         ) :: [{:ok, Types.typeDefinition()} | {:error, PrinterError.t()}]
-  defp create_encoder_properties(type_paths, parent, schema_def, schema_dict, module_name) do
+  defp create_encoder_properties(
+         type_paths,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
     type_paths
     |> Enum.map(&resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
@@ -238,9 +270,17 @@ defmodule JS2E.Printers.TuplePrinter do
         ) :: {:ok, Types.typeDefinition()} | {:error, PrinterError.t()}
   defp to_encoder_property({:error, error}, _sd, _md), do: {:error, error}
 
-  defp to_encoder_property({:ok, {resolved_property, resolved_schema}}, schema_def, module_name) do
+  defp to_encoder_property(
+         {:ok, {resolved_property, resolved_schema}},
+         schema_def,
+         module_name
+       ) do
     encoder_name_result =
-      create_encoder_name({:ok, {resolved_property, resolved_schema}}, schema_def, module_name)
+      create_encoder_name(
+        {:ok, {resolved_property, resolved_schema}},
+        schema_def,
+        module_name
+      )
 
     case encoder_name_result do
       {:ok, encoder_name} ->

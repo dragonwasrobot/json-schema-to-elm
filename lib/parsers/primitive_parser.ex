@@ -50,7 +50,8 @@ defmodule JS2E.Parsers.PrimitiveParser do
   Parses a JSON schema primitive type into an `JS2E.Types.PrimitiveType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(map, URI.t(), URI.t(), TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(schema_node, _parent_id, id, path, name) do
     type = schema_node["type"]
     primitive_type = PrimitiveType.new(name, path, type)

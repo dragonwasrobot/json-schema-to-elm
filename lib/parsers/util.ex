@@ -23,7 +23,8 @@ defmodule JS2E.Parsers.Util do
   alias JS2E.{TypePath, Types}
 
   @type nodeParser ::
-          (Types.node(), URI.t(), URI.t(), TypePath.t(), String.t() -> ParserResult.t())
+          (Types.node(), URI.t(), URI.t(), TypePath.t(), String.t() ->
+             ParserResult.t())
 
   @doc ~S"""
   Creates a new type dictionary based on the given type definition
@@ -57,7 +58,9 @@ defmodule JS2E.Parsers.Util do
   @doc ~S"""
   Returns a list of type paths when given a type dictionary.
   """
-  @spec create_types_list(Types.typeDictionary(), TypePath.t()) :: [TypePath.t()]
+  @spec create_types_list(Types.typeDictionary(), TypePath.t()) :: [
+          TypePath.t()
+        ]
   def create_types_list(type_dict, path) do
     type_dict
     |> Enum.reduce(%{}, fn {child_abs_path, child_type}, reference_dict ->
@@ -76,7 +79,8 @@ defmodule JS2E.Parsers.Util do
   Parse a list of JSON schema objects that have a child relation to another
   schema object with the specified `parent_id`.
   """
-  @spec parse_child_types([Types.schemaNode()], URI.t(), TypePath.t()) :: ParserResult.t()
+  @spec parse_child_types([Types.schemaNode()], URI.t(), TypePath.t()) ::
+          ParserResult.t()
   def parse_child_types(child_nodes, parent_id, path)
       when is_list(child_nodes) do
     child_nodes
@@ -88,7 +92,8 @@ defmodule JS2E.Parsers.Util do
     |> elem(0)
   end
 
-  @spec parse_type(Types.schemaNode(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse_type(Types.schemaNode(), URI.t(), TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse_type(schema_node, parent_id, path, name) do
     definitions_result =
       if DefinitionsParser.type?(schema_node) do
@@ -112,7 +117,8 @@ defmodule JS2E.Parsers.Util do
           node_parser.(schema_node, parent_id, id, type_path, name)
       end
 
-    if Enum.empty?(definitions_result.type_dict) and Enum.empty?(node_result.type_dict) do
+    if Enum.empty?(definitions_result.type_dict) and
+         Enum.empty?(node_result.type_dict) do
       unknown_type_error = ErrorUtil.unknown_node_type(path, name, schema_node)
       ParserResult.new(%{}, [], [unknown_type_error])
     else

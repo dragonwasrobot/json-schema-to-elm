@@ -42,7 +42,8 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   Parses a JSON schema type reference into an `JS2E.Types.TypeReference`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) :: ParserResult.t()
+  @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"$ref" => ref}, _parent_id, id, path, name) do
     ref_path =
       ref

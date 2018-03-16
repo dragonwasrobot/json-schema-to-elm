@@ -109,7 +109,8 @@ defmodule JS2E.Parsers.ErrorUtil do
     ParserError.new(identifier, :name_collision, error_msg)
   end
 
-  @spec invalid_uri(Types.typeIdentifier(), String.t(), String.t()) :: ParserError.t()
+  @spec invalid_uri(Types.typeIdentifier(), String.t(), String.t()) ::
+          ParserError.t()
   def invalid_uri(identifier, property, actual) do
     full_identifier = print_identifier(identifier)
     stringified_value = sanitize_value(actual)
@@ -127,7 +128,8 @@ defmodule JS2E.Parsers.ErrorUtil do
     ParserError.new(identifier, :invalid_uri, error_msg)
   end
 
-  @spec unknown_node_type(Types.typeIdentifier(), String.t(), Types.node()) :: ParserError.t()
+  @spec unknown_node_type(Types.typeIdentifier(), String.t(), Types.node()) ::
+          ParserError.t()
   def unknown_node_type(identifier, name, schema_node) do
     full_identifier =
       identifier

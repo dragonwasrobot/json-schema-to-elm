@@ -96,7 +96,11 @@ defmodule JS2E.Printers.Util do
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def create_type_name({:error, error}, _schema, _name), do: {:error, error}
 
-  def create_type_name({:ok, {resolved_type, resolved_schema}}, context_schema, module_name) do
+  def create_type_name(
+        {:ok, {resolved_type, resolved_schema}},
+        context_schema,
+        module_name
+      ) do
     type_name =
       if primitive_type?(resolved_type) do
         determine_primitive_type(resolved_type.type)
@@ -150,7 +154,8 @@ defmodule JS2E.Printers.Util do
   :unknown_primitive_type
 
   """
-  @spec determine_primitive_type(String.t()) :: {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec determine_primitive_type(String.t()) ::
+          {:ok, String.t()} | {:error, PrinterError.t()}
   def determine_primitive_type(type_name) do
     case type_name do
       "string" ->
@@ -182,7 +187,11 @@ defmodule JS2E.Printers.Util do
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def create_decoder_name({:error, error}, _schema, _name), do: {:error, error}
 
-  def create_decoder_name({:ok, {resolved_type, resolved_schema}}, context_schema, module_name) do
+  def create_decoder_name(
+        {:ok, {resolved_type, resolved_schema}},
+        context_schema,
+        module_name
+      ) do
     decoder_name =
       if primitive_type?(resolved_type) do
         determine_primitive_type_decoder(resolved_type.type)
@@ -272,7 +281,11 @@ defmodule JS2E.Printers.Util do
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def create_encoder_name({:error, error}, _schema, _name), do: {:error, error}
 
-  def create_encoder_name({:ok, {resolved_type, resolved_schema}}, context_schema, module_name) do
+  def create_encoder_name(
+        {:ok, {resolved_type, resolved_schema}},
+        context_schema,
+        module_name
+      ) do
     encoder_name_result =
       if primitive_type?(resolved_type) do
         determine_primitive_type_encoder(resolved_type.type)
@@ -532,7 +545,12 @@ defmodule JS2E.Printers.Util do
     case resolved_result do
       {:ok, {resolved_type, resolved_schema_def}} ->
         if get_string_name(resolved_type) == "TypeReference" do
-          resolve_type(resolved_type.path, parent, resolved_schema_def, schema_dict)
+          resolve_type(
+            resolved_type.path,
+            parent,
+            resolved_schema_def,
+            schema_dict
+          )
         else
           {:ok, {resolved_type, resolved_schema_def}}
         end
@@ -549,7 +567,11 @@ defmodule JS2E.Printers.Util do
     {:ok, {primitive_type, schema_def}}
   end
 
-  @spec resolve_type_path_identifier(TypePath.t(), TypePath.t(), SchemaDefinition.t()) ::
+  @spec resolve_type_path_identifier(
+          TypePath.t(),
+          TypePath.t(),
+          SchemaDefinition.t()
+        ) ::
           {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
           | {:error, PrinterError.t()}
   defp resolve_type_path_identifier(identifier, parent, schema_def) do
@@ -563,7 +585,11 @@ defmodule JS2E.Printers.Util do
     end
   end
 
-  @spec resolve_uri_identifier(TypePath.t(), String.t(), Types.schemaDictionary()) ::
+  @spec resolve_uri_identifier(
+          TypePath.t(),
+          String.t(),
+          Types.schemaDictionary()
+        ) ::
           {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
           | {:error, PrinterError.t()}
   defp resolve_uri_identifier(identifier, parent, schema_dict) do

@@ -27,7 +27,11 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
       |> Poison.decode!()
       |> RootParser.parse_schema("examples/example.json")
 
-    expected_root_type_reference = %ArrayType{name: "#", path: ["#"], items: ["#", "items"]}
+    expected_root_type_reference = %ArrayType{
+      name: "#",
+      path: ["#"],
+      items: ["#", "items"]
+    }
 
     expected_type_reference = %TypeReference{
       name: "items",
@@ -50,7 +54,8 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
                id: URI.parse("http://example.com/root.json"),
                types: %{
                  "#" => expected_root_type_reference,
-                 "http://example.com/root.json#" => expected_root_type_reference,
+                 "http://example.com/root.json#" =>
+                   expected_root_type_reference,
                  "#/items" => expected_type_reference,
                  "#/definitions/positiveInteger" => expected_primitive_type
                }

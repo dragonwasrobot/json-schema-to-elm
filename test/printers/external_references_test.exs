@@ -3,7 +3,14 @@ defmodule JS2ETest.Printers.ExternalReferences do
 
   require Logger
   alias JS2E.Printer
-  alias JS2E.Types.{EnumType, ObjectType, PrimitiveType, TypeReference, SchemaDefinition}
+
+  alias JS2E.Types.{
+    EnumType,
+    ObjectType,
+    PrimitiveType,
+    TypeReference,
+    SchemaDefinition
+  }
 
   test "print external references" do
     module_name = "Data"
@@ -82,7 +89,11 @@ defmodule JS2ETest.Printers.ExternalReferences do
             name: "color",
             path: URI.parse("http://example.com/definitions.json#color")
           },
-          "#/radius" => %PrimitiveType{name: "radius", path: ["#", "radius"], type: "number"},
+          "#/radius" => %PrimitiveType{
+            name: "radius",
+            path: ["#", "radius"],
+            type: "number"
+          },
           "http://example.com/circle.json#" => %ObjectType{
             name: "circle",
             path: "#",
