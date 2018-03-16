@@ -6,7 +6,6 @@ defmodule JS2ETest.Parsers.EnumParser do
   alias JS2E.Parsers.EnumParser
 
   test "parse enum type with integer values" do
-
     parser_result =
       ~S"""
       {
@@ -21,17 +20,18 @@ defmodule JS2ETest.Parsers.EnumParser do
       name: "favoriteNumber",
       path: ["#", "favoriteNumber"],
       type: "integer",
-      values: [1, 2, 3]}
+      values: [1, 2, 3]
+    }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
+
     assert parser_result.type_dict == %{
-      "#/favoriteNumber" => expected_enum_type
-    }
+             "#/favoriteNumber" => expected_enum_type
+           }
   end
 
   test "parse enum type with string values" do
-
     parser_result =
       ~S"""
       {
@@ -46,13 +46,14 @@ defmodule JS2ETest.Parsers.EnumParser do
       name: "color",
       path: ["#", "color"],
       type: "string",
-      values: ["none", "green", "orange", "blue", "yellow", "red"]}
+      values: ["none", "green", "orange", "blue", "yellow", "red"]
+    }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
-    assert parser_result.type_dict == %{
-      "#/color" => expected_enum_type
-    }
-  end
 
+    assert parser_result.type_dict == %{
+             "#/color" => expected_enum_type
+           }
+  end
 end

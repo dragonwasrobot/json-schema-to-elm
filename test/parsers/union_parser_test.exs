@@ -6,7 +6,6 @@ defmodule JS2ETest.Parsers.UnionParser do
   alias JS2E.Parsers.UnionParser
 
   test "parse primitive union type" do
-
     parser_result =
       ~S"""
       {
@@ -19,13 +18,14 @@ defmodule JS2ETest.Parsers.UnionParser do
     expected_union_type = %UnionType{
       name: "union",
       path: ["#", "union"],
-      types: ["number", "integer", "null"]}
+      types: ["number", "integer", "null"]
+    }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
-    assert parser_result.type_dict == %{
-      "#/union" => expected_union_type
-    }
-  end
 
+    assert parser_result.type_dict == %{
+             "#/union" => expected_union_type
+           }
+  end
 end

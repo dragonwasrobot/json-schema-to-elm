@@ -30,11 +30,14 @@ defmodule JS2E.Parsers.OneOfParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util, only: [
-    parse_child_types: 3,
-    create_type_dict: 3,
-    create_types_list: 2
-  ]
+
+  import JS2E.Parsers.Util,
+    only: [
+      parse_child_types: 3,
+      create_type_dict: 3,
+      create_types_list: 2
+    ]
+
   alias JS2E.Parsers.{ErrorUtil, ParserResult}
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.OneOfType
@@ -55,7 +58,7 @@ defmodule JS2E.Parsers.OneOfParser do
 
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec type?(Types.node) :: boolean
+  @spec type?(Types.node()) :: boolean
   def type?(schema_node) do
     one_of = schema_node["oneOf"]
     is_list(one_of) && length(one_of) > 0
@@ -65,11 +68,9 @@ defmodule JS2E.Parsers.OneOfParser do
   Parses a JSON schema oneOf type into an `JS2E.Types.OneOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.node, URI.t, URI.t, TypePath.t, String.t)
-  :: ParserResult.t
+  @spec parse(Types.node(), URI.t(), URI.t(), TypePath.t(), String.t()) :: ParserResult.t()
   def parse(%{"oneOf" => one_of}, parent_id, id, path, name)
-  when is_list(one_of) do
-
+      when is_list(one_of) do
     child_path = TypePath.add_child(path, "oneOf")
 
     child_types_result =
@@ -87,5 +88,4 @@ defmodule JS2E.Parsers.OneOfParser do
     |> ParserResult.new()
     |> ParserResult.merge(child_types_result)
   end
-
 end

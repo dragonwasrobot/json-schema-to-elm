@@ -7,7 +7,6 @@ defmodule JS2ETest.Parsers.AllOfParser do
   alias JS2E.Parsers.AllOfParser
 
   test "parse primitive all_of type" do
-
     parser_result =
       ~S"""
       {
@@ -43,27 +42,29 @@ defmodule JS2ETest.Parsers.AllOfParser do
       properties: %{
         "color" => ["#", "schema", "allOf", "0", "properties", "color"],
         "title" => ["#", "schema", "allOf", "0", "properties", "title"],
-        "radius" => ["#", "schema", "allOf", "0", "properties", "radius"]}
+        "radius" => ["#", "schema", "allOf", "0", "properties", "radius"]
+      }
     }
 
     expected_primitive_type = %PrimitiveType{
       name: "1",
       path: ["#", "schema", "allOf", "1"],
-      type: "string"}
+      type: "string"
+    }
 
-    expected_color_type = %TypeReference{
-      name: "color",
-      path: ["#", "color"]}
+    expected_color_type = %TypeReference{name: "color", path: ["#", "color"]}
 
     expected_radius_type = %PrimitiveType{
       name: "radius",
       path: ["#", "schema", "allOf", "0", "properties", "radius"],
-      type: "number"}
+      type: "number"
+    }
 
     expected_title_type = %PrimitiveType{
       name: "title",
       path: ["#", "schema", "allOf", "0", "properties", "title"],
-      type: "string"}
+      type: "string"
+    }
 
     expected_all_of_type = %AllOfType{
       name: "schema",
@@ -76,14 +77,14 @@ defmodule JS2ETest.Parsers.AllOfParser do
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
-    assert parser_result.type_dict == %{
-      "#/schema" => expected_all_of_type,
-      "#/schema/allOf/0" => expected_object_type,
-      "#/schema/allOf/1" => expected_primitive_type,
-      "#/schema/allOf/0/properties/color" => expected_color_type,
-      "#/schema/allOf/0/properties/radius" => expected_radius_type,
-      "#/schema/allOf/0/properties/title" => expected_title_type
-    }
-  end
 
+    assert parser_result.type_dict == %{
+             "#/schema" => expected_all_of_type,
+             "#/schema/allOf/0" => expected_object_type,
+             "#/schema/allOf/1" => expected_primitive_type,
+             "#/schema/allOf/0/properties/color" => expected_color_type,
+             "#/schema/allOf/0/properties/radius" => expected_radius_type,
+             "#/schema/allOf/0/properties/title" => expected_title_type
+           }
+  end
 end

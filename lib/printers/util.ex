@@ -6,10 +6,21 @@ defmodule JS2E.Printers.Util do
   require Logger
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.{PrimitiveType, SchemaDefinition}
-  alias JS2E.Printers.{ErrorUtil, AllOfPrinter, AnyOfPrinter,
-                       ArrayPrinter, EnumPrinter, ObjectPrinter,
-                       OneOfPrinter, PrimitivePrinter, TuplePrinter,
-                       TypeReferencePrinter, UnionPrinter, PrinterResult}
+
+  alias JS2E.Printers.{
+    ErrorUtil,
+    AllOfPrinter,
+    AnyOfPrinter,
+    ArrayPrinter,
+    EnumPrinter,
+    ObjectPrinter,
+    OneOfPrinter,
+    PrimitivePrinter,
+    TuplePrinter,
+    TypeReferencePrinter,
+    UnionPrinter,
+    PrinterResult
+  }
 
   # Indentation, whitespace and casing - start
 
@@ -24,7 +35,7 @@ defmodule JS2E.Printers.Util do
       "        "
 
   """
-  @spec indent(pos_integer) :: String.t
+  @spec indent(pos_integer) :: String.t()
   def indent(tabs \\ 1) when is_integer(tabs) do
     String.pad_leading("", tabs * @indent_size)
   end
@@ -32,7 +43,7 @@ defmodule JS2E.Printers.Util do
   @doc ~S"""
   Remove excessive newlines of a string.
   """
-  @spec trim_newlines(String.t) :: String.t
+  @spec trim_newlines(String.t()) :: String.t()
   def trim_newlines(str) do
     String.trim(str) <> "\n"
   end
@@ -46,11 +57,10 @@ defmodule JS2E.Printers.Util do
       "Foobar"
 
   """
-  @spec upcase_first(String.t) :: String.t
+  @spec upcase_first(String.t()) :: String.t()
   def upcase_first(string) when is_binary(string) do
     if String.length(string) > 0 do
-      String.upcase(String.at string, 0) <>
-        String.slice(string, 1..-1)
+      String.upcase(String.at(string, 0)) <> String.slice(string, 1..-1)
     else
       ""
     end
@@ -65,11 +75,10 @@ defmodule JS2E.Printers.Util do
       "foobar"
 
   """
-  @spec downcase_first(String.t) :: String.t
+  @spec downcase_first(String.t()) :: String.t()
   def downcase_first(string) when is_binary(string) do
     if String.length(string) > 0 do
-      String.downcase(String.at string, 0) <>
-        String.slice(string, 1..-1)
+      String.downcase(String.at(string, 0)) <> String.slice(string, 1..-1)
     else
       ""
     end
@@ -80,32 +89,30 @@ defmodule JS2E.Printers.Util do
   # Printing types - start
 
   @spec create_type_name(
-    {:ok, {Types.typeDefinition, SchemaDefinition.t}}
-    | {:error, PrinterError.t},
-    SchemaDefinition.t,
-    String.t
-  ) :: {:ok, String.t} | {:error, PrinterError.t}
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
+          | {:error, PrinterError.t()},
+          SchemaDefinition.t(),
+          String.t()
+        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def create_type_name({:error, error}, _schema, _name), do: {:error, error}
-  def create_type_name({:ok, {resolved_type, resolved_schema}},
-    context_schema, module_name) do
 
-    type_name = (if primitive_type?(resolved_type) do
-      determine_primitive_type(resolved_type.type)
-
-    else
-      resolved_type_name = resolved_type.name
-      if resolved_type_name == "#" do
-
-        if resolved_schema.title != nil do
-          {:ok, upcase_first resolved_schema.title}
-        else
-          {:ok, "Root"}
-        end
-
+  def create_type_name({:ok, {resolved_type, resolved_schema}}, context_schema, module_name) do
+    type_name =
+      if primitive_type?(resolved_type) do
+        determine_primitive_type(resolved_type.type)
       else
-        {:ok, upcase_first resolved_type_name}
+        resolved_type_name = resolved_type.name
+
+        if resolved_type_name == "#" do
+          if resolved_schema.title != nil do
+            {:ok, upcase_first(resolved_schema.title)}
+          else
+            {:ok, "Root"}
+          end
+        else
+          {:ok, upcase_first(resolved_type_name)}
+        end
       end
-    end)
 
     case type_name do
       {:ok, type_name} ->
@@ -143,8 +150,7 @@ defmodule JS2E.Printers.Util do
   :unknown_primitive_type
 
   """
-  @spec determine_primitive_type(String.t)
-  :: {:ok, String.t} | {:error, PrinterError.t}
+  @spec determine_primitive_type(String.t()) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def determine_primitive_type(type_name) do
     case type_name do
       "string" ->
@@ -169,31 +175,30 @@ defmodule JS2E.Printers.Util do
   # Printing decoders - start
 
   @spec create_decoder_name(
-    {:ok, {Types.typeDefinition, SchemaDefinition.t}}
-    | {:error, PrinterError.t},
-    SchemaDefinition.t,
-    String.t
-  ) :: {:ok, String.t} | {:error, PrinterError.t}
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
+          | {:error, PrinterError.t()},
+          SchemaDefinition.t(),
+          String.t()
+        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def create_decoder_name({:error, error}, _schema, _name), do: {:error, error}
-  def create_decoder_name({:ok, {resolved_type, resolved_schema}},
-    context_schema, module_name) do
 
-    decoder_name = (if primitive_type?(resolved_type) do
-      determine_primitive_type_decoder(resolved_type.type)
-    else
-      type_name = resolved_type.name
-      if type_name == "#" do
-
-        if resolved_schema.title != nil do
-          {:ok, "#{downcase_first resolved_schema.title}Decoder"}
-        else
-          {:ok, "rootDecoder"}
-        end
-
+  def create_decoder_name({:ok, {resolved_type, resolved_schema}}, context_schema, module_name) do
+    decoder_name =
+      if primitive_type?(resolved_type) do
+        determine_primitive_type_decoder(resolved_type.type)
       else
-        {:ok, "#{type_name}Decoder"}
+        type_name = resolved_type.name
+
+        if type_name == "#" do
+          if resolved_schema.title != nil do
+            {:ok, "#{downcase_first(resolved_schema.title)}Decoder"}
+          else
+            {:ok, "rootDecoder"}
+          end
+        else
+          {:ok, "#{type_name}Decoder"}
+        end
       end
-    end)
 
     case decoder_name do
       {:ok, decoder_name} ->
@@ -231,10 +236,9 @@ defmodule JS2E.Printers.Util do
   :unknown_primitive_type
 
   """
-  @spec determine_primitive_type_decoder(String.t)
-  :: {:ok, String.t} | {:error, PrinterError.t}
+  @spec determine_primitive_type_decoder(String.t()) ::
+          {:ok, String.t()} | {:error, PrinterError.t()}
   def determine_primitive_type_decoder(type_name) do
-
     case type_name do
       "string" ->
         {:ok, "Decode.string"}
@@ -261,31 +265,30 @@ defmodule JS2E.Printers.Util do
   Returns the encoder name given a JSON schema type definition.
   """
   @spec create_encoder_name(
-    {:ok, {Types.typeDefinition, SchemaDefinition.t}}
-    | {:error, PrinterError.t},
-    SchemaDefinition.t,
-    String.t
-  ) :: {:ok, String.t} | {:error, PrinterError.t}
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
+          | {:error, PrinterError.t()},
+          SchemaDefinition.t(),
+          String.t()
+        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def create_encoder_name({:error, error}, _schema, _name), do: {:error, error}
-  def create_encoder_name({:ok, {resolved_type, resolved_schema}},
-    context_schema, module_name) do
 
-    encoder_name_result = (if primitive_type?(resolved_type) do
-      determine_primitive_type_encoder(resolved_type.type)
-    else
-      type_name = resolved_type.name
-      if type_name == "#" do
-
-        if resolved_schema.title != nil do
-          {:ok, "encode#{upcase_first resolved_schema.title}"}
-        else
-          {:ok, "encodeRoot"}
-        end
-
+  def create_encoder_name({:ok, {resolved_type, resolved_schema}}, context_schema, module_name) do
+    encoder_name_result =
+      if primitive_type?(resolved_type) do
+        determine_primitive_type_encoder(resolved_type.type)
       else
-        {:ok, "encode#{upcase_first type_name}"}
+        type_name = resolved_type.name
+
+        if type_name == "#" do
+          if resolved_schema.title != nil do
+            {:ok, "encode#{upcase_first(resolved_schema.title)}"}
+          else
+            {:ok, "encodeRoot"}
+          end
+        else
+          {:ok, "encode#{upcase_first(type_name)}"}
+        end
       end
-    end)
 
     case encoder_name_result do
       {:ok, encoder_name} ->
@@ -327,10 +330,9 @@ defmodule JS2E.Printers.Util do
   :unknown_primitive_type
 
   """
-  @spec determine_primitive_type_encoder(String.t)
-  :: {:ok, String.t} | {:error, PrinterError.t}
+  @spec determine_primitive_type_encoder(String.t()) ::
+          {:ok, String.t()} | {:error, PrinterError.t()}
   def determine_primitive_type_encoder(type_name) do
-
     case type_name do
       "string" ->
         {:ok, "Encode.string"}
@@ -356,7 +358,7 @@ defmodule JS2E.Printers.Util do
 
   # Printing utils - start
 
-  @spec qualify_name(SchemaDefinition.t, String.t, String.t) :: String.t
+  @spec qualify_name(SchemaDefinition.t(), String.t(), String.t()) :: String.t()
   def qualify_name(schema_def, type_name, module_name) do
     schema_name = schema_def.title
 
@@ -379,12 +381,12 @@ defmodule JS2E.Printers.Util do
   "PrimitiveType"
 
   """
-  @spec get_string_name(struct) :: String.t
+  @spec get_string_name(struct) :: String.t()
   def get_string_name(instance) when is_map(instance) do
     instance.__struct__
     |> to_string
     |> String.split(".")
-    |> List.last
+    |> List.last()
   end
 
   # Printing utils - end
@@ -414,13 +416,12 @@ defmodule JS2E.Printers.Util do
   # Predicate functions - end
 
   @spec print_type(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary,
-    String.t
-  ) :: PrinterResult.t
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
   def print_type(type_def, schema_def, schema_dict, module_name) do
-
     type_to_printer_dict = %{
       "AllOfType" => &AllOfPrinter.print_type/4,
       "AnyOfType" => &AnyOfPrinter.print_type/4,
@@ -439,20 +440,18 @@ defmodule JS2E.Printers.Util do
     if Map.has_key?(type_to_printer_dict, struct_name) do
       type_printer = type_to_printer_dict[struct_name]
       type_printer.(type_def, schema_def, schema_dict, module_name)
-
     else
       PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
     end
   end
 
   @spec print_decoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary,
-    String.t
-  ) :: PrinterResult.t
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
   def print_decoder(type_def, schema_def, schema_dict, module_name) do
-
     type_to_printer_dict = %{
       "AllOfType" => &AllOfPrinter.print_decoder/4,
       "AnyOfType" => &AnyOfPrinter.print_decoder/4,
@@ -477,13 +476,12 @@ defmodule JS2E.Printers.Util do
   end
 
   @spec print_encoder(
-    Types.typeDefinition,
-    SchemaDefinition.t,
-    Types.schemaDictionary,
-    String.t
-  ) :: {:ok, String.t} | {:error, PrinterError.t}
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   def print_encoder(type_def, schema_def, schema_dict, module_name) do
-
     type_to_printer_dict = %{
       "AllOfType" => &AllOfPrinter.print_encoder/4,
       "AnyOfType" => &AnyOfPrinter.print_encoder/4,
@@ -508,15 +506,15 @@ defmodule JS2E.Printers.Util do
   end
 
   @spec resolve_type(
-    TypePath.t,
-    Types.typeIdentifier,
-    SchemaDefinition.t,
-    Types.schemaDictionary)
-  :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
-  | {:error, PrinterError.t}
+          TypePath.t(),
+          Types.typeIdentifier(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary()
+        ) ::
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
+          | {:error, PrinterError.t()}
   def resolve_type(identifier, parent, schema_def, schema_dict) do
-
-    resolved_result = (
+    resolved_result =
       cond do
         identifier in ["string", "number", "integer", "boolean"] ->
           resolve_primitive_identifier(identifier, schema_def)
@@ -529,14 +527,12 @@ defmodule JS2E.Printers.Util do
 
         true ->
           {:error, ErrorUtil.unresolved_reference(identifier, parent)}
-      end)
+      end
 
     case resolved_result do
       {:ok, {resolved_type, resolved_schema_def}} ->
-
         if get_string_name(resolved_type) == "TypeReference" do
-          resolve_type(resolved_type.path, parent,
-            resolved_schema_def, schema_dict)
+          resolve_type(resolved_type.path, parent, resolved_schema_def, schema_dict)
         else
           {:ok, {resolved_type, resolved_schema_def}}
         end
@@ -546,22 +542,17 @@ defmodule JS2E.Printers.Util do
     end
   end
 
-  @spec resolve_primitive_identifier(String.t, SchemaDefinition.t)
-  :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
+  @spec resolve_primitive_identifier(String.t(), SchemaDefinition.t()) ::
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
   defp resolve_primitive_identifier(identifier, schema_def) do
-
     primitive_type = PrimitiveType.new(identifier, identifier, identifier)
     {:ok, {primitive_type, schema_def}}
   end
 
-  @spec resolve_type_path_identifier(
-    TypePath.t,
-    TypePath.t,
-    SchemaDefinition.t)
-  :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
-  | {:error, PrinterError.t}
+  @spec resolve_type_path_identifier(TypePath.t(), TypePath.t(), SchemaDefinition.t()) ::
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
+          | {:error, PrinterError.t()}
   defp resolve_type_path_identifier(identifier, parent, schema_def) do
-
     type_dict = schema_def.types
     resolved_type = type_dict[TypePath.to_string(identifier)]
 
@@ -572,51 +563,47 @@ defmodule JS2E.Printers.Util do
     end
   end
 
-  @spec resolve_uri_identifier(
-    TypePath.t,
-    String.t,
-    Types.schemaDictionary)
-  :: {:ok, {Types.typeDefinition, SchemaDefinition.t}}
-  | {:error, PrinterError.t}
+  @spec resolve_uri_identifier(TypePath.t(), String.t(), Types.schemaDictionary()) ::
+          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
+          | {:error, PrinterError.t()}
   defp resolve_uri_identifier(identifier, parent, schema_dict) do
-
     schema_id = determine_schema_id(identifier)
     schema_def = schema_dict[schema_id]
 
     if schema_def != nil do
       type_dict = schema_def.types
 
-      resolved_type = (if to_string(identifier) == schema_id do
-        type_dict["#"]
-      else
-        type_dict[to_string(identifier)]
-      end)
+      resolved_type =
+        if to_string(identifier) == schema_id do
+          type_dict["#"]
+        else
+          type_dict[to_string(identifier)]
+        end
 
       if resolved_type != nil do
         {:ok, {resolved_type, schema_def}}
       else
         {:error, ErrorUtil.unresolved_reference(identifier, parent)}
       end
-
     else
       {:error, ErrorUtil.unresolved_reference(identifier, parent)}
     end
   end
 
-  @spec determine_schema_id(String.t) :: String.t
+  @spec determine_schema_id(String.t()) :: String.t()
   defp determine_schema_id(identifier) do
     identifier
-    |> URI.parse
+    |> URI.parse()
     |> URI.merge("#")
     |> to_string
   end
 
-  @spec split_ok_and_errors([{:ok, any} | {:error, PrinterError.t}])
-  :: {[any], [PrinterError.t]}
+  @spec split_ok_and_errors([{:ok, any} | {:error, PrinterError.t()}]) ::
+          {[any], [PrinterError.t()]}
   def split_ok_and_errors(results) do
     results
     |> Enum.reverse()
-    |> Enum.reduce({[], []}, fn (result, {oks, errors}) ->
+    |> Enum.reduce({[], []}, fn result, {oks, errors} ->
       case result do
         {:ok, ok} ->
           {[ok | oks], errors}
@@ -626,5 +613,4 @@ defmodule JS2E.Printers.Util do
       end
     end)
   end
-
 end

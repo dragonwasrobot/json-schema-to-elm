@@ -3,7 +3,7 @@ defmodule JS2E.TypePath do
   Module for creating, manipulating, and printing type paths.
   """
 
-  @type t :: [String.t]
+  @type t :: [String.t()]
 
   @doc ~S"""
   Converts a json schema path like "#/definitions/foo" into its corresponding
@@ -21,7 +21,7 @@ defmodule JS2E.TypePath do
       ["#", "definitions", "foo"]
 
   """
-  @spec from_string(String.t) :: t
+  @spec from_string(String.t()) :: t
   def from_string(string) do
     string
     |> String.split("/")
@@ -43,7 +43,7 @@ defmodule JS2E.TypePath do
       "#/definitions/foo"
 
   """
-  @spec to_string(t) :: String.t
+  @spec to_string(t) :: String.t()
   def to_string(segments) do
     segments |> Enum.join("/")
   end
@@ -60,7 +60,7 @@ defmodule JS2E.TypePath do
       ["#", "definitions", "bar"]
 
   """
-  @spec add_child(t, String.t) :: t
+  @spec add_child(t, String.t()) :: t
   def add_child(segments, segment) do
     if segment != "" do
       segments ++ [segment]
@@ -97,9 +97,6 @@ defmodule JS2E.TypePath do
   """
   @spec type_path?(any) :: boolean
   def type_path?(path) do
-    is_list(path) &&
-      length(path) > 0 &&
-      Enum.fetch!(path, 0) == "#"
+    is_list(path) && length(path) > 0 && Enum.fetch!(path, 0) == "#"
   end
-
 end

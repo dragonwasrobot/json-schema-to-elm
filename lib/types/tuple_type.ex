@@ -57,17 +57,12 @@ defmodule JS2E.Types.TupleType do
 
   alias JS2E.TypePath
 
-  @type t :: %__MODULE__{name: String.t,
-                         path: TypePath.t,
-                         items: TypePath.t}
+  @type t :: %__MODULE__{name: String.t(), path: TypePath.t(), items: TypePath.t()}
 
   defstruct [:name, :path, :items]
 
-  @spec new(String.t, TypePath.t, TypePath.t) :: t
+  @spec new(String.t(), TypePath.t(), TypePath.t()) :: t
   def new(name, path, items) do
-    %__MODULE__{name: name,
-                path: path,
-                items: items}
+    %__MODULE__{name: name, path: path, items: items}
   end
-
 end

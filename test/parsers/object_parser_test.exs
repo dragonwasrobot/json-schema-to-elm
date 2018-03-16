@@ -6,7 +6,6 @@ defmodule JS2ETest.Parsers.ObjectParser do
   alias JS2E.Parsers.ObjectParser
 
   test "parse object type" do
-
     parser_result =
       ~S"""
       {
@@ -35,7 +34,8 @@ defmodule JS2ETest.Parsers.ObjectParser do
       properties: %{
         "color" => ["#", "circle", "properties", "color"],
         "title" => ["#", "circle", "properties", "title"],
-        "radius" => ["#", "circle", "properties", "radius"]}
+        "radius" => ["#", "circle", "properties", "radius"]
+      }
     }
 
     expected_color_type_reference = %TypeReference{
@@ -57,12 +57,12 @@ defmodule JS2ETest.Parsers.ObjectParser do
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
-    assert parser_result.type_dict == %{
-      "#/circle" => expected_object_type,
-      "#/circle/properties/color" => expected_color_type_reference,
-      "#/circle/properties/title" => expected_title_primitive_type,
-      "#/circle/properties/radius" => expected_radius_primitive_type
-    }
-  end
 
+    assert parser_result.type_dict == %{
+             "#/circle" => expected_object_type,
+             "#/circle/properties/color" => expected_color_type_reference,
+             "#/circle/properties/title" => expected_title_primitive_type,
+             "#/circle/properties/radius" => expected_radius_primitive_type
+           }
+  end
 end
