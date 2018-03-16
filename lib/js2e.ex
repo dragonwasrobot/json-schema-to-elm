@@ -92,17 +92,18 @@ defmodule JS2E do
 
   @spec create_output_dir(list) :: String.t()
   defp create_output_dir(options) do
-    output_path =
+    module_name =
       if Keyword.has_key?(options, :module_name) do
         Keyword.get(options, :module_name)
       else
         "Data"
       end
 
-    output_path
+    module_name
+    |> String.replace(".", "/")
     |> File.mkdir_p!()
 
-    output_path
+    module_name
   end
 
   @spec generate([String.t()], String.t()) :: :ok
@@ -127,7 +128,15 @@ defmodule JS2E do
         file_dict = printer_result.file_dict
 
         Enum.each(file_dict, fn {file_path, file_content} ->
-          {:ok, file} = File.open(file_path, [:write])
+          normalized_file_path =
+            String.replace(
+              file_path,
+              module_name,
+              String.replace(module_name, ".", "/")
+            )
+
+          Logger.debug("Writing file '#{file_path}'")
+          {:ok, file} = File.open(normalized_file_path, [:write])
           IO.binwrite(file, file_content)
           File.close(file)
           Logger.info("Created file '#{file_path}'")
