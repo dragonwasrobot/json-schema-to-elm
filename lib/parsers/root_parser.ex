@@ -4,11 +4,7 @@ defmodule JS2E.Parsers.RootParser do
   """
 
   require Logger
-
-  import JS2E.Parsers.Util,
-    only: [
-      parse_type: 4
-    ]
+  alias JS2E.Parsers.Util
 
   alias JS2E.Parsers.{
     ArrayParser,
@@ -29,8 +25,18 @@ defmodule JS2E.Parsers.RootParser do
       title = Map.get(root_node, "title", "")
       description = Map.get(root_node, "description")
 
-      definitions_parser_result = parse_definitions(root_node, schema_id)
-      root_parser_result = parse_root_object(root_node, schema_id, title)
+      root_node_no_def = Map.delete(root_node, "definitions")
+
+      root_node_only_def =
+        Map.take(root_node, [
+          "$schema",
+          "id",
+          "title",
+          "definitions"
+        ])
+
+      root_parser_result = parse_root_object(root_node_no_def, schema_id, title)
+      definitions_parser_result = parse_definitions(root_node_only_def, schema_id)
 
       %ParserResult{type_dict: type_dict, errors: errors, warnings: warnings} =
         ParserResult.merge(root_parser_result, definitions_parser_result)
@@ -80,15 +86,15 @@ defmodule JS2E.Parsers.RootParser do
     cond do
       ArrayParser.type?(schema_root_node) ->
         schema_root_node
-        |> parse_type(schema_id, [], name)
+        |> Util.parse_type(schema_id, [], name)
 
       ObjectParser.type?(schema_root_node) ->
         schema_root_node
-        |> parse_type(schema_id, [], name)
+        |> Util.parse_type(schema_id, [], name)
 
       TupleParser.type?(schema_root_node) ->
         schema_root_node
-        |> parse_type(schema_id, [], name)
+        |> Util.parse_type(schema_id, [], name)
 
       TypeReferenceParser.type?(schema_root_node) ->
         schema_root_node
@@ -100,7 +106,8 @@ defmodule JS2E.Parsers.RootParser do
   end
 
   @supported_versions [
-    "http://json-schema.org/draft-04/schema"
+    "http://json-schema.org/draft-04/schema#",
+    "http://json-schema.org/draft-06/schema#"
   ]
 
   @doc ~S"""
@@ -109,9 +116,9 @@ defmodule JS2E.Parsers.RootParser do
 
   ## Examples
 
-      iex> schema = %{"$schema" => "http://json-schema.org/draft-04/schema"}
+      iex> schema = %{"$schema" => "http://json-schema.org/draft-04/schema#"}
       iex> parse_schema_version(schema)
-      {:ok, "http://json-schema.org/draft-04/schema"}
+      {:ok, "http://json-schema.org/draft-04/schema#"}
 
       iex> schema = %{"$schema" => "http://example.org/my-own-schema"}
       iex> {:error, error} = parse_schema_version(schema)
@@ -155,6 +162,9 @@ defmodule JS2E.Parsers.RootParser do
       iex> parse_schema_id(%{"id" => "http://www.example.com/my-schema"})
       {:ok, URI.parse("http://www.example.com/my-schema")}
 
+      iex> parse_schema_id(%{"$id" => "http://www.example.com/my-schema"})
+      {:ok, URI.parse("http://www.example.com/my-schema")}
+
       iex> {:error, error} = parse_schema_id(%{"id" => "foo bar baz"})
       iex> error.error_type
       :invalid_uri
@@ -165,14 +175,16 @@ defmodule JS2E.Parsers.RootParser do
 
   """
   @spec parse_schema_id(Types.schemaNode()) :: {:ok, URI.t()} | {:error, ParserError.t()}
-  def parse_schema_id(%{"id" => schema_id}) when is_binary(schema_id) do
-    parsed_id = URI.parse(schema_id)
+  def parse_schema_id(%{"$id" => schema_id}) when is_binary(schema_id) do
+    do_parse_schema_id(schema_id)
+  end
 
-    if parsed_id.scheme in @valid_uri_schemes do
-      {:ok, parsed_id}
-    else
-      {:error, ErrorUtil.invalid_uri("#", "id", schema_id)}
-    end
+  def parse_schema_id(%{"id" => schema_id}) when is_binary(schema_id) do
+    do_parse_schema_id(schema_id)
+  end
+
+  def parse_schema_id(%{"$id" => schema_id}) do
+    {:error, ErrorUtil.invalid_type("#", "id", "string", schema_id)}
   end
 
   def parse_schema_id(%{"id" => schema_id}) do
@@ -181,5 +193,16 @@ defmodule JS2E.Parsers.RootParser do
 
   def parse_schema_id(_schema_node) do
     {:error, ErrorUtil.missing_property("#", "id")}
+  end
+
+  @spec do_parse_schema_id(String.t()) :: {:ok, URI.t()} | {:error, ParserError.t()}
+  defp do_parse_schema_id(schema_id) do
+    parsed_id = schema_id |> URI.parse()
+
+    if parsed_id.scheme in @valid_uri_schemes do
+      {:ok, parsed_id}
+    else
+      {:error, ErrorUtil.invalid_uri("#", "id", schema_id)}
+    end
   end
 end

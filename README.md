@@ -39,7 +39,7 @@ so it can be fixed.
 If we supply `js2e` with the following JSON schema file, `definitions.json`:
 ``` json
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Definitions",
     "id": "http://example.com/definitions.json",
     "description": "Schema for common types",
@@ -66,10 +66,10 @@ If we supply `js2e` with the following JSON schema file, `definitions.json`:
 }
 ```
 
-it produces the following Elm file, `Domain/Definitions.elm`:
+it produces the following Elm file, `Data/Definitions.elm`:
 
 ``` elm
-module Domain.Definitions exposing (..)
+module Data.Definitions exposing (..)
 
 -- Schema for common types
 
@@ -177,7 +177,7 @@ that have references across files, e.g.
 
 ``` json
 {
-    "$schema": "http://json-schema.org/draft-04/schema",
+    "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Circle",
     "id": "http://example.com/circle.json",
     "description": "Schema for a circle shape",
@@ -197,12 +197,12 @@ that have references across files, e.g.
 }
 ```
 
-then the corresponding Elm file, `Domain/Circle.elm`, will import the
+then the corresponding Elm file, `Data/Circle.elm`, will import the
 definitions (types, encoders and decoders) from the other Elm module,
-`Domain/Definitions.elm`.
+`Data/Definitions.elm`.
 
 ``` elm
-module Domain.Circle exposing (..)
+module Data.Circle exposing (..)
 
 -- Schema for a circle shape
 
@@ -233,12 +233,12 @@ import Json.Encode as Encode
         , object
         , list
         )
-import Domain.Definitions
+import Data.Definitions
 
 
 type alias Circle =
-    { center : Domain.Definitions.Point
-    , color : Maybe Domain.Definitions.Color
+    { center : Data.Definitions.Point
+    , color : Maybe Data.Definitions.Color
     , radius : Float
     }
 
@@ -246,8 +246,8 @@ type alias Circle =
 circleDecoder : Decoder Circle
 circleDecoder =
     decode Circle
-        |> required "center" Domain.Definitions.pointDecoder
-        |> optional "color" (Decode.string |> andThen Domain.Definitions.colorDecoder |> maybe) Nothing
+        |> required "center" Data.Definitions.pointDecoder
+        |> optional "color" (Decode.string |> andThen Data.Definitions.colorDecoder |> maybe) Nothing
         |> required "radius" Decode.float
 
 
@@ -255,12 +255,12 @@ encodeCircle : Circle -> Value
 encodeCircle circle =
     let
         center =
-            [ ( "center", Domain.Definitions.encodePoint circle.center ) ]
+            [ ( "center", Data.Definitions.encodePoint circle.center ) ]
 
         color =
             case circle.color of
                 Just color ->
-                    [ ( "color", Domain.Definitions.encodeColor color ) ]
+                    [ ( "color", Data.Definitions.encodeColor color ) ]
 
                 Nothing ->
                     []

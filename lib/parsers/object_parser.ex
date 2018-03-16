@@ -45,9 +45,9 @@ defmodule JS2E.Parsers.ObjectParser do
   iex> type?(%{"type" => "object"})
   false
 
-  iex> anObject = %{"type" => "object",
+  iex> an_object = %{"type" => "object",
   ...>              "properties" => %{"name" => %{"type" => "string"}}}
-  iex> type?(anObject)
+  iex> type?(an_object)
   true
 
   """

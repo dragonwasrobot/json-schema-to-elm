@@ -81,7 +81,7 @@ defmodule JS2E.Printers.OneOfPrinter do
 
         type_name = upcase_first(name)
 
-        {:ok, %{name: "#{type_name}_#{type_prefix}", type: type_value}}
+        {:ok, %{name: "#{type_name}#{type_prefix}", type: type_value}}
 
       {:error, error} ->
         {:error, error}
@@ -112,7 +112,7 @@ defmodule JS2E.Printers.OneOfPrinter do
       ) do
     {clause_decoders, errors} =
       types
-      |> create_decoder_clauses(path, schema_def, schema_dict)
+      |> create_decoder_clauses(name, path, schema_def, schema_dict)
       |> split_ok_and_errors()
 
     decoder_name = "#{name}Decoder"
@@ -125,25 +125,35 @@ defmodule JS2E.Printers.OneOfPrinter do
 
   @spec create_decoder_clauses(
           [TypePath.t()],
+          String.t(),
           TypePath.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
-  defp create_decoder_clauses(type_clauses, parent, schema_def, schema_dict) do
+  defp create_decoder_clauses(type_clauses, name, parent, schema_def, schema_dict) do
     type_clauses
-    |> Enum.map(&create_decoder_clause(&1, parent, schema_def, schema_dict))
+    |> Enum.map(&create_decoder_clause(&1, name, parent, schema_def, schema_dict))
   end
 
   @spec create_decoder_clause(
           TypePath.t(),
+          String.t(),
           TypePath.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  defp create_decoder_clause(type_clause_id, parent, schema_def, schema_dict) do
+  defp create_decoder_clause(type_clause_id, name, parent, schema_def, schema_dict) do
     case resolve_type(type_clause_id, parent, schema_def, schema_dict) do
-      {:ok, {clause_type, _resolved_schema_def}} ->
-        {:ok, "#{clause_type.name}Decoder"}
+      {:ok, {type_clause, _resolved_schema_def}} ->
+        type_prefix =
+          type_clause.name
+          |> upcase_first()
+          |> String.slice(0..1)
+          |> String.capitalize()
+
+        success_name = "#{upcase_first(name)}#{type_prefix}"
+
+        {:ok, "#{type_clause.name}Decoder |> andThen (succeed << #{success_name})"}
 
       {:error, error} ->
         {:error, error}
@@ -220,7 +230,7 @@ defmodule JS2E.Printers.OneOfPrinter do
 
         {:ok,
          %{
-           constructor: "#{type_name}_#{type_prefix} #{argument_name}",
+           constructor: "#{type_name}#{type_prefix} #{argument_name}",
            encoder: "encode#{type_value} #{argument_name}"
          }}
 

@@ -594,7 +594,7 @@ defmodule JS2E.Printers.Util do
   defp determine_schema_id(identifier) do
     identifier
     |> URI.parse()
-    |> URI.merge("#")
+    |> Map.put(:fragment, nil)
     |> to_string
   end
 

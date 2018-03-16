@@ -14,12 +14,12 @@ defmodule JS2E do
   ## Options
 
       * `--module-name` - the module name prefix for the printed Elm modules \
-      default value is 'Domain'.
+      default value is 'Data'.
   """
 
   require Logger
-  import JS2E.Parser, only: [parse_schema_files: 1]
-  import JS2E.Printer, only: [print_schemas: 2]
+  alias JS2E.Parser
+  alias JS2E.Printer
   alias JS2E.Parsers.{ParserWarning, ParserError}
   alias JS2E.Printers.PrinterError
 
@@ -27,7 +27,7 @@ defmodule JS2E do
   def main(args) do
     {options, paths, errors} = OptionParser.parse(args, switches: [module_name: :string])
 
-    if length(paths) == 0 do
+    if Enum.empty?(paths) == true do
       IO.puts(@moduledoc)
       exit(:normal)
     end
@@ -39,13 +39,13 @@ defmodule JS2E do
 
     files = resolve_all_paths(paths)
 
-    if length(files) == 0 do
+    if Enum.empty?(files) == true do
       print_error("Error: Could not find any " <> "JSON files in path: #{inspect(paths)}")
       exit(:no_files)
     end
 
     output_path = create_output_dir(options)
-    JS2E.generate(files, output_path)
+    generate(files, output_path)
   end
 
   @spec resolve_all_paths([String.t()]) :: [Path.t()]
@@ -92,7 +92,7 @@ defmodule JS2E do
       if Keyword.has_key?(options, :module_name) do
         Keyword.get(options, :module_name)
       else
-        "Domain"
+        "Data"
       end
 
     output_path
@@ -104,14 +104,14 @@ defmodule JS2E do
   @spec generate([String.t()], String.t()) :: :ok
   def generate(schema_paths, module_name) do
     Logger.info("Parsing JSON schema files!")
-    parser_result = parse_schema_files(schema_paths)
+    parser_result = Parser.parse_schema_files(schema_paths)
     pretty_parser_warnings(parser_result.warnings)
 
     if length(parser_result.errors) > 0 do
       pretty_parser_errors(parser_result.errors)
     else
       Logger.info("Converting to Elm code!")
-      printer_result = print_schemas(parser_result.schema_dict, module_name)
+      printer_result = Printer.print_schemas(parser_result.schema_dict, module_name)
 
       if length(printer_result.errors) > 0 do
         pretty_printer_errors(printer_result.errors)

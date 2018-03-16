@@ -6,13 +6,7 @@ defmodule JS2E.Printer do
 
   require Logger
 
-  import JS2E.Printers.Util,
-    only: [
-      print_decoder: 4,
-      print_encoder: 4,
-      print_type: 4
-    ]
-
+  alias JS2E.Printers.Util
   alias JS2E.Printers.{PreamblePrinter, PrinterResult, SchemaResult}
   alias JS2E.Types
   alias JS2E.Types.SchemaDefinition
@@ -62,13 +56,13 @@ defmodule JS2E.Printer do
       |> filter_aliases
       |> Enum.sort(&(&1.name < &2.name))
 
-    types_result = merge_results(values, schema_def, schema_dict, module_name, &print_type/4)
+    types_result = merge_results(values, schema_def, schema_dict, module_name, &Util.print_type/4)
 
     decoders_result =
-      merge_results(values, schema_def, schema_dict, module_name, &print_decoder/4)
+      merge_results(values, schema_def, schema_dict, module_name, &Util.print_decoder/4)
 
     encoders_result =
-      merge_results(values, schema_def, schema_dict, module_name, &print_encoder/4)
+      merge_results(values, schema_def, schema_dict, module_name, &Util.print_encoder/4)
 
     printer_result =
       preamble_result
