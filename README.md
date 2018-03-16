@@ -9,10 +9,13 @@ This project requires that you already have [elixir](http://elixir-lang.org/)
 and its build tool `mix` installed, this can be done with `brew install elixir`
 or similar.
 
-- Clone this repository: `git clone
-  git@github.com:dragonwasrobot/json-schema-to-elm.git`
-- Build an executable: `MIX_ENV=prod mix build`
-- An executable, `js2e`, has now been created in your current working directory.
+- Download latest release at:
+  https://github.com/dragonwasrobot/json-schema-to-elm/releases, or
+- clone this repository:
+  `git clone git@github.com:dragonwasrobot/json-schema-to-elm.git`, then
+- build an executable: `MIX_ENV=prod mix build`, and
+- rune the executable, `js2e`, that has now been created in your current working
+  directory.
 
 ## Usage
 
