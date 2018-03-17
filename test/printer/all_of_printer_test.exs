@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.AllOfPrinter do
+defmodule JS2ETest.Printer.AllOfPrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{AllOfType, ObjectType, TypeReference, SchemaDefinition}
-  alias JS2E.Printers.AllOfPrinter
+  alias JS2E.Printer.AllOfPrinter
 
   test "print 'all of' type value" do
     module_name = "Domain"

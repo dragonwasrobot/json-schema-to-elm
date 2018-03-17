@@ -1,5 +1,5 @@
-defmodule JS2E.Parsers.ObjectParser do
-  @behaviour JS2E.Parsers.ParserBehaviour
+defmodule JS2E.Parser.ObjectParser do
+  @behaviour JS2E.Parser.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema object type:
 
@@ -23,15 +23,8 @@ defmodule JS2E.Parsers.ObjectParser do
   """
 
   require Logger
-
-  import JS2E.Parsers.Util,
-    only: [
-      create_type_dict: 3,
-      parse_type: 4
-    ]
-
   alias JS2E.{Types, TypePath}
-  alias JS2E.Parsers.ParserResult
+  alias JS2E.Parser.{Util, ParserResult}
   alias JS2E.Types.ObjectType
 
   @doc ~S"""
@@ -51,7 +44,7 @@ defmodule JS2E.Parsers.ObjectParser do
   true
 
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec type?(map) :: boolean
   def type?(schema_node) do
     type = schema_node["type"]
@@ -62,7 +55,7 @@ defmodule JS2E.Parsers.ObjectParser do
   @doc ~S"""
   Parses a JSON schema object type into an `JS2E.Types.ObjectType`.
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec parse(Types.schemaNode(), URI.t(), URI.t(), TypePath.t(), String.t()) ::
           ParserResult.t()
   def parse(schema_node, parent_id, id, path, name) do
@@ -80,7 +73,7 @@ defmodule JS2E.Parsers.ObjectParser do
     object_type = ObjectType.new(name, path, type_dict, required)
 
     object_type
-    |> create_type_dict(path, id)
+    |> Util.create_type_dict(path, id)
     |> ParserResult.new()
     |> ParserResult.merge(child_types_result)
   end
@@ -91,7 +84,9 @@ defmodule JS2E.Parsers.ObjectParser do
 
     node_properties
     |> Enum.reduce(init_result, fn {child_name, child_node}, acc_result ->
-      child_types = parse_type(child_node, parent_id, child_path, child_name)
+      child_types =
+        Util.parse_type(child_node, parent_id, child_path, child_name)
+
       ParserResult.merge(acc_result, child_types)
     end)
   end
@@ -103,7 +98,7 @@ defmodule JS2E.Parsers.ObjectParser do
 
       iex> type_dict = %{}
       ...> path = JS2E.TypePath.from_string("#")
-      ...> JS2E.Parsers.ObjectParser.create_property_dict(type_dict, path)
+      ...> JS2E.Parser.ObjectParser.create_property_dict(type_dict, path)
       %{}
 
   """

@@ -1,11 +1,11 @@
-defmodule JS2E.Parsers.Util do
+defmodule JS2E.Parser.Util do
   @moduledoc ~S"""
   A module containing utility functions for JSON schema parsers.
   """
 
   require Logger
 
-  alias JS2E.Parsers.{
+  alias JS2E.Parser.{
     AllOfParser,
     AnyOfParser,
     ArrayParser,
@@ -16,10 +16,12 @@ defmodule JS2E.Parsers.Util do
     PrimitiveParser,
     TupleParser,
     TypeReferenceParser,
-    UnionParser
+    UnionParser,
+    ErrorUtil,
+    ParserError,
+    ParserResult
   }
 
-  alias JS2E.Parsers.{ErrorUtil, ParserError, ParserResult}
   alias JS2E.{TypePath, Types}
 
   @type nodeParser ::

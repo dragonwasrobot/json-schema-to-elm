@@ -1,5 +1,5 @@
-defmodule JS2E.Parsers.ArrayParser do
-  @behaviour JS2E.Parsers.ParserBehaviour
+defmodule JS2E.Parser.ArrayParser do
+  @behaviour JS2E.Parser.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema array type:
 
@@ -15,14 +15,8 @@ defmodule JS2E.Parsers.ArrayParser do
 
   require Logger
 
-  import JS2E.Parsers.Util,
-    only: [
-      create_type_dict: 3,
-      parse_type: 4
-    ]
-
   alias JS2E.{Types, TypePath}
-  alias JS2E.Parsers.ParserResult
+  alias JS2E.Parser.{Util, ParserResult}
   alias JS2E.Types.ArrayType
 
   @doc ~S"""
@@ -40,7 +34,7 @@ defmodule JS2E.Parsers.ArrayParser do
   true
 
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec type?(Types.schemaNode()) :: boolean
   def type?(schema_node) do
     type = schema_node["type"]
@@ -51,7 +45,7 @@ defmodule JS2E.Parsers.ArrayParser do
   @doc ~S"""
   Parses a JSON schema array type into an `JS2E.Types.ArrayType`.
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec parse(
           Types.schemaNode(),
           URI.t(),
@@ -67,12 +61,12 @@ defmodule JS2E.Parsers.ArrayParser do
     items_result =
       schema_node
       |> Map.get("items")
-      |> parse_type(parent_id, path, "items")
+      |> Util.parse_type(parent_id, path, "items")
 
     array_type = ArrayType.new(name, path, items_abs_path)
 
     array_type
-    |> create_type_dict(path, id)
+    |> Util.create_type_dict(path, id)
     |> ParserResult.new()
     |> ParserResult.merge(items_result)
   end

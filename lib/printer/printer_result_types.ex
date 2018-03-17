@@ -1,4 +1,4 @@
-defmodule JS2E.Printers.PrinterError do
+defmodule JS2E.Printer.PrinterError do
   @moduledoc ~S"""
   Represents an error generated while printing a JSON schema object
   as Elm code.
@@ -27,14 +27,14 @@ defmodule JS2E.Printers.PrinterError do
   end
 end
 
-defmodule JS2E.Printers.PrinterResult do
+defmodule JS2E.Printer.PrinterResult do
   @moduledoc ~S"""
   Represents the result of printing a subset of a JSON schema as Elm code
   including printed schema, warnings, and errors.
   """
 
   require Logger
-  alias JS2E.Printers.PrinterError
+  alias JS2E.Printer.PrinterError
 
   @type t :: %__MODULE__{printed_schema: String.t(), errors: [PrinterError.t()]}
 
@@ -76,14 +76,14 @@ defmodule JS2E.Printers.PrinterResult do
   end
 end
 
-defmodule JS2E.Printers.SchemaResult do
+defmodule JS2E.Printer.SchemaResult do
   @moduledoc ~S"""
   Represents the result of printing a whole JSON schema document as Elm code
   including printed schema, warnings, and errors.
   """
 
   require Logger
-  alias JS2E.Printers.PrinterError
+  alias JS2E.Printer.PrinterError
   alias JS2E.Types
 
   @type t :: %__MODULE__{

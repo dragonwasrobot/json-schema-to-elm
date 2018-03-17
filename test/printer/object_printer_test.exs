@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.ObjectPrinter do
+defmodule JS2ETest.Printer.ObjectPrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{ObjectType, EnumType, PrimitiveType, SchemaDefinition}
-  alias JS2E.Printers.ObjectPrinter
+  alias JS2E.Printer.ObjectPrinter
 
   test "print object type" do
     module_name = "Domain"

@@ -1,10 +1,10 @@
-defmodule JS2E.Parsers.ErrorUtil do
+defmodule JS2E.Parser.ErrorUtil do
   @moduledoc ~S"""
   Contains helper functions for reporting parser errors.
   """
 
   alias JS2E.{Types, TypePath}
-  alias JS2E.Parsers.ParserError
+  alias JS2E.Parser.ParserError
 
   @doc ~S"""
   Returns the name of the type of the given value.

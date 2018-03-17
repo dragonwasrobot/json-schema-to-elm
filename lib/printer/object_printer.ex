@@ -1,28 +1,11 @@
-defmodule JS2E.Printers.ObjectPrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.ObjectPrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc """
   A printer for printing an 'object' type decoder.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      create_decoder_name: 3,
-      create_encoder_name: 3,
-      create_type_name: 3,
-      determine_primitive_type_decoder: 1,
-      downcase_first: 1,
-      enum_type?: 1,
-      one_of_type?: 1,
-      resolve_type: 4,
-      split_ok_and_errors: 1,
-      trim_newlines: 1,
-      union_type?: 1,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.Printer.{Util, PrinterResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{ObjectType, SchemaDefinition}
 
@@ -36,7 +19,7 @@ defmodule JS2E.Printers.ObjectPrinter do
     :fields
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -68,7 +51,7 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     {fields, errors} =
       fields_result
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     type_name
     |> type_template(fields)
@@ -124,8 +107,8 @@ defmodule JS2E.Printers.ObjectPrinter do
 
     field_type_result =
       property_path
-      |> resolve_type(properties_path, schema_def, schema_dict)
-      |> create_type_name(schema_def, module_name)
+      |> Util.resolve_type(properties_path, schema_def, schema_dict)
+      |> Util.create_type_name(schema_def, module_name)
       |> check_if_maybe(property_name, required)
 
     case field_type_result do
@@ -161,7 +144,7 @@ defmodule JS2E.Printers.ObjectPrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -180,7 +163,7 @@ defmodule JS2E.Printers.ObjectPrinter do
         module_name
       ) do
     type_name = create_root_name(name, schema_def)
-    decoder_name = "#{downcase_first(type_name)}Decoder"
+    decoder_name = "#{Util.downcase_first(type_name)}Decoder"
 
     {decoder_clauses, errors} =
       properties
@@ -191,7 +174,7 @@ defmodule JS2E.Printers.ObjectPrinter do
         schema_dict,
         module_name
       )
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     decoder_name
     |> decoder_template(type_name, decoder_clauses)
@@ -246,9 +229,14 @@ defmodule JS2E.Printers.ObjectPrinter do
     properties_path = TypePath.add_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           resolve_type(property_path, properties_path, schema_def, schema_dict),
+           Util.resolve_type(
+             property_path,
+             properties_path,
+             schema_def,
+             schema_dict
+           ),
          {:ok, decoder_name} <-
-           create_decoder_name(
+           Util.create_decoder_name(
              {:ok, {resolved_type, resolved_schema}},
              schema_def,
              module_name
@@ -256,11 +244,11 @@ defmodule JS2E.Printers.ObjectPrinter do
       is_required = property_name in required
 
       cond do
-        union_type?(resolved_type) or one_of_type?(resolved_type) ->
+        Util.union_type?(resolved_type) or Util.one_of_type?(resolved_type) ->
           create_decoder_union_clause(property_name, decoder_name, is_required)
 
-        enum_type?(resolved_type) ->
-          case determine_primitive_type_decoder(resolved_type.type) do
+        Util.enum_type?(resolved_type) ->
+          case Util.determine_primitive_type_decoder(resolved_type.type) do
             {:ok, property_type_decoder} ->
               create_decoder_enum_clause(
                 property_name,
@@ -359,7 +347,7 @@ defmodule JS2E.Printers.ObjectPrinter do
     :properties
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -379,7 +367,7 @@ defmodule JS2E.Printers.ObjectPrinter do
       ) do
     type_name = create_root_name(name, schema_def)
     encoder_name = "encode#{type_name}"
-    argument_name = downcase_first(type_name)
+    argument_name = Util.downcase_first(type_name)
 
     {encoder_properties, errors} =
       properties
@@ -390,11 +378,11 @@ defmodule JS2E.Printers.ObjectPrinter do
         schema_dict,
         module_name
       )
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     encoder_name
     |> encoder_template(type_name, argument_name, encoder_properties)
-    |> trim_newlines()
+    |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -446,9 +434,14 @@ defmodule JS2E.Printers.ObjectPrinter do
     properties_path = TypePath.add_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           resolve_type(property_path, properties_path, schema_def, schema_dict),
+           Util.resolve_type(
+             property_path,
+             properties_path,
+             schema_def,
+             schema_dict
+           ),
          {:ok, encoder_name} <-
-           create_encoder_name(
+           Util.create_encoder_name(
              {:ok, {resolved_type, resolved_schema}},
              schema_def,
              module_name
@@ -467,12 +460,12 @@ defmodule JS2E.Printers.ObjectPrinter do
   defp create_root_name(name, schema_def) do
     if name == "#" do
       if schema_def.title != nil do
-        upcase_first(schema_def.title)
+        Util.upcase_first(schema_def.title)
       else
         "Root"
       end
     else
-      upcase_first(name)
+      Util.upcase_first(name)
     end
   end
 end

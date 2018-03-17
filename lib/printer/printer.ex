@@ -5,9 +5,7 @@ defmodule JS2E.Printer do
   """
 
   require Logger
-
-  alias JS2E.Printers.Util
-  alias JS2E.Printers.{PreamblePrinter, PrinterResult, SchemaResult}
+  alias JS2E.Printer.{Util, PreamblePrinter, PrinterResult, SchemaResult}
   alias JS2E.Types
   alias JS2E.Types.SchemaDefinition
 

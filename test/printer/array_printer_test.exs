@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.ArrayPrinter do
+defmodule JS2ETest.Printer.ArrayPrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{ArrayType, EnumType, SchemaDefinition}
-  alias JS2E.Printers.ArrayPrinter
+  alias JS2E.Printer.ArrayPrinter
 
   test "print array type" do
     module_name = "Domain"

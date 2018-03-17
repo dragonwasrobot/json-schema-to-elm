@@ -1,9 +1,9 @@
-defmodule JS2ETest.Parsers.ObjectParser do
+defmodule JS2ETest.Parser.ObjectParser do
   use ExUnit.Case
-  doctest JS2E.Parsers.ObjectParser, import: true
+  doctest JS2E.Parser.ObjectParser, import: true
 
   alias JS2E.Types.{ObjectType, PrimitiveType, TypeReference}
-  alias JS2E.Parsers.ObjectParser
+  alias JS2E.Parser.ObjectParser
 
   test "parse object type" do
     parser_result =

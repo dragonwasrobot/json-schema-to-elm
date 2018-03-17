@@ -1,4 +1,4 @@
-defmodule JS2ETest.Printers.ExternalReferences do
+defmodule JS2ETest.Printer.ExternalReferences do
   use ExUnit.Case
 
   require Logger

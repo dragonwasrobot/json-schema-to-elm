@@ -1,15 +1,15 @@
-defmodule JS2E.Printers.PrimitivePrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.PrimitivePrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc ~S"""
   A printer for printing an 'object' type decoder.
   """
 
   require Logger
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.Printer.PrinterResult
   alias JS2E.Types
   alias JS2E.Types.{PrimitiveType, SchemaDefinition}
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -25,7 +25,7 @@ defmodule JS2E.Printers.PrimitivePrinter do
     PrinterResult.new("")
   end
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -41,7 +41,7 @@ defmodule JS2E.Printers.PrimitivePrinter do
     PrinterResult.new("")
   end
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),

@@ -1,21 +1,11 @@
-defmodule JS2E.Printers.EnumPrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.EnumPrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc """
   Prints the Elm type, JSON decoder and JSON eecoder for a JSON schema 'enum'.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      determine_primitive_type: 1,
-      downcase_first: 1,
-      split_ok_and_errors: 1,
-      trim_newlines: 1,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.{PrinterResult, ErrorUtil}
+  alias JS2E.Printer.{Util, PrinterResult, ErrorUtil}
   alias JS2E.Types
   alias JS2E.Types.{EnumType, SchemaDefinition}
 
@@ -29,7 +19,7 @@ defmodule JS2E.Printers.EnumPrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -45,10 +35,10 @@ defmodule JS2E.Printers.EnumPrinter do
     {clauses, errors} =
       values
       |> Enum.map(&create_elm_value(&1, type))
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     name
-    |> upcase_first
+    |> Util.upcase_first()
     |> type_template(clauses)
     |> PrinterResult.new(errors)
   end
@@ -64,7 +54,7 @@ defmodule JS2E.Printers.EnumPrinter do
     :cases
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -77,15 +67,15 @@ defmodule JS2E.Printers.EnumPrinter do
         _schema_dict,
         _module_name
       ) do
-    case determine_primitive_type(type) do
+    case Util.determine_primitive_type(type) do
       {:ok, argument_type} ->
-        decoder_name = "#{downcase_first(name)}Decoder"
-        decoder_type = upcase_first(name)
+        decoder_name = "#{Util.downcase_first(name)}Decoder"
+        decoder_type = Util.upcase_first(name)
 
         {decoder_cases, errors} =
           values
           |> create_decoder_cases(type)
-          |> split_ok_and_errors()
+          |> Util.split_ok_and_errors()
 
         decoder_name
         |> decoder_template(decoder_type, name, argument_type, decoder_cases)
@@ -139,7 +129,7 @@ defmodule JS2E.Printers.EnumPrinter do
     :cases
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -152,17 +142,17 @@ defmodule JS2E.Printers.EnumPrinter do
         _schema_dict,
         _module_name
       ) do
-    argument_type = upcase_first(name)
+    argument_type = Util.upcase_first(name)
     encoder_name = "encode#{argument_type}"
 
     {encoder_cases, errors} =
       values
       |> create_encoder_cases(type)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     encoder_name
     |> encoder_template(name, argument_type, encoder_cases)
-    |> trim_newlines()
+    |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -210,7 +200,7 @@ defmodule JS2E.Printers.EnumPrinter do
   defp create_elm_value(value, type_name) do
     case type_name do
       "string" ->
-        {:ok, upcase_first(value)}
+        {:ok, Util.upcase_first(value)}
 
       "integer" ->
         {:ok, "Int#{value}"}

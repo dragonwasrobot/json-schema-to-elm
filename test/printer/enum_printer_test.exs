@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.EnumPrinter do
+defmodule JS2ETest.Printer.EnumPrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{EnumType, SchemaDefinition}
-  alias JS2E.Printers.EnumPrinter
+  alias JS2E.Printer.EnumPrinter
 
   test "print enum type with string values" do
     module_name = "Domain"

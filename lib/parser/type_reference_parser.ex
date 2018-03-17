@@ -1,5 +1,5 @@
-defmodule JS2E.Parsers.TypeReferenceParser do
-  @behaviour JS2E.Parsers.ParserBehaviour
+defmodule JS2E.Parser.TypeReferenceParser do
+  @behaviour JS2E.Parser.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema type reference:
 
@@ -11,14 +11,8 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   """
 
   require Logger
-
-  import JS2E.Parsers.Util,
-    only: [
-      create_type_dict: 3
-    ]
-
   alias JS2E.{Types, TypePath}
-  alias JS2E.Parsers.ParserResult
+  alias JS2E.Parser.{Util, ParserResult}
   alias JS2E.Types.TypeReference
 
   @doc ~S"""
@@ -33,7 +27,7 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   true
 
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec type?(map) :: boolean
   def type?(%{"$ref" => ref}) when is_binary(ref), do: true
   def type?(_schema_node), do: false
@@ -41,7 +35,7 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   @doc ~S"""
   Parses a JSON schema type reference into an `JS2E.Types.TypeReference`.
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
           ParserResult.t()
   def parse(%{"$ref" => ref}, _parent_id, id, path, name) do
@@ -52,7 +46,7 @@ defmodule JS2E.Parsers.TypeReferenceParser do
     type_reference = TypeReference.new(name, ref_path)
 
     type_reference
-    |> create_type_dict(path, id)
+    |> Util.create_type_dict(path, id)
     |> ParserResult.new()
   end
 

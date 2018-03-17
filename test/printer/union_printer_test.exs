@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.UnionPrinter do
+defmodule JS2ETest.Printer.UnionPrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{UnionType, SchemaDefinition}
-  alias JS2E.Printers.UnionPrinter
+  alias JS2E.Printer.UnionPrinter
 
   test "print union type value" do
     module_name = "Domain"

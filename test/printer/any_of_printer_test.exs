@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.AnyOfPrinter do
+defmodule JS2ETest.Printer.AnyOfPrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{AnyOfType, ObjectType, TypeReference, SchemaDefinition}
-  alias JS2E.Printers.AnyOfPrinter
+  alias JS2E.Printer.AnyOfPrinter
 
   test "print 'any of' type value" do
     module_name = "Domain"

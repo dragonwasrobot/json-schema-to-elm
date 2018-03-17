@@ -1,9 +1,9 @@
-defmodule JS2ETest.Parsers.OneOfParser do
+defmodule JS2ETest.Parser.OneOfParser do
   use ExUnit.Case
-  doctest JS2E.Parsers.OneOfParser, import: true
+  doctest JS2E.Parser.OneOfParser, import: true
 
   alias JS2E.Types.{OneOfType, ObjectType, PrimitiveType, TypeReference}
-  alias JS2E.Parsers.OneOfParser
+  alias JS2E.Parser.OneOfParser
 
   test "parse primitive one_of type" do
     parser_result =

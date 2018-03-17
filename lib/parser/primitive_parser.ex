@@ -1,5 +1,5 @@
-defmodule JS2E.Parsers.PrimitiveParser do
-  @behaviour JS2E.Parsers.ParserBehaviour
+defmodule JS2E.Parser.PrimitiveParser do
+  @behaviour JS2E.Parser.ParserBehaviour
   @moduledoc ~S"""
   Parses a JSON schema primitive type:
 
@@ -12,13 +12,8 @@ defmodule JS2E.Parsers.PrimitiveParser do
 
   require Logger
 
-  import JS2E.Parsers.Util,
-    only: [
-      create_type_dict: 3
-    ]
-
   alias JS2E.TypePath
-  alias JS2E.Parsers.ParserResult
+  alias JS2E.Parser.{Util, ParserResult}
   alias JS2E.Types.PrimitiveType
 
   @doc ~S"""
@@ -39,7 +34,7 @@ defmodule JS2E.Parsers.PrimitiveParser do
   true
 
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec type?(map) :: boolean
   def type?(schema_node) do
     type = schema_node["type"]
@@ -49,7 +44,7 @@ defmodule JS2E.Parsers.PrimitiveParser do
   @doc ~S"""
   Parses a JSON schema primitive type into an `JS2E.Types.PrimitiveType`.
   """
-  @impl JS2E.Parsers.ParserBehaviour
+  @impl JS2E.Parser.ParserBehaviour
   @spec parse(map, URI.t(), URI.t(), TypePath.t(), String.t()) ::
           ParserResult.t()
   def parse(schema_node, _parent_id, id, path, name) do
@@ -57,7 +52,7 @@ defmodule JS2E.Parsers.PrimitiveParser do
     primitive_type = PrimitiveType.new(name, path, type)
 
     primitive_type
-    |> create_type_dict(path, id)
+    |> Util.create_type_dict(path, id)
     |> ParserResult.new()
   end
 end

@@ -1,27 +1,11 @@
-defmodule JS2E.Printers.TuplePrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.TuplePrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc ~S"""
   A printer for printing a 'tuple' type decoder.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      create_decoder_name: 3,
-      create_encoder_name: 3,
-      create_type_name: 3,
-      determine_primitive_type_decoder: 1,
-      enum_type?: 1,
-      one_of_type?: 1,
-      resolve_type: 4,
-      split_ok_and_errors: 1,
-      trim_newlines: 1,
-      union_type?: 1,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.Printer.{Util, PrinterResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{TupleType, SchemaDefinition}
 
@@ -35,7 +19,7 @@ defmodule JS2E.Printers.TuplePrinter do
     :type_fields
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -51,10 +35,10 @@ defmodule JS2E.Printers.TuplePrinter do
     {type_fields, errors} =
       types
       |> create_type_fields(path, schema_def, schema_dict, module_name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     name
-    |> upcase_first()
+    |> Util.upcase_first()
     |> type_template(type_fields)
     |> PrinterResult.new(errors)
   end
@@ -88,8 +72,8 @@ defmodule JS2E.Printers.TuplePrinter do
          module_name
        ) do
     type_path
-    |> resolve_type(parent, schema_def, schema_dict)
-    |> create_type_name(schema_def, module_name)
+    |> Util.resolve_type(parent, schema_def, schema_dict)
+    |> Util.create_type_name(schema_def, module_name)
   end
 
   # Decoder
@@ -101,7 +85,7 @@ defmodule JS2E.Printers.TuplePrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -117,10 +101,10 @@ defmodule JS2E.Printers.TuplePrinter do
     {decoder_clauses, errors} =
       type_paths
       |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     decoder_name = "#{name}Decoder"
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
 
     decoder_name
     |> decoder_template(type_name, decoder_clauses)
@@ -162,19 +146,19 @@ defmodule JS2E.Printers.TuplePrinter do
          module_name
        ) do
     with {:ok, {property_type, resolved_schema_def}} <-
-           resolve_type(type_path, parent, schema_def, schema_dict),
+           Util.resolve_type(type_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <-
-           create_decoder_name(
+           Util.create_decoder_name(
              {:ok, {property_type, resolved_schema_def}},
              schema_def,
              module_name
            ) do
       cond do
-        union_type?(property_type) or one_of_type?(property_type) ->
+        Util.union_type?(property_type) or Util.one_of_type?(property_type) ->
           create_decoder_union_clause(decoder_name)
 
-        enum_type?(property_type) ->
-          case determine_primitive_type_decoder(property_type.type) do
+        Util.enum_type?(property_type) ->
+          case Util.determine_primitive_type_decoder(property_type.type) do
             {:ok, property_type_decoder} ->
               create_decoder_enum_clause(property_type_decoder, decoder_name)
 
@@ -216,7 +200,7 @@ defmodule JS2E.Printers.TuplePrinter do
     :properties
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -232,14 +216,14 @@ defmodule JS2E.Printers.TuplePrinter do
     {encoder_properties, errors} =
       type_paths
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
     encoder_name = "encode#{type_name}"
 
     encoder_name
     |> encoder_template(type_name, encoder_properties)
-    |> trim_newlines()
+    |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -258,7 +242,7 @@ defmodule JS2E.Printers.TuplePrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(&resolve_type(&1, parent, schema_def, schema_dict))
+    |> Enum.map(&Util.resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
   end
 
@@ -276,7 +260,7 @@ defmodule JS2E.Printers.TuplePrinter do
          module_name
        ) do
     encoder_name_result =
-      create_encoder_name(
+      Util.create_encoder_name(
         {:ok, {resolved_property, resolved_schema}},
         schema_def,
         module_name

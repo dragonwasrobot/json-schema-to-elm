@@ -6,7 +6,7 @@ defmodule JS2E.Parser do
 
   require Logger
   alias JS2E.Types
-  alias JS2E.Parsers.{RootParser, SchemaResult, ErrorUtil}
+  alias JS2E.Parser.{RootParser, SchemaResult, ErrorUtil}
   alias JS2E.Printers.Util
 
   @spec parse_schema_files([Path.t()]) :: SchemaResult.t()

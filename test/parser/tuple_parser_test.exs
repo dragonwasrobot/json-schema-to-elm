@@ -1,9 +1,9 @@
-defmodule JS2ETest.Parsers.TupleParser do
+defmodule JS2ETest.Parser.TupleParser do
   use ExUnit.Case
-  doctest JS2E.Parsers.TupleParser, import: true
+  doctest JS2E.Parser.TupleParser, import: true
 
   alias JS2E.Types.{TupleType, TypeReference}
-  alias JS2E.Parsers.TupleParser
+  alias JS2E.Parser.TupleParser
 
   test "parse tuple type" do
     parser_result =

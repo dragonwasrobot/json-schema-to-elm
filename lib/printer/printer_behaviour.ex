@@ -1,4 +1,4 @@
-defmodule JS2E.Printers.PrinterBehaviour do
+defmodule JS2E.Printer.PrinterBehaviour do
   @moduledoc ~S"""
   Describes the functions needed to implement a printer of a JSON schema node.
   """

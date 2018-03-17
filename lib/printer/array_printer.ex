@@ -1,23 +1,11 @@
-defmodule JS2E.Printers.ArrayPrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.ArrayPrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc ~S"""
   A printer for printing an 'array' type decoder.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      determine_primitive_type: 1,
-      determine_primitive_type_decoder: 1,
-      determine_primitive_type_encoder: 1,
-      downcase_first: 1,
-      primitive_type?: 1,
-      resolve_type: 4,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.Printer.{Util, PrinterResult}
   alias JS2E.Types
   alias JS2E.Types.{ArrayType, SchemaDefinition}
 
@@ -25,7 +13,7 @@ defmodule JS2E.Printers.ArrayPrinter do
 
   # Type
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -50,7 +38,7 @@ defmodule JS2E.Printers.ArrayPrinter do
     :items_decoder_name
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -64,11 +52,11 @@ defmodule JS2E.Printers.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           resolve_type(items_path, path, schema_def, schema_dict),
+           Util.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_decoder_name} <- determine_decoder_name(items_type) do
       "#{name}Decoder"
-      |> downcase_first
+      |> Util.downcase_first()
       |> decoder_template(items_type_name, items_decoder_name)
       |> PrinterResult.new()
     else
@@ -80,15 +68,15 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_type_name(Types.typeDefinition()) ::
           {:ok, String.t()} | {:error, PrinterError.t()}
   defp determine_type_name(items_type) do
-    if primitive_type?(items_type) do
-      determine_primitive_type(items_type.type)
+    if Util.primitive_type?(items_type) do
+      Util.determine_primitive_type(items_type.type)
     else
       items_type_name = items_type.name
 
       if items_type_name == "#" do
         {:ok, "Root"}
       else
-        {:ok, upcase_first(items_type_name)}
+        {:ok, Util.upcase_first(items_type_name)}
       end
     end
   end
@@ -96,8 +84,8 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_decoder_name(Types.typeDefinition()) ::
           {:ok, String.t()} | {:error, PrinterError.t()}
   defp determine_decoder_name(items_type) do
-    if primitive_type?(items_type) do
-      determine_primitive_type_decoder(items_type.type)
+    if Util.primitive_type?(items_type) do
+      Util.determine_primitive_type_decoder(items_type.type)
     else
       items_type_name = items_type.name
 
@@ -119,7 +107,7 @@ defmodule JS2E.Printers.ArrayPrinter do
     :items_encoder_name
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -133,7 +121,7 @@ defmodule JS2E.Printers.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           resolve_type(items_path, path, schema_def, schema_dict),
+           Util.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_encoder_name} <- determine_encoder_name(items_type) do
       "encode#{items_type_name}s"
@@ -148,15 +136,15 @@ defmodule JS2E.Printers.ArrayPrinter do
   @spec determine_encoder_name(Types.typeDefinition()) ::
           {:ok, String.t()} | {:error, PrinterError.t()}
   defp determine_encoder_name(items_type) do
-    if primitive_type?(items_type) do
-      determine_primitive_type_encoder(items_type.type)
+    if Util.primitive_type?(items_type) do
+      Util.determine_primitive_type_encoder(items_type.type)
     else
       items_type_name = items_type.name
 
       if items_type_name == "#" do
         {:ok, "encodeRoot"}
       else
-        {:ok, "encode#{upcase_first(items_type_name)}"}
+        {:ok, "encode#{Util.upcase_first(items_type_name)}"}
       end
     end
   end

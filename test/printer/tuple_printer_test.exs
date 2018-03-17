@@ -1,9 +1,9 @@
-defmodule JS2ETest.Printers.TuplePrinter do
+defmodule JS2ETest.Printer.TuplePrinter do
   use ExUnit.Case
 
   require Logger
   alias JS2E.Types.{TupleType, ObjectType, TypeReference, SchemaDefinition}
-  alias JS2E.Printers.TuplePrinter
+  alias JS2E.Printer.TuplePrinter
 
   test "print 'tuple' type value" do
     module_name = "Domain"

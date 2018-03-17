@@ -1,9 +1,9 @@
-defmodule JS2ETest.Parsers.UnionParser do
+defmodule JS2ETest.Parser.UnionParser do
   use ExUnit.Case
-  doctest JS2E.Parsers.UnionParser, import: true
+  doctest JS2E.Parser.UnionParser, import: true
 
   alias JS2E.Types.UnionType
-  alias JS2E.Parsers.UnionParser
+  alias JS2E.Parser.UnionParser
 
   test "parse primitive union type" do
     parser_result =

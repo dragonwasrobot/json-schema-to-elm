@@ -1,4 +1,4 @@
-defmodule JS2E.Printers.Util do
+defmodule JS2E.Printer.Util do
   @moduledoc ~S"""
   A module containing utility function for JSON schema printers.
   """
@@ -7,7 +7,7 @@ defmodule JS2E.Printers.Util do
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.{PrimitiveType, SchemaDefinition}
 
-  alias JS2E.Printers.{
+  alias JS2E.Printer.{
     ErrorUtil,
     AllOfPrinter,
     AnyOfPrinter,

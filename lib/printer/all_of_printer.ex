@@ -1,28 +1,11 @@
-defmodule JS2E.Printers.AllOfPrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.AllOfPrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc ~S"""
   A printer for printing an 'all of' type decoder.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      create_decoder_name: 3,
-      create_encoder_name: 3,
-      create_type_name: 3,
-      determine_primitive_type_decoder: 1,
-      downcase_first: 1,
-      enum_type?: 1,
-      one_of_type?: 1,
-      resolve_type: 4,
-      split_ok_and_errors: 1,
-      trim_newlines: 1,
-      union_type?: 1,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.Printer.{Util, PrinterResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{AllOfType, SchemaDefinition}
 
@@ -36,7 +19,7 @@ defmodule JS2E.Printers.AllOfPrinter do
     :fields
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -49,12 +32,12 @@ defmodule JS2E.Printers.AllOfPrinter do
         schema_dict,
         module_name
       ) do
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
 
     {type_fields, errors} =
       types
       |> create_type_fields(path, schema_def, schema_dict, module_name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     type_name
     |> type_template(type_fields)
@@ -91,12 +74,12 @@ defmodule JS2E.Printers.AllOfPrinter do
        ) do
     field_type_result =
       type_path
-      |> resolve_type(parent, schema_def, schema_dict)
-      |> create_type_name(schema_def, module_name)
+      |> Util.resolve_type(parent, schema_def, schema_dict)
+      |> Util.create_type_name(schema_def, module_name)
 
     case field_type_result do
       {:ok, field_type} ->
-        field_name = downcase_first(field_type)
+        field_name = Util.downcase_first(field_type)
         {:ok, %{name: field_name, type: field_type}}
 
       {:error, error} ->
@@ -113,7 +96,7 @@ defmodule JS2E.Printers.AllOfPrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -129,10 +112,10 @@ defmodule JS2E.Printers.AllOfPrinter do
     {clauses, errors} =
       type_paths
       |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     decoder_name = "#{name}Decoder"
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
 
     decoder_name
     |> decoder_template(type_name, clauses)
@@ -174,9 +157,9 @@ defmodule JS2E.Printers.AllOfPrinter do
          module_name
        ) do
     with {:ok, {property_type, resolved_schema_def}} <-
-           resolve_type(type_path, parent, schema_def, schema_dict),
+           Util.resolve_type(type_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <-
-           create_decoder_name(
+           Util.create_decoder_name(
              {:ok, {property_type, resolved_schema_def}},
              schema_def,
              module_name
@@ -184,11 +167,11 @@ defmodule JS2E.Printers.AllOfPrinter do
       property_name = property_type.name
 
       cond do
-        union_type?(property_type) or one_of_type?(property_type) ->
+        Util.union_type?(property_type) or Util.one_of_type?(property_type) ->
           create_decoder_union_clause(property_name, decoder_name)
 
-        enum_type?(property_type) ->
-          case determine_primitive_type_decoder(property_type.type) do
+        Util.enum_type?(property_type) ->
+          case Util.determine_primitive_type_decoder(property_type.type) do
             {:ok, property_type_decoder} ->
               create_decoder_enum_clause(
                 property_name,
@@ -244,7 +227,7 @@ defmodule JS2E.Printers.AllOfPrinter do
     :properties
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -260,15 +243,15 @@ defmodule JS2E.Printers.AllOfPrinter do
     {properties, errors} =
       type_paths
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
     encoder_name = "encode#{type_name}"
-    argument_name = downcase_first(type_name)
+    argument_name = Util.downcase_first(type_name)
 
     encoder_name
     |> encoder_template(type_name, argument_name, properties)
-    |> trim_newlines()
+    |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -287,7 +270,7 @@ defmodule JS2E.Printers.AllOfPrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(&resolve_type(&1, parent, schema_def, schema_dict))
+    |> Enum.map(&Util.resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
   end
 
@@ -300,7 +283,11 @@ defmodule JS2E.Printers.AllOfPrinter do
   defp to_encoder_property({:error, error}, _sf, _md), do: {:error, error}
 
   defp to_encoder_property({:ok, {property, schema}}, schema_def, module_name) do
-    case create_encoder_name({:ok, {property, schema}}, schema_def, module_name) do
+    case Util.create_encoder_name(
+           {:ok, {property, schema}},
+           schema_def,
+           module_name
+         ) do
       {:ok, encoder_name} ->
         updated_property = Map.put(property, :encoder_name, encoder_name)
         {:ok, updated_property}

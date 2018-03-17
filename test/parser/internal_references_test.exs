@@ -1,9 +1,9 @@
-defmodule JS2ETest.Parsers.InternalReferences do
+defmodule JS2ETest.Parser.InternalReferences do
   use ExUnit.Case
 
   alias JS2E.Types
   alias Types.{PrimitiveType, TypeReference, SchemaDefinition}
-  alias JS2E.Parsers.RootParser
+  alias JS2E.Parser.RootParser
 
   test "parse internal references" do
     schema_result =

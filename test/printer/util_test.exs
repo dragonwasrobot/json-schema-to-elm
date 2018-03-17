@@ -1,4 +1,4 @@
-defmodule JS2ETest.Printers.Util do
+defmodule JS2ETest.Printer.Util do
   use ExUnit.Case, async: true
-  doctest JS2E.Printers.Util, import: true
+  doctest JS2E.Printer.Util, import: true
 end

@@ -1,20 +1,11 @@
-defmodule JS2E.Printers.OneOfPrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.OneOfPrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc """
   A printer for printing a 'one of' type decoder.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      resolve_type: 4,
-      split_ok_and_errors: 1,
-      trim_newlines: 1,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.Printer.{Util, PrinterResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{OneOfType, SchemaDefinition}
 
@@ -28,7 +19,7 @@ defmodule JS2E.Printers.OneOfPrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -41,12 +32,12 @@ defmodule JS2E.Printers.OneOfPrinter do
         schema_dict,
         _module_name
       ) do
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
 
     {type_clauses, errors} =
       types
       |> create_type_clauses(name, path, schema_def, schema_dict)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     type_name
     |> type_template(type_clauses)
@@ -73,16 +64,16 @@ defmodule JS2E.Printers.OneOfPrinter do
           Types.schemaDictionary()
         ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_type_clause(type_clause_id, name, parent, schema_def, schema_dict) do
-    case resolve_type(type_clause_id, parent, schema_def, schema_dict) do
+    case Util.resolve_type(type_clause_id, parent, schema_def, schema_dict) do
       {:ok, {type_clause, _resolved_schema_def}} ->
-        type_value = upcase_first(type_clause.name)
+        type_value = Util.upcase_first(type_clause.name)
 
         type_prefix =
           type_value
           |> String.slice(0..1)
           |> String.capitalize()
 
-        type_name = upcase_first(name)
+        type_name = Util.upcase_first(name)
 
         {:ok, %{name: "#{type_name}#{type_prefix}", type: type_value}}
 
@@ -100,7 +91,7 @@ defmodule JS2E.Printers.OneOfPrinter do
     :clause_decoders
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -116,10 +107,10 @@ defmodule JS2E.Printers.OneOfPrinter do
     {clause_decoders, errors} =
       types
       |> create_decoder_clauses(name, path, schema_def, schema_dict)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     decoder_name = "#{name}Decoder"
-    decoder_type = upcase_first(name)
+    decoder_type = Util.upcase_first(name)
 
     decoder_name
     |> decoder_template(decoder_type, clause_decoders)
@@ -160,15 +151,15 @@ defmodule JS2E.Printers.OneOfPrinter do
          schema_def,
          schema_dict
        ) do
-    case resolve_type(type_clause_id, parent, schema_def, schema_dict) do
+    case Util.resolve_type(type_clause_id, parent, schema_def, schema_dict) do
       {:ok, {type_clause, _resolved_schema_def}} ->
         type_prefix =
           type_clause.name
-          |> upcase_first()
+          |> Util.upcase_first()
           |> String.slice(0..1)
           |> String.capitalize()
 
-        success_name = "#{upcase_first(name)}#{type_prefix}"
+        success_name = "#{Util.upcase_first(name)}#{type_prefix}"
 
         {:ok,
          "#{type_clause.name}Decoder |> andThen (succeed << #{success_name})"}
@@ -188,7 +179,7 @@ defmodule JS2E.Printers.OneOfPrinter do
     :cases
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -204,14 +195,14 @@ defmodule JS2E.Printers.OneOfPrinter do
     {encoder_cases, errors} =
       types
       |> create_encoder_cases(name, path, schema_def, schema_dict)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
     encoder_name = "encode#{type_name}"
 
     encoder_name
     |> encoder_template(type_name, name, encoder_cases)
-    |> trim_newlines()
+    |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -237,11 +228,11 @@ defmodule JS2E.Printers.OneOfPrinter do
           Types.schemaDictionary()
         ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_encoder_clause(type_path, name, parent, schema_def, schema_dict) do
-    case resolve_type(type_path, parent, schema_def, schema_dict) do
+    case Util.resolve_type(type_path, parent, schema_def, schema_dict) do
       {:ok, {clause_type, _resolved_schema_def}} ->
-        type_name = upcase_first(name)
+        type_name = Util.upcase_first(name)
         argument_name = clause_type.name
-        type_value = upcase_first(argument_name)
+        type_value = Util.upcase_first(argument_name)
 
         type_prefix =
           type_value

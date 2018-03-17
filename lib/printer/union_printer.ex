@@ -1,19 +1,11 @@
-defmodule JS2E.Printers.UnionPrinter do
-  @behaviour JS2E.Printers.PrinterBehaviour
+defmodule JS2E.Printer.UnionPrinter do
+  @behaviour JS2E.Printer.PrinterBehaviour
   @moduledoc ~S"""
   A printer for printing an 'object' type decoder.
   """
 
   require Elixir.{EEx, Logger}
-
-  import JS2E.Printers.Util,
-    only: [
-      split_ok_and_errors: 1,
-      trim_newlines: 1,
-      upcase_first: 1
-    ]
-
-  alias JS2E.Printers.{PrinterResult, ErrorUtil}
+  alias JS2E.Printer.{Util, PrinterResult, ErrorUtil}
   alias JS2E.{Types}
   alias JS2E.Types.{UnionType, SchemaDefinition}
 
@@ -27,7 +19,7 @@ defmodule JS2E.Printers.UnionPrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -43,10 +35,10 @@ defmodule JS2E.Printers.UnionPrinter do
     {type_clauses, errors} =
       types
       |> create_type_clauses(name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     name
-    |> upcase_first()
+    |> Util.upcase_first()
     |> type_template(type_clauses)
     |> PrinterResult.new(errors)
   end
@@ -63,7 +55,7 @@ defmodule JS2E.Printers.UnionPrinter do
   @spec to_type_clause(String.t(), String.t()) ::
           {:ok, map} | {:error, PrinterError.t()}
   defp to_type_clause(type_id, name) do
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
 
     case type_id do
       "boolean" ->
@@ -93,7 +85,7 @@ defmodule JS2E.Printers.UnionPrinter do
     :clauses
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -107,14 +99,14 @@ defmodule JS2E.Printers.UnionPrinter do
         _module_name
       ) do
     decoder_name = "#{name}Decoder"
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
     nullable? = "null" in types
     decoder_type = check_if_maybe(type_name, nullable?)
 
     {decoder_clauses, errors} =
       types
       |> create_clause_decoders(type_name, nullable?)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
     decoder_name
     |> decoder_template(decoder_type, nullable?, decoder_clauses)
@@ -193,7 +185,7 @@ defmodule JS2E.Printers.UnionPrinter do
     :cases
   ])
 
-  @impl JS2E.Printers.PrinterBehaviour
+  @impl JS2E.Printer.PrinterBehaviour
   @spec print_encoder(
           Types.typeDefinition(),
           SchemaDefinition.t(),
@@ -209,14 +201,14 @@ defmodule JS2E.Printers.UnionPrinter do
     {encoder_cases, errors} =
       types
       |> create_encoder_cases(name)
-      |> split_ok_and_errors()
+      |> Util.split_ok_and_errors()
 
-    type_name = upcase_first(name)
+    type_name = Util.upcase_first(name)
     encoder_name = "encode#{type_name}"
 
     encoder_name
     |> encoder_template(type_name, name, encoder_cases)
-    |> trim_newlines()
+    |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -251,7 +243,7 @@ defmodule JS2E.Printers.UnionPrinter do
 
     case type_id_result do
       {:ok, {constructor_suffix, encoder_name, argument_name}} ->
-        constructor_name = upcase_first(name) <> constructor_suffix
+        constructor_name = Util.upcase_first(name) <> constructor_suffix
 
         {:ok,
          %{
