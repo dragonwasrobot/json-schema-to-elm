@@ -9,17 +9,17 @@ defmodule JS2E.Parser do
   alias JS2E.Parsers.{RootParser, SchemaResult, ErrorUtil}
   alias JS2E.Printers.Util
 
-  @spec parse_schema_files([Path.t]) :: SchemaResult.t
+  @spec parse_schema_files([Path.t()]) :: SchemaResult.t()
   def parse_schema_files(schema_paths) do
     init_schema_result = SchemaResult.new()
 
-    Enum.reduce(schema_paths, init_schema_result, fn (schema_path, acc) ->
+    schema_paths
+    |> Enum.reduce(init_schema_result, fn schema_path, acc ->
       schema_path
-      |> File.read!
-      |> Poison.decode!
+      |> File.read!()
+      |> Poison.decode!()
       |> RootParser.parse_schema(schema_path)
       |> SchemaResult.merge(acc)
     end)
   end
-
 end

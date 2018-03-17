@@ -30,11 +30,14 @@ defmodule JS2E.Parsers.AllOfParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util, only: [
-    parse_child_types: 3,
-    create_types_list: 2,
-    create_type_dict: 3
-  ]
+
+  import JS2E.Parsers.Util,
+    only: [
+      parse_child_types: 3,
+      create_types_list: 2,
+      create_type_dict: 3
+    ]
+
   alias JS2E.Parsers.{ErrorUtil, ParserResult}
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.AllOfType
@@ -55,20 +58,21 @@ defmodule JS2E.Parsers.AllOfParser do
 
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec type?(Types.node) :: boolean
+  @spec type?(Types.node()) :: boolean
   def type?(%{"allOf" => all_of})
-  when is_list(all_of) and length(all_of) > 0, do: true
+      when is_list(all_of) and length(all_of) > 0,
+      do: true
+
   def type?(_schema_node), do: false
 
   @doc ~S"""
   Parses a JSON schema allOf type into an `JS2E.Types.AllOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.node, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: ParserResult.t
+  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"allOf" => all_of}, parent_id, id, path, name)
-  when is_list(all_of) do
-
+      when is_list(all_of) do
     child_path = TypePath.add_child(path, "allOf")
 
     child_types_result =
@@ -86,5 +90,4 @@ defmodule JS2E.Parsers.AllOfParser do
     |> ParserResult.new()
     |> ParserResult.merge(child_types_result)
   end
-
 end

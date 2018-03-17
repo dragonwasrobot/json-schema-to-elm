@@ -42,7 +42,11 @@ defmodule JS2E.Types.PrimitiveType do
 
   alias JS2E.TypePath
 
-  @type t :: %__MODULE__{name: String.t(), path: String.t() | TypePath.t(), type: String.t()}
+  @type t :: %__MODULE__{
+          name: String.t(),
+          path: String.t() | TypePath.t(),
+          type: String.t()
+        }
 
   defstruct [:name, :path, :type]
 

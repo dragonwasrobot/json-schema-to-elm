@@ -6,13 +6,24 @@ defmodule JS2E.Printers.PrinterBehaviour do
   alias JS2E.Types
   alias JS2E.Types.SchemaDefinition
 
-  @callback print_type(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary, String.t) :: String.t
+  @callback print_type(
+              Types.typeDefinition(),
+              SchemaDefinition.t(),
+              Types.schemaDictionary(),
+              String.t()
+            ) :: String.t()
 
-  @callback print_decoder(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary, String.t) :: String.t
+  @callback print_decoder(
+              Types.typeDefinition(),
+              SchemaDefinition.t(),
+              Types.schemaDictionary(),
+              String.t()
+            ) :: String.t()
 
-  @callback print_encoder(Types.typeDefinition, SchemaDefinition.t,
-    Types.schemaDictionary, String.t) :: String.t
-
+  @callback print_encoder(
+              Types.typeDefinition(),
+              SchemaDefinition.t(),
+              Types.schemaDictionary(),
+              String.t()
+            ) :: String.t()
 end

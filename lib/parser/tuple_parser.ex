@@ -15,11 +15,14 @@ defmodule JS2E.Parsers.TupleParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util, only: [
-    parse_child_types: 3,
-    create_types_list: 2,
-    create_type_dict: 3
-  ]
+
+  import JS2E.Parsers.Util,
+    only: [
+      parse_child_types: 3,
+      create_types_list: 2,
+      create_type_dict: 3
+    ]
+
   alias JS2E.Parsers.{ErrorUtil, ParserResult}
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.TupleType
@@ -42,7 +45,7 @@ defmodule JS2E.Parsers.TupleParser do
 
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec type?(Types.node) :: boolean
+  @spec type?(Types.node()) :: boolean
   def type?(schema_node) do
     type = schema_node["type"]
     items = schema_node["items"]
@@ -53,11 +56,10 @@ defmodule JS2E.Parsers.TupleParser do
   Parses a JSON schema array type into an `JS2E.Types.TupleType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.node, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: ParserResult.t
+  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"items" => items}, parent_id, id, path, name)
-  when is_list(items) do
-
+      when is_list(items) do
     child_path = TypePath.add_child(path, "items")
 
     child_types_result =
@@ -81,5 +83,4 @@ defmodule JS2E.Parsers.TupleParser do
     error = ErrorUtil.invalid_type(path, "items", "list or object", items_type)
     ParserResult.new(%{}, [], [error])
   end
-
 end

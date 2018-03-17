@@ -6,22 +6,25 @@ defmodule JS2E.Printers.PrinterError do
 
   alias JS2E.Types
 
-  @type t :: %__MODULE__{identifier: Types.typeIdentifier,
-                         error_type: atom,
-                         message: String.t}
+  @type t :: %__MODULE__{
+          identifier: Types.typeIdentifier(),
+          error_type: atom,
+          message: String.t()
+        }
 
   defstruct [:identifier, :error_type, :message]
 
   @doc ~S"""
   Constructs a `PrinterError`.
   """
-  @spec new(Types.typeIdentifier, atom, String.t) :: t
+  @spec new(Types.typeIdentifier(), atom, String.t()) :: t
   def new(identifier, error_type, message) do
-    %__MODULE__{identifier: identifier,
-                error_type: error_type,
-                message: message}
+    %__MODULE__{
+      identifier: identifier,
+      error_type: error_type,
+      message: message
+    }
   end
-
 end
 
 defmodule JS2E.Printers.PrinterResult do
@@ -33,8 +36,7 @@ defmodule JS2E.Printers.PrinterResult do
   require Logger
   alias JS2E.Printers.PrinterError
 
-  @type t :: %__MODULE__{printed_schema: String.t,
-                         errors: [PrinterError.t]}
+  @type t :: %__MODULE__{printed_schema: String.t(), errors: [PrinterError.t()]}
 
   defstruct [:printed_schema, :errors]
 
@@ -47,10 +49,9 @@ defmodule JS2E.Printers.PrinterResult do
   @doc ~S"""
   Creates a `PrinterResult`.
   """
-  @spec new(String.t, [PrinterError.t]) :: t
+  @spec new(String.t(), [PrinterError.t()]) :: t
   def new(printed_schema, errors \\ []) do
-    %__MODULE__{printed_schema: printed_schema,
-                errors: errors}
+    %__MODULE__{printed_schema: printed_schema, errors: errors}
   end
 
   @doc ~S"""
@@ -58,19 +59,21 @@ defmodule JS2E.Printers.PrinterResult do
   dictionaries to the list of errors in the merged `PrinterResult`.
 
   """
-  @spec merge(PrinterResult.t, PrinterResult.t) :: PrinterResult.t
+  @spec merge(PrinterResult.t(), PrinterResult.t()) :: PrinterResult.t()
   def merge(
-    %__MODULE__{printed_schema: printed_schema1, errors: errors1},
-    %__MODULE__{printed_schema: printed_schema2, errors: errors2}) do
+        %__MODULE__{printed_schema: printed_schema1, errors: errors1},
+        %__MODULE__{
+          printed_schema: printed_schema2,
+          errors: errors2
+        }
+      ) do
+    merged_schema =
+      String.trim(printed_schema1) <> "\n\n\n" <> String.trim(printed_schema2)
 
-    merged_schema = String.trim(printed_schema1) <>
-      "\n\n\n" <> String.trim(printed_schema2)
     merged_errors = Enum.uniq(errors1 ++ errors2)
 
-    %__MODULE__{printed_schema: merged_schema,
-                errors: merged_errors}
+    %__MODULE__{printed_schema: merged_schema, errors: merged_errors}
   end
-
 end
 
 defmodule JS2E.Printers.SchemaResult do
@@ -83,8 +86,10 @@ defmodule JS2E.Printers.SchemaResult do
   alias JS2E.Printers.PrinterError
   alias JS2E.Types
 
-  @type t :: %__MODULE__{file_dict: Types.fileDictionary,
-                         errors: [{Path.t, PrinterError.t}]}
+  @type t :: %__MODULE__{
+          file_dict: Types.fileDictionary(),
+          errors: [{Path.t(), PrinterError.t()}]
+        }
 
   defstruct [:file_dict, :errors]
 
@@ -97,10 +102,9 @@ defmodule JS2E.Printers.SchemaResult do
   @doc ~S"""
   Creates a `SchemaResult`.
   """
-  @spec new(Types.fileDictionary, [PrinterError.t]) :: t
+  @spec new(Types.fileDictionary(), [PrinterError.t()]) :: t
   def new(file_dict, errors \\ []) do
-    %__MODULE__{file_dict: file_dict,
-                errors: errors}
+    %__MODULE__{file_dict: file_dict, errors: errors}
   end
 
   @doc ~S"""
@@ -108,18 +112,14 @@ defmodule JS2E.Printers.SchemaResult do
   dictionaries to the list of errors in the merged `SchemaResult`.
 
   """
-  @spec merge(SchemaResult.t, SchemaResult.t) :: SchemaResult.t
-  def merge(
-    %__MODULE__{file_dict: file_dict1,
-                errors: errors1},
-    %__MODULE__{file_dict: file_dict2,
-                errors: errors2}) do
-
+  @spec merge(SchemaResult.t(), SchemaResult.t()) :: SchemaResult.t()
+  def merge(%__MODULE__{file_dict: file_dict1, errors: errors1}, %__MODULE__{
+        file_dict: file_dict2,
+        errors: errors2
+      }) do
     merged_file_dict = Map.merge(file_dict1, file_dict2)
     merged_errors = errors1 ++ errors2
 
-    %__MODULE__{file_dict: merged_file_dict,
-                errors: merged_errors}
+    %__MODULE__{file_dict: merged_file_dict, errors: merged_errors}
   end
-
 end

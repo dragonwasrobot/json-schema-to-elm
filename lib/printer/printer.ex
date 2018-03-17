@@ -5,26 +5,25 @@ defmodule JS2E.Printer do
   """
 
   require Logger
-  import JS2E.Printers.Util, only: [
-    print_decoder: 4,
-    print_encoder: 4,
-    print_type: 4
-  ]
+
+  alias JS2E.Printers.Util
   alias JS2E.Printers.{PreamblePrinter, PrinterResult, SchemaResult}
   alias JS2E.Types
   alias JS2E.Types.SchemaDefinition
 
-  @spec print_schemas(Types.schemaDictionary, String.t) :: SchemaResult
+  @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult
   def print_schemas(schema_dict, module_name \\ "") do
-
     schema_dict
-    |> Enum.reduce(SchemaResult.new(), fn ({_id, schema_def}, acc) ->
+    |> Enum.reduce(SchemaResult.new(), fn {_id, schema_def}, acc ->
       file_path = create_file_path(schema_def, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
-      errors = (if length(result.errors) > 0 do
-        [{schema_def.file_path, result.errors}] else []
-      end)
+      errors =
+        if length(result.errors) > 0 do
+          [{schema_def.file_path, result.errors}]
+        else
+          []
+        end
 
       %{file_path => result.printed_schema}
       |> SchemaResult.new(errors)
@@ -32,7 +31,7 @@ defmodule JS2E.Printer do
     end)
   end
 
-  @spec create_file_path(SchemaDefinition.t, String.t) :: String.t
+  @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
   defp create_file_path(schema_def, module_name) do
     title = schema_def.title
 
@@ -43,10 +42,9 @@ defmodule JS2E.Printer do
     end
   end
 
-  @spec print_schema(SchemaDefinition.t, Types.schemaDictionary, String.t)
-  :: PrinterResult.t
+  @spec print_schema(SchemaDefinition.t(), Types.schemaDictionary(), String.t()) ::
+          PrinterResult.t()
   def print_schema(schema_def, schema_dict, module_name) do
-
     preamble_result =
       schema_def
       |> PreamblePrinter.print_preamble(schema_dict, module_name)
@@ -58,26 +56,47 @@ defmodule JS2E.Printer do
       |> filter_aliases
       |> Enum.sort(&(&1.name < &2.name))
 
-    types_result = merge_results(values, schema_def,
-      schema_dict, module_name, &print_type/4)
-    decoders_result = merge_results(values, schema_def,
-      schema_dict, module_name, &print_decoder/4)
-    encoders_result = merge_results(values, schema_def,
-      schema_dict, module_name, &print_encoder/4)
+    types_result =
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &Util.print_type/4
+      )
 
-    printer_result = preamble_result
-    |> PrinterResult.merge(types_result)
-    |> PrinterResult.merge(decoders_result)
-    |> PrinterResult.merge(encoders_result)
+    decoders_result =
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &Util.print_decoder/4
+      )
+
+    encoders_result =
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &Util.print_encoder/4
+      )
+
+    printer_result =
+      preamble_result
+      |> PrinterResult.merge(types_result)
+      |> PrinterResult.merge(decoders_result)
+      |> PrinterResult.merge(encoders_result)
 
     printer_result
-    |> Map.put(:printed_schema, (printer_result.printed_schema <> "\n"))
+    |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
   end
 
-  @spec filter_aliases(Types.typeDictionary) :: Types.typeDictionary
+  @spec filter_aliases(Types.typeDictionary()) :: Types.typeDictionary()
   defp filter_aliases(type_dict) do
     type_dict
-    |> Enum.reduce([], fn ({path, value}, values) ->
+    |> Enum.reduce([], fn {path, value}, values ->
       if String.starts_with?(path, "#") do
         [value | values]
       else
@@ -87,19 +106,17 @@ defmodule JS2E.Printer do
   end
 
   @spec merge_results(
-    Types.typeDictionary,
-    SchemaDefinition.t,
-    Types.schemaDictionary,
-    String.t,
-    fun) :: PrinterResult.t
-  defp merge_results(values, schema_def, schema_dict,
-    module_name, process_fun) do
-
+          Types.typeDictionary(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t(),
+          fun
+        ) :: PrinterResult.t()
+  defp merge_results(values, schema_def, schema_dict, module_name, process_fun) do
     values
-    |> Enum.map(&(process_fun.(&1, schema_def, schema_dict, module_name)))
-    |> Enum.reduce(PrinterResult.new(), fn (type_result, acc) ->
+    |> Enum.map(&process_fun.(&1, schema_def, schema_dict, module_name))
+    |> Enum.reduce(PrinterResult.new(), fn type_result, acc ->
       PrinterResult.merge(acc, type_result)
     end)
   end
-
 end

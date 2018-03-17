@@ -6,7 +6,6 @@ defmodule JS2ETest.Parsers.InternalReferences do
   alias JS2E.Parsers.RootParser
 
   test "parse internal references" do
-
     schema_result =
       ~S"""
       {
@@ -46,53 +45,58 @@ defmodule JS2ETest.Parsers.InternalReferences do
 
     expected_root_type_reference = %TypeReference{
       name: "#",
-      path: ["#", "definitions", "C"]}
+      path: ["#", "definitions", "C"]
+    }
 
     expected_type_a = %PrimitiveType{
       name: "A",
       path: ["#", "definitions", "A"],
-      type: "string"}
+      type: "string"
+    }
 
     expected_type_x = %PrimitiveType{
       name: "X",
       path: ["#", "definitions", "B", "definitions", "X"],
-      type: "boolean"}
+      type: "boolean"
+    }
 
     expected_type_y = %PrimitiveType{
       name: "Y",
       path: ["#", "definitions", "B", "definitions", "Y"],
-      type: "number"}
+      type: "number"
+    }
 
     expected_type_c = %PrimitiveType{
       name: "C",
       path: ["#", "definitions", "C"],
-      type: "integer"}
+      type: "integer"
+    }
 
     assert schema_result.errors == []
     assert schema_result.warnings == []
+
     assert schema_result.schema_dict == %{
-      "http://example.com/root.json" =>
-      %SchemaDefinition{
-        file_path: "examples/example.json",
-        description: "Demonstrates the different types of internal references",
-        title: "Internal references",
-        id: URI.parse("http://example.com/root.json"),
-        types: %{
-          "#" => expected_root_type_reference,
-          "http://example.com/root.json#" => expected_root_type_reference,
-
-          "#/definitions/A" => expected_type_a,
-          "http://example.com/root.json#foo" => expected_type_a,
-
-          "#/definitions/B/definitions/X" => expected_type_x,
-          "http://example.com/other.json#bar" => expected_type_x,
-
-          "#/definitions/B/definitions/Y" => expected_type_y,
-          "http://example.com/t/inner.json" => expected_type_y,
-
-          "#/definitions/C" => expected_type_c,
-          "urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f" => expected_type_c}}
-      }
-    end
-
+             "http://example.com/root.json" => %SchemaDefinition{
+               file_path: "examples/example.json",
+               description:
+                 "Demonstrates the different types of internal references",
+               title: "Internal references",
+               id: URI.parse("http://example.com/root.json"),
+               types: %{
+                 "#" => expected_root_type_reference,
+                 "http://example.com/root.json#" =>
+                   expected_root_type_reference,
+                 "#/definitions/A" => expected_type_a,
+                 "http://example.com/root.json#foo" => expected_type_a,
+                 "#/definitions/B/definitions/X" => expected_type_x,
+                 "http://example.com/other.json#bar" => expected_type_x,
+                 "#/definitions/B/definitions/Y" => expected_type_y,
+                 "http://example.com/t/inner.json" => expected_type_y,
+                 "#/definitions/C" => expected_type_c,
+                 "urn:uuid:ee564b8a-7a87-4125-8c96-e9f123d6766f" =>
+                   expected_type_c
+               }
+             }
+           }
+  end
 end

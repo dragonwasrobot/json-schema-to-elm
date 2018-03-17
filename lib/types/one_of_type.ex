@@ -27,18 +27,16 @@ defmodule JS2E.Types.OneOfType do
   - Type definition
 
       type Shape
-          = ShapeCircle Circle
-          | ShapeRectangle Rectangle
+          = ShapeCi Circle
+          | ShapeRe Rectangle
 
   - Decoder definition
 
       shapeDecoder : Decoder Shape
       shapeDecoder =
           oneOf
-              [ circleDecoder
-                |> andThen (succeed << ShapeCircle)
-              , rectangleDecoder
-                |> andThen (succeed << ShapeRectangle)
+              [ circleDecoder |> andThen (succeed << ShapeCi)
+              , rectangleDecoder |> andThen (succeed << ShapeRe)
               ]
 
   - Decoder usage
@@ -64,7 +62,11 @@ defmodule JS2E.Types.OneOfType do
 
   alias JS2E.TypePath
 
-  @type t :: %__MODULE__{name: String.t(), path: TypePath.t(), types: [TypePath.t()]}
+  @type t :: %__MODULE__{
+          name: String.t(),
+          path: TypePath.t(),
+          types: [TypePath.t()]
+        }
 
   defstruct [:name, :path, :types]
 

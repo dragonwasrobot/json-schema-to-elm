@@ -30,11 +30,14 @@ defmodule JS2E.Parsers.AnyOfParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util, only: [
-    parse_child_types: 3,
-    create_types_list: 2,
-    create_type_dict: 3
-  ]
+
+  import JS2E.Parsers.Util,
+    only: [
+      parse_child_types: 3,
+      create_types_list: 2,
+      create_type_dict: 3
+    ]
+
   alias JS2E.Parsers.{ErrorUtil, ParserResult}
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.AnyOfType
@@ -55,7 +58,7 @@ defmodule JS2E.Parsers.AnyOfParser do
 
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec type?(Types.schemaNode) :: boolean
+  @spec type?(Types.schemaNode()) :: boolean
   def type?(schema_node) do
     any_of = schema_node["anyOf"]
     is_list(any_of) && length(any_of) > 0
@@ -65,11 +68,15 @@ defmodule JS2E.Parsers.AnyOfParser do
   Parses a JSON schema anyOf type into an `JS2E.Types.AnyOfType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(Types.schemaNode, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: ParserResult.t
+  @spec parse(
+          Types.schemaNode(),
+          URI.t(),
+          URI.t() | nil,
+          TypePath.t(),
+          String.t()
+        ) :: ParserResult.t()
   def parse(%{"anyOf" => any_of}, parent_id, id, path, name)
-  when is_list(any_of) do
-
+      when is_list(any_of) do
     child_path = TypePath.add_child(path, "anyOf")
 
     child_types_result =
@@ -87,5 +94,4 @@ defmodule JS2E.Parsers.AnyOfParser do
     |> ParserResult.new()
     |> ParserResult.merge(child_types_result)
   end
-
 end

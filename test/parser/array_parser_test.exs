@@ -6,7 +6,6 @@ defmodule JS2ETest.Parsers.ArrayParser do
   alias JS2E.Parsers.ArrayParser
 
   test "parse array type" do
-
     parser_result =
       ~S"""
       {
@@ -22,18 +21,20 @@ defmodule JS2ETest.Parsers.ArrayParser do
     expected_array_type = %ArrayType{
       name: "rectangles",
       path: ["#", "rectangles"],
-      items: ["#", "rectangles", "items"]}
+      items: ["#", "rectangles", "items"]
+    }
 
     expected_type_reference = %TypeReference{
       name: "items",
-      path: ["#", "definitions", "rectangle"]}
+      path: ["#", "definitions", "rectangle"]
+    }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
-    assert parser_result.type_dict == %{
-      "#/rectangles" => expected_array_type,
-      "#/rectangles/items" => expected_type_reference
-    }
-  end
 
+    assert parser_result.type_dict == %{
+             "#/rectangles" => expected_array_type,
+             "#/rectangles/items" => expected_type_reference
+           }
+  end
 end

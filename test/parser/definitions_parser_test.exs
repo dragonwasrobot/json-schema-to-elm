@@ -7,7 +7,6 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
   alias JS2E.Parsers.RootParser
 
   test "parse definitions" do
-
     schema_result =
       ~S"""
       {
@@ -31,31 +30,36 @@ defmodule JS2ETest.Parsers.DefinitionsParser do
     expected_root_type_reference = %ArrayType{
       name: "#",
       path: ["#"],
-      items: ["#", "items"]}
+      items: ["#", "items"]
+    }
 
     expected_type_reference = %TypeReference{
       name: "items",
-      path: ["#", "definitions", "positiveInteger"]}
+      path: ["#", "definitions", "positiveInteger"]
+    }
 
     expected_primitive_type = %PrimitiveType{
       name: "positiveInteger",
       path: ["#", "definitions", "positiveInteger"],
-      type: "integer"}
+      type: "integer"
+    }
 
     assert schema_result.errors == []
     assert schema_result.warnings == []
-    assert schema_result.schema_dict == %{
-      "http://example.com/root.json" =>
-      %SchemaDefinition{
-        file_path: "examples/example.json",
-        title: "Root",
-        id: URI.parse("http://example.com/root.json"),
-        types: %{
-          "#" => expected_root_type_reference,
-          "http://example.com/root.json#" => expected_root_type_reference,
-          "#/items" => expected_type_reference,
-          "#/definitions/positiveInteger" => expected_primitive_type}}
-    }
-  end
 
+    assert schema_result.schema_dict == %{
+             "http://example.com/root.json" => %SchemaDefinition{
+               file_path: "examples/example.json",
+               title: "Root",
+               id: URI.parse("http://example.com/root.json"),
+               types: %{
+                 "#" => expected_root_type_reference,
+                 "http://example.com/root.json#" =>
+                   expected_root_type_reference,
+                 "#/items" => expected_type_reference,
+                 "#/definitions/positiveInteger" => expected_primitive_type
+               }
+             }
+           }
+  end
 end

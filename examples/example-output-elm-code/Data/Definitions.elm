@@ -1,4 +1,4 @@
-module Domain.Definitions exposing (..)
+module Data.Definitions exposing (..)
 
 -- Schema for common types
 

@@ -11,9 +11,12 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util, only: [
-    create_type_dict: 3
-  ]
+
+  import JS2E.Parsers.Util,
+    only: [
+      create_type_dict: 3
+    ]
+
   alias JS2E.{Types, TypePath}
   alias JS2E.Parsers.ParserResult
   alias JS2E.Types.TypeReference
@@ -39,10 +42,9 @@ defmodule JS2E.Parsers.TypeReferenceParser do
   Parses a JSON schema type reference into an `JS2E.Types.TypeReference`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t, URI.t | nil, TypePath.t, String.t)
-  :: ParserResult.t
+  @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"$ref" => ref}, _parent_id, id, path, name) do
-
     ref_path =
       ref
       |> to_type_identifier
@@ -54,13 +56,12 @@ defmodule JS2E.Parsers.TypeReferenceParser do
     |> ParserResult.new()
   end
 
-  @spec to_type_identifier(String.t) :: Types.typeIdentifier
+  @spec to_type_identifier(String.t()) :: Types.typeIdentifier()
   defp to_type_identifier(path) do
     if URI.parse(path).scheme != nil do
-      path |> URI.parse
+      path |> URI.parse()
     else
-      path |> TypePath.from_string
+      path |> TypePath.from_string()
     end
   end
-
 end

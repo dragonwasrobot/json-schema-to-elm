@@ -11,9 +11,12 @@ defmodule JS2E.Parsers.UnionParser do
   """
 
   require Logger
-  import JS2E.Parsers.Util, only: [
-    create_type_dict: 3
-  ]
+
+  import JS2E.Parsers.Util,
+    only: [
+      create_type_dict: 3
+    ]
+
   alias JS2E.{Types, TypePath}
   alias JS2E.Parsers.ParserResult
   alias JS2E.Types.UnionType
@@ -31,7 +34,7 @@ defmodule JS2E.Parsers.UnionParser do
 
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec type?(Types.schemaNode) :: boolean
+  @spec type?(Types.schemaNode()) :: boolean
   def type?(%{"type" => types}) when is_list(types), do: true
   def type?(_schema_node), do: false
 
@@ -39,14 +42,13 @@ defmodule JS2E.Parsers.UnionParser do
   Parses a JSON schema union type into an `JS2E.Types.UnionType`.
   """
   @impl JS2E.Parsers.ParserBehaviour
-  @spec parse(map, URI.t, URI.t, TypePath.t, String.t) :: ParserResult.t
+  @spec parse(map, URI.t(), URI.t(), TypePath.t(), String.t()) ::
+          ParserResult.t()
   def parse(%{"type" => types}, _parent_id, id, path, name) do
-
     union_type = UnionType.new(name, path, types)
 
     union_type
     |> create_type_dict(path, id)
     |> ParserResult.new()
   end
-
 end
