@@ -35,11 +35,7 @@ defmodule JS2E.Parser.ObjectParser do
   iex> type?(%{})
   false
 
-  iex> type?(%{"type" => "object"})
-  false
-
-  iex> an_object = %{"type" => "object",
-  ...>              "properties" => %{"name" => %{"type" => "string"}}}
+  iex> an_object = %{"properties" => %{"name" => %{"type" => "string"}}}
   iex> type?(an_object)
   true
 
@@ -47,9 +43,8 @@ defmodule JS2E.Parser.ObjectParser do
   @impl JS2E.Parser.ParserBehaviour
   @spec type?(map) :: boolean
   def type?(schema_node) do
-    type = schema_node["type"]
     properties = schema_node["properties"]
-    type == "object" && is_map(properties)
+    is_map(properties)
   end
 
   @doc ~S"""

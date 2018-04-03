@@ -28,11 +28,7 @@ defmodule JS2E.Parser.TupleParser do
   iex> type?(%{})
   false
 
-  iex> type?(%{"type" => "array"})
-  false
-
-  iex> aTuple = %{"type" => "array",
-  ...>            "items" => [%{"$ref" => "#foo"}, %{"$ref" => "#bar"}]}
+  iex> aTuple = %{"items" => [%{"$ref" => "#foo"}, %{"$ref" => "#bar"}]}
   iex> type?(aTuple)
   true
 
@@ -40,9 +36,8 @@ defmodule JS2E.Parser.TupleParser do
   @impl JS2E.Parser.ParserBehaviour
   @spec type?(Types.node()) :: boolean
   def type?(schema_node) do
-    type = schema_node["type"]
     items = schema_node["items"]
-    type == "array" && is_list(items)
+    is_list(items)
   end
 
   @doc ~S"""

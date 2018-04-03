@@ -27,19 +27,15 @@ defmodule JS2E.Parser.ArrayParser do
   iex> type?(%{})
   false
 
-  iex> type?(%{"type" => "array"})
-  false
-
-  iex> type?(%{"type" => "array", "items" => %{"$ref" => "#foo"}})
+  iex> type?(%{"items" => %{"$ref" => "#foo"}})
   true
 
   """
   @impl JS2E.Parser.ParserBehaviour
   @spec type?(Types.schemaNode()) :: boolean
   def type?(schema_node) do
-    type = schema_node["type"]
     items = schema_node["items"]
-    type == "array" && is_map(items)
+    is_map(items)
   end
 
   @doc ~S"""
