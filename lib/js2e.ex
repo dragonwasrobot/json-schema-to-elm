@@ -110,6 +110,7 @@ defmodule JS2E do
   def generate(schema_paths, module_name) do
     Logger.info("Parsing JSON schema files!")
     parser_result = Parser.parse_schema_files(schema_paths)
+
     pretty_parser_warnings(parser_result.warnings)
 
     if length(parser_result.errors) > 0 do

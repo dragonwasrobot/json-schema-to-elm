@@ -67,6 +67,33 @@ defmodule JS2E.Printer.Util do
   end
 
   @doc ~S"""
+  Prettifies anonymous schema names like `0` and `1` into - slightly -
+  better names like `zero` and `one`
+
+  ## Examples
+
+      iex> normalize_name("0")
+      "zero"
+
+      iex> normalize_name("shape")
+      "shape"
+
+  """
+  @spec normalize_name(String.t()) :: String.t()
+  def normalize_name("0"), do: "zero"
+  def normalize_name("1"), do: "one"
+  def normalize_name("2"), do: "two"
+  def normalize_name("3"), do: "three"
+  def normalize_name("4"), do: "four"
+  def normalize_name("5"), do: "five"
+  def normalize_name("6"), do: "six"
+  def normalize_name("7"), do: "seven"
+  def normalize_name("8"), do: "eight"
+  def normalize_name("9"), do: "nine"
+  def normalize_name("10"), do: "ten"
+  def normalize_name(name), do: name
+
+  @doc ~S"""
   Upcases the first letter of a string.
 
   ## Examples
@@ -196,7 +223,7 @@ defmodule JS2E.Printer.Util do
       if primitive_type?(resolved_type) do
         determine_primitive_type_decoder(resolved_type.type)
       else
-        type_name = resolved_type.name
+        type_name = resolved_type.name |> normalize_name
 
         if type_name == "#" do
           if resolved_schema.title != nil do
@@ -290,7 +317,7 @@ defmodule JS2E.Printer.Util do
       if primitive_type?(resolved_type) do
         determine_primitive_type_encoder(resolved_type.type)
       else
-        type_name = resolved_type.name
+        type_name = resolved_type.name |> normalize_name
 
         if type_name == "#" do
           if resolved_schema.title != nil do

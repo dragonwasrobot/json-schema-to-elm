@@ -32,7 +32,8 @@ defmodule JS2E.Printer.AllOfPrinter do
         schema_dict,
         module_name
       ) do
-    type_name = Util.upcase_first(name)
+    normalized_name = Util.normalize_name(name)
+    type_name = Util.upcase_first(normalized_name)
 
     {type_fields, errors} =
       types
@@ -79,8 +80,13 @@ defmodule JS2E.Printer.AllOfPrinter do
 
     case field_type_result do
       {:ok, field_type} ->
-        field_name = Util.downcase_first(field_type)
-        {:ok, %{name: field_name, type: field_type}}
+        field_name =
+          field_type |> Util.normalize_name() |> Util.downcase_first()
+
+        field_type_name =
+          field_type |> Util.normalize_name() |> Util.upcase_first()
+
+        {:ok, %{name: field_name, type: field_type_name}}
 
       {:error, error} ->
         {:error, error}
@@ -114,8 +120,9 @@ defmodule JS2E.Printer.AllOfPrinter do
       |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    decoder_name = "#{name}Decoder"
-    type_name = Util.upcase_first(name)
+    normalized_name = Util.normalize_name(name)
+    decoder_name = "#{normalized_name}Decoder"
+    type_name = Util.upcase_first(normalized_name)
 
     decoder_name
     |> decoder_template(type_name, clauses)
@@ -214,7 +221,11 @@ defmodule JS2E.Printer.AllOfPrinter do
 
   @spec create_decoder_normal_clause(String.t(), String.t()) :: {:ok, map}
   defp create_decoder_normal_clause(property_name, decoder_name) do
-    {:ok, %{property_name: property_name, decoder_name: decoder_name}}
+    {:ok,
+     %{
+       property_name: Util.normalize_name(property_name),
+       decoder_name: Util.normalize_name(decoder_name)
+     }}
   end
 
   # Encoder
@@ -245,7 +256,8 @@ defmodule JS2E.Printer.AllOfPrinter do
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    type_name = Util.upcase_first(name)
+    normalized_name = Util.normalize_name(name)
+    type_name = Util.upcase_first(normalized_name)
     encoder_name = "encode#{type_name}"
     argument_name = Util.downcase_first(type_name)
 
@@ -272,6 +284,7 @@ defmodule JS2E.Printer.AllOfPrinter do
     type_paths
     |> Enum.map(&Util.resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
+    |> Enum.concat()
   end
 
   @spec to_encoder_property(
@@ -279,21 +292,40 @@ defmodule JS2E.Printer.AllOfPrinter do
           | {:error, PrinterError.t()},
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) :: [{:ok, map} | {:error, PrinterError.t()}]
   defp to_encoder_property({:error, error}, _sf, _md), do: {:error, error}
 
-  defp to_encoder_property({:ok, {property, schema}}, schema_def, module_name) do
-    case Util.create_encoder_name(
-           {:ok, {property, schema}},
-           schema_def,
-           module_name
-         ) do
-      {:ok, encoder_name} ->
-        updated_property = Map.put(property, :encoder_name, encoder_name)
-        {:ok, updated_property}
+  defp to_encoder_property(
+         {:ok, {type_def, schema_def}},
+         schema_dict,
+         module_name
+       ) do
+    parent_name = Util.normalize_name(type_def.name)
 
-      {:error, error} ->
-        {:error, error}
-    end
+    type_def.properties
+    |> Enum.map(fn {_child_name, child_path} ->
+      case Util.resolve_type(child_path, type_def, schema_def, schema_dict) do
+        {:ok, {child_type_def, child_schema_def}} ->
+          case Util.create_encoder_name(
+                 {:ok, {child_type_def, child_schema_def}},
+                 schema_dict,
+                 module_name
+               ) do
+            {:ok, encoder_name} ->
+              updated_child_property =
+                child_type_def
+                |> Map.put(:encoder_name, encoder_name)
+                |> Map.put(:parent_name, parent_name)
+
+              {:ok, updated_child_property}
+
+            {:error, error} ->
+              {:error, error}
+          end
+
+        {:error, error} ->
+          {:error, error}
+      end
+    end)
   end
 end

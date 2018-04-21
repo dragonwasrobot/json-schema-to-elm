@@ -65,6 +65,9 @@ defmodule JS2E.Printer.ErrorUtil do
   @spec sanitize_value(any) :: String.t()
   defp sanitize_value(raw_value) do
     cond do
+      is_map(raw_value) and raw_value.__struct__ == URI ->
+        URI.to_string(raw_value)
+
       is_map(raw_value) ->
         Poison.encode!(raw_value)
 

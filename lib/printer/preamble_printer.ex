@@ -60,6 +60,7 @@ defmodule JS2E.Printer.PreamblePrinter do
 
     type_dict
     |> get_type_references
+    |> IO.inspect()
     |> create_dependency_map(schema_id, schema_dict)
     |> create_dependencies(schema_def, schema_dict)
   end
@@ -122,6 +123,14 @@ defmodule JS2E.Printer.PreamblePrinter do
 
         dependency_map
         |> Map.put(type_ref_schema_def.id, type_refs)
+
+      true ->
+        Logger.error("Could not resolve #{inspect(type_ref)}")
+        Logger.error("with type_ref_uri #{to_string(type_ref_uri)}")
+        Logger.error("In dependency map #{inspect(dependency_map)}")
+        Logger.error("Where schema_uri #{inspect(schema_uri)}")
+        Logger.error("and schema_dict #{inspect(schema_dict)}")
+        dependency_map
     end
   end
 
@@ -145,6 +154,8 @@ defmodule JS2E.Printer.PreamblePrinter do
 
   @spec has_same_absolute_path?(URI.t(), URI.t()) :: boolean
   defp has_same_absolute_path?(type_uri, schema_uri) do
+    # TODO: Should it be necessary that type_uri and schema_uri both have the
+    # same host?
     type_uri.host == schema_uri.host and type_uri.path == schema_uri.path
   end
 

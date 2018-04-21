@@ -2,62 +2,101 @@ defmodule JS2ETest.Printer.AllOfPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{AllOfType, ObjectType, TypeReference, SchemaDefinition}
+
+  alias JS2E.Types.{
+    AllOfType,
+    EnumType,
+    ObjectType,
+    PrimitiveType,
+    TypeReference,
+    SchemaDefinition
+  }
+
   alias JS2E.Printer.AllOfPrinter
 
-  test "print 'all of' type value" do
-    module_name = "Domain"
+  def module_name, do: "Data"
 
-    type_dict = %{
-      "#/shape/0" => %TypeReference{
-        name: "square",
-        path: ["#", "definitions", "square"]
-      },
-      "#/shape/1" => %TypeReference{
-        name: "circle",
-        path: ["#", "definitions", "circle"]
-      },
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
+  def type_dict do
+    %{
+      "#/schema/allOf/0" => %ObjectType{
+        name: "0",
+        path: ["#", "schema", "allOf", "0"],
         required: ["color", "radius"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
+          "color" => ["#", "schema", "allOf", "0", "properties", "color"],
+          "title" => ["#", "schema", "allOf", "0", "properties", "title"],
+          "radius" => ["#", "schema", "allOf", "0", "properties", "radius"]
         }
+      },
+      "#/schema/allOf/0/properties/color" => %TypeReference{
+        name: "color",
+        path: ["#", "definitions", "color"]
+      },
+      "#/schema/allOf/0/properties/radius" => %PrimitiveType{
+        name: "radius",
+        path: ["#", "schema", "allOf", "0", "properties", "radius"],
+        type: "number"
+      },
+      "#/schema/allOf/0/properties/title" => %PrimitiveType{
+        name: "title",
+        path: ["#", "schema", "allOf", "0", "properties", "title"],
+        type: "string"
+      },
+      "#/schema/allOf/1" => %ObjectType{
+        name: "1",
+        path: ["#", "schema", "allOf", "1"],
+        required: ["type"],
+        properties: %{
+          "type" => ["#", "schema", "allOf", "1", "properties", "type"]
+        }
+      },
+      "#/schema/allOf/1/properties/type" => %PrimitiveType{
+        name: "type",
+        path: ["#", "schema", "allOf", "1", "properties", "type"],
+        type: "string"
+      },
+      "#/definitions/color" => %EnumType{
+        name: "color",
+        path: ["#", "definitions", "color"],
+        type: "string",
+        values: ["none", "green", "yellow", "red"]
       }
     }
+  end
 
-    schema_def = %SchemaDefinition{
+  def schema_def do
+    %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
       types: type_dict
     }
+  end
+
+  def all_of_type do
+    %AllOfType{
+      name: "schema",
+      path: ["#", "schema"],
+      types: [
+        ["#", "schema", "allOf", "0"],
+        ["#", "schema", "allOf", "1"]
+      ]
+    }
+  end
+
+  test "print 'all of' type value" do
+    module_name = "Data"
 
     result =
-      %AllOfType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        types: [["#", "shape", "0"], ["#", "shape", "1"]]
-      }
+      all_of_type
       |> AllOfPrinter.print_type(schema_def, %{}, module_name)
 
     all_of_type_program = result.printed_schema
 
     expected_all_of_type_program = """
-    type alias Shape =
-        { square : Square
-        , circle : Circle
+    type alias Schema =
+        { zero : Zero
+        , one : One
         }
     """
 
@@ -65,50 +104,16 @@ defmodule JS2ETest.Printer.AllOfPrinter do
   end
 
   test "print 'all of' decoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %AllOfType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        types: [["#", "definitions", "square"], ["#", "definitions", "circle"]]
-      }
+      all_of_type
       |> AllOfPrinter.print_decoder(schema_def, %{}, module_name)
 
     expected_all_of_decoder_program = """
-    shapeDecoder : Decoder Shape
-    shapeDecoder =
-        decode Shape
-            |> required "square" squareDecoder
-            |> required "circle" circleDecoder
+    schemaDecoder : Decoder Schema
+    schemaDecoder =
+        decode Schema
+            |> custom zeroDecoder
+            |> custom oneDecoder
     """
 
     all_of_decoder_program = result.printed_schema
@@ -117,56 +122,28 @@ defmodule JS2ETest.Printer.AllOfPrinter do
   end
 
   test "print 'all of' encoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %AllOfType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        types: [["#", "definitions", "square"], ["#", "definitions", "circle"]]
-      }
+      all_of_type
       |> AllOfPrinter.print_encoder(schema_def, %{}, module_name)
 
     expected_all_of_encoder_program = """
-    encodeShape : Shape -> Value
-    encodeShape shape =
+    encodeSchema : Schema -> Value
+    encodeSchema schema =
         let
-            square =
-                encodeSquare shape.square
+            color =
+                encodeColor schema.zero.color
 
-            circle =
-                encodeCircle shape.circle
+            radius =
+                Encode.float schema.zero.radius
+
+            title =
+                Encode.string schema.zero.title
+
+            type =
+                Encode.string schema.one.type
         in
             object <|
-                square ++ circle
+                color ++ radius ++ title ++ type
     """
 
     all_of_encoder_program = result.printed_schema

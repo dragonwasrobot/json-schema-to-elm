@@ -15,7 +15,7 @@ defmodule JS2ETest.Parser.AllOfParser do
             "type": "object",
             "properties": {
               "color": {
-                "$ref": "#/color"
+                "$ref": "#/definitions/color"
               },
               "title": {
                 "type": "string"
@@ -52,7 +52,10 @@ defmodule JS2ETest.Parser.AllOfParser do
       type: "string"
     }
 
-    expected_color_type = %TypeReference{name: "color", path: ["#", "color"]}
+    expected_color_type = %TypeReference{
+      name: "color",
+      path: ["#", "definitions", "color"]
+    }
 
     expected_radius_type = %PrimitiveType{
       name: "radius",

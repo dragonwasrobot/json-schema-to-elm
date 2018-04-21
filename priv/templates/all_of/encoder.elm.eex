@@ -2,7 +2,7 @@
 <%= encoder_name %> <%= argument_name %> =
     let<%= for property <- properties do %>
         <%= property.name %> =
-            <%= property.encoder_name %> <%= argument_name %>.<%= property.name %>
+            <%= property.encoder_name %> <%= argument_name %>.<%= property.parent_name %>.<%= property.name %>
 <% end %><%#
 %>    in
         object <|
