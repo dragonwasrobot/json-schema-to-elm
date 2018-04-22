@@ -7,7 +7,7 @@ defmodule JS2E.Printer.PreamblePrinter do
   @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{PrinterResult, Util}
+  alias JS2E.Printer.{PrinterResult, PrinterError, Util}
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
@@ -60,7 +60,6 @@ defmodule JS2E.Printer.PreamblePrinter do
 
     type_dict
     |> get_type_references
-    |> IO.inspect()
     |> create_dependency_map(schema_id, schema_dict)
     |> create_dependencies(schema_def, schema_dict)
   end
@@ -138,7 +137,7 @@ defmodule JS2E.Printer.PreamblePrinter do
           %{required(String.t()) => TypeReference.t()},
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
+        ) :: [String.t()]
   defp create_dependencies(dependency_map, _schema_def, schema_dict) do
     dependency_map
     |> Enum.map(fn {schema_id, _type_refs} ->

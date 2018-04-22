@@ -5,7 +5,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult}
+  alias JS2E.Printer.{Util, PrinterError, PrinterResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{ObjectType, SchemaDefinition}
 
@@ -88,13 +88,15 @@ defmodule JS2E.Printer.ObjectPrinter do
   end
 
   @spec create_type_field(
-          {String.t(), String.t()},
+          {String.t(), Types.typeIdentifier()},
           [String.t()],
           TypePath.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) ::
+          {:ok, %{name: String.t(), type: String.t()}}
+          | {:error, PrinterError.t()}
   defp create_type_field(
          {property_name, property_path},
          required,
@@ -123,8 +125,8 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec check_if_maybe(
           {:ok, String.t()} | {:error, PrinterError.t()},
           String.t(),
-          boolean
-        ) :: String.t()
+          [String.t()]
+        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
   defp check_if_maybe({:error, error}, _pn, _rq), do: {:error, error}
 
   defp check_if_maybe({:ok, field_name}, property_name, required) do

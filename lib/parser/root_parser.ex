@@ -13,6 +13,7 @@ defmodule JS2E.Parser.RootParser do
     TypeReferenceParser,
     Util,
     ErrorUtil,
+    ParserError,
     ParserResult,
     SchemaResult
   }
@@ -20,7 +21,7 @@ defmodule JS2E.Parser.RootParser do
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.SchemaDefinition
 
-  @spec parse_schema(Types.schemaNode(), String.t()) :: SchemaResult.t()
+  @spec parse_schema(Types.schemaNode(), Path.t()) :: SchemaResult.t()
   def parse_schema(root_node, schema_file_path) do
     with {:ok, _schema_version} <- parse_schema_version(root_node),
          {:ok, schema_id} <- parse_schema_id(root_node) do

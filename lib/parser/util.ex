@@ -18,14 +18,13 @@ defmodule JS2E.Parser.Util do
     TypeReferenceParser,
     UnionParser,
     ErrorUtil,
-    ParserError,
     ParserResult
   }
 
   alias JS2E.{TypePath, Types}
 
   @type nodeParser ::
-          (Types.node(), URI.t(), URI.t(), TypePath.t(), String.t() ->
+          (Types.schemaNode(), URI.t(), URI.t(), TypePath.t(), String.t() ->
              ParserResult.t())
 
   @doc ~S"""
@@ -100,9 +99,16 @@ defmodule JS2E.Parser.Util do
     definitions_result =
       if DefinitionsParser.type?(schema_node) do
         id = determine_id(schema_node, parent_id)
-        parent_id = determine_parent_id(id, parent_id)
+        child_parent_id = determine_parent_id(id, parent_id)
         type_path = TypePath.add_child(path, name)
-        DefinitionsParser.parse(schema_node, parent_id, id, type_path, name)
+
+        DefinitionsParser.parse(
+          schema_node,
+          child_parent_id,
+          id,
+          type_path,
+          name
+        )
       else
         ParserResult.new(%{}, [], [])
       end
@@ -114,9 +120,9 @@ defmodule JS2E.Parser.Util do
 
         node_parser ->
           id = determine_id(schema_node, parent_id)
-          parent_id = determine_parent_id(id, parent_id)
+          child_parent_id = determine_parent_id(id, parent_id)
           type_path = TypePath.add_child(path, name)
-          node_parser.(schema_node, parent_id, id, type_path, name)
+          node_parser.(schema_node, child_parent_id, id, type_path, name)
       end
 
     if Enum.empty?(definitions_result.type_dict) and
@@ -161,10 +167,8 @@ defmodule JS2E.Parser.Util do
     end
   end
 
-  @doc ~S"""
-  Determines the ID of a schema node based on its parent's ID and its own
-  optional '$id' or id' property.
-  """
+  # Determines the ID of a schema node based on its parent's ID and its own
+  # optional '$id' or id' property.
   @spec determine_id(map, URI.t()) :: URI.t() | nil
   defp determine_id(%{"$id" => id}, parent_id) when is_binary(id) do
     do_determine_id(id, parent_id)
@@ -189,7 +193,7 @@ defmodule JS2E.Parser.Util do
 
   @spec determine_parent_id(URI.t() | nil, URI.t()) :: URI.t()
   defp determine_parent_id(id, parent_id) do
-    if id != nil && id.scheme != "urn" do
+    if id != nil and id.scheme != "urn" do
       id
     else
       parent_id

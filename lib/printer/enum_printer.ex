@@ -5,7 +5,7 @@ defmodule JS2E.Printer.EnumPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult, ErrorUtil}
+  alias JS2E.Printer.{Util, PrinterError, PrinterResult, ErrorUtil}
   alias JS2E.Types
   alias JS2E.Types.{EnumType, SchemaDefinition}
 

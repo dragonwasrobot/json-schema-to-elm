@@ -69,7 +69,7 @@ defmodule JS2ETest.Printer.AllOfPrinter do
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
       title: "Test",
-      types: type_dict
+      types: type_dict()
     }
   end
 
@@ -88,8 +88,8 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     module_name = "Data"
 
     result =
-      all_of_type
-      |> AllOfPrinter.print_type(schema_def, %{}, module_name)
+      all_of_type()
+      |> AllOfPrinter.print_type(schema_def(), %{}, module_name())
 
     all_of_type_program = result.printed_schema
 
@@ -105,8 +105,8 @@ defmodule JS2ETest.Printer.AllOfPrinter do
 
   test "print 'all of' decoder" do
     result =
-      all_of_type
-      |> AllOfPrinter.print_decoder(schema_def, %{}, module_name)
+      all_of_type()
+      |> AllOfPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_all_of_decoder_program = """
     schemaDecoder : Decoder Schema
@@ -123,8 +123,8 @@ defmodule JS2ETest.Printer.AllOfPrinter do
 
   test "print 'all of' encoder" do
     result =
-      all_of_type
-      |> AllOfPrinter.print_encoder(schema_def, %{}, module_name)
+      all_of_type()
+      |> AllOfPrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_all_of_encoder_program = """
     encodeSchema : Schema -> Value

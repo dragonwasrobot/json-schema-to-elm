@@ -34,7 +34,7 @@ defmodule JS2E.Parser.TupleParser do
 
   """
   @impl JS2E.Parser.ParserBehaviour
-  @spec type?(Types.node()) :: boolean
+  @spec type?(Types.schemaNode()) :: boolean
   def type?(schema_node) do
     items = schema_node["items"]
     is_list(items)
@@ -44,8 +44,13 @@ defmodule JS2E.Parser.TupleParser do
   Parses a JSON schema array type into an `JS2E.Types.TupleType`.
   """
   @impl JS2E.Parser.ParserBehaviour
-  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
-          ParserResult.t()
+  @spec parse(
+          Types.schemaNode(),
+          URI.t(),
+          URI.t() | nil,
+          TypePath.t(),
+          String.t()
+        ) :: ParserResult.t()
   def parse(%{"items" => items}, parent_id, id, path, name)
       when is_list(items) do
     child_path = TypePath.add_child(path, "items")

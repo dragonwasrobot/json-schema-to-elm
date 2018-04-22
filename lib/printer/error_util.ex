@@ -35,6 +35,11 @@ defmodule JS2E.Printer.ErrorUtil do
     PrinterError.new(type_name, :unknown_type, error_msg)
   end
 
+  @spec unexpected_type(Types.typeIdentifier(), String.t()) :: PrinterError.t()
+  def unexpected_type(identifier, error_msg) do
+    PrinterError.new(identifier, :unexpected_type, error_msg)
+  end
+
   @spec unknown_enum_type(String.t()) :: PrinterError.t()
   def unknown_enum_type(type_name) do
     error_msg = "Unknown or unsupported enum type: '#{type_name}'"
@@ -47,7 +52,7 @@ defmodule JS2E.Printer.ErrorUtil do
     PrinterError.new(type_name, :unknown_primitive_type, error_msg)
   end
 
-  @spec name_collision(String.t()) :: ParserError.t()
+  @spec name_collision(String.t()) :: PrinterError.t()
   def name_collision(file_name) do
     error_msg = "Found more than one schema with file: '#{file_name}'"
     PrinterError.new(file_name, :name_collision, error_msg)
@@ -79,12 +84,12 @@ defmodule JS2E.Printer.ErrorUtil do
     end
   end
 
-  @spec error_markings(String.t()) :: String.t()
+  @spec error_markings(String.t()) :: [String.t()]
   defp error_markings(value) do
     red(String.duplicate("^", String.length(value)))
   end
 
-  @spec red(String.t()) :: list
+  @spec red(String.t()) :: [String.t()]
   defp red(str) do
     IO.ANSI.format([:red, str])
   end

@@ -128,8 +128,11 @@ defmodule JS2E.Parser.ErrorUtil do
     ParserError.new(identifier, :invalid_uri, error_msg)
   end
 
-  @spec unknown_node_type(Types.typeIdentifier(), String.t(), Types.node()) ::
-          ParserError.t()
+  @spec unknown_node_type(
+          Types.typeIdentifier(),
+          String.t(),
+          Types.schemaNode()
+        ) :: ParserError.t()
   def unknown_node_type(identifier, name, schema_node) do
     full_identifier =
       identifier
@@ -178,12 +181,12 @@ defmodule JS2E.Parser.ErrorUtil do
     end
   end
 
-  @spec error_markings(String.t()) :: String.t()
+  @spec error_markings(String.t()) :: [String.t()]
   defp error_markings(value) do
     red(String.duplicate("^", String.length(value)))
   end
 
-  @spec red(String.t()) :: list
+  @spec red(String.t()) :: [String.t()]
   defp red(str) do
     IO.ANSI.format([:red, str])
   end

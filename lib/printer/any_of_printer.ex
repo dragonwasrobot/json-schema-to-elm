@@ -5,7 +5,7 @@ defmodule JS2E.Printer.AnyOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult}
+  alias JS2E.Printer.{Util, PrinterError, PrinterResult}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{AnyOfType, SchemaDefinition}
 
@@ -64,7 +64,7 @@ defmodule JS2E.Printer.AnyOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterErrot.t()}
+        ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_type_field(
          type_path,
          parent,
@@ -245,7 +245,8 @@ defmodule JS2E.Printer.AnyOfPrinter do
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    type_name = Util.upcase_first(name)
+    normalized_name = Util.normalize_name(name)
+    type_name = Util.upcase_first(normalized_name)
     encoder_name = "encode#{type_name}"
     argument_name = Util.downcase_first(type_name)
 

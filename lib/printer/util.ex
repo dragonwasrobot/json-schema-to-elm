@@ -19,6 +19,7 @@ defmodule JS2E.Printer.Util do
     TuplePrinter,
     TypeReferencePrinter,
     UnionPrinter,
+    PrinterError,
     PrinterResult
   }
 
@@ -310,7 +311,7 @@ defmodule JS2E.Printer.Util do
 
   def create_encoder_name(
         {:ok, {resolved_type, resolved_schema}},
-        context_schema,
+        schema_def,
         module_name
       ) do
     encoder_name_result =
@@ -332,7 +333,7 @@ defmodule JS2E.Printer.Util do
 
     case encoder_name_result do
       {:ok, encoder_name} ->
-        if resolved_schema.id != context_schema.id do
+        if resolved_schema.id != schema_def.id do
           {:ok, qualify_name(resolved_schema, encoder_name, module_name)}
         else
           {:ok, encoder_name}
@@ -520,7 +521,7 @@ defmodule JS2E.Printer.Util do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+        ) :: PrinterResult.t()
   def print_encoder(type_def, schema_def, schema_dict, module_name) do
     type_to_printer_dict = %{
       "AllOfType" => &AllOfPrinter.print_encoder/4,
@@ -546,7 +547,7 @@ defmodule JS2E.Printer.Util do
   end
 
   @spec resolve_type(
-          TypePath.t(),
+          Types.typeIdentifier(),
           Types.typeIdentifier(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
@@ -563,7 +564,7 @@ defmodule JS2E.Printer.Util do
           resolve_type_path_identifier(identifier, parent, schema_def)
 
         URI.parse(identifier).scheme != nil ->
-          resolve_uri_identifier(identifier, parent, schema_dict)
+          resolve_uri_identifier(URI.parse(identifier), parent, schema_dict)
 
         true ->
           {:error, ErrorUtil.unresolved_reference(identifier, parent)}
@@ -613,8 +614,8 @@ defmodule JS2E.Printer.Util do
   end
 
   @spec resolve_uri_identifier(
-          TypePath.t(),
-          String.t(),
+          URI.t(),
+          Types.typeIdentifier(),
           Types.schemaDictionary()
         ) ::
           {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
@@ -643,10 +644,9 @@ defmodule JS2E.Printer.Util do
     end
   end
 
-  @spec determine_schema_id(String.t()) :: String.t()
+  @spec determine_schema_id(URI.t()) :: String.t()
   defp determine_schema_id(identifier) do
     identifier
-    |> URI.parse()
     |> Map.put(:fragment, nil)
     |> to_string
   end

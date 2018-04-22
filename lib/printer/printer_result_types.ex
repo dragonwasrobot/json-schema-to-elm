@@ -59,7 +59,7 @@ defmodule JS2E.Printer.PrinterResult do
   dictionaries to the list of errors in the merged `PrinterResult`.
 
   """
-  @spec merge(PrinterResult.t(), PrinterResult.t()) :: PrinterResult.t()
+  @spec merge(t, t) :: t
   def merge(
         %__MODULE__{printed_schema: printed_schema1, errors: errors1},
         %__MODULE__{
@@ -112,7 +112,7 @@ defmodule JS2E.Printer.SchemaResult do
   dictionaries to the list of errors in the merged `SchemaResult`.
 
   """
-  @spec merge(SchemaResult.t(), SchemaResult.t()) :: SchemaResult.t()
+  @spec merge(t, t) :: t
   def merge(%__MODULE__{file_dict: file_dict1, errors: errors1}, %__MODULE__{
         file_dict: file_dict2,
         errors: errors2

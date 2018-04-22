@@ -5,9 +5,9 @@ defmodule JS2E.Printer.AllOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult}
+  alias JS2E.Printer.{ErrorUtil, Util, PrinterError, PrinterResult}
   alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{AllOfType, SchemaDefinition}
+  alias JS2E.Types.{AllOfType, ObjectType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -251,7 +251,7 @@ defmodule JS2E.Printer.AllOfPrinter do
         schema_dict,
         module_name
       ) do
-    {properties, errors} =
+    {encoder_properties, errors} =
       type_paths
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
@@ -262,7 +262,7 @@ defmodule JS2E.Printer.AllOfPrinter do
     argument_name = Util.downcase_first(type_name)
 
     encoder_name
-    |> encoder_template(type_name, argument_name, properties)
+    |> encoder_template(type_name, argument_name, encoder_properties)
     |> Util.trim_newlines()
     |> PrinterResult.new(errors)
   end
@@ -296,7 +296,7 @@ defmodule JS2E.Printer.AllOfPrinter do
   defp to_encoder_property({:error, error}, _sf, _md), do: {:error, error}
 
   defp to_encoder_property(
-         {:ok, {type_def, schema_def}},
+         {:ok, {%ObjectType{} = type_def, schema_def}},
          schema_dict,
          module_name
        ) do
@@ -304,7 +304,7 @@ defmodule JS2E.Printer.AllOfPrinter do
 
     type_def.properties
     |> Enum.map(fn {_child_name, child_path} ->
-      case Util.resolve_type(child_path, type_def, schema_def, schema_dict) do
+      case Util.resolve_type(child_path, type_def.path, schema_def, schema_dict) do
         {:ok, {child_type_def, child_schema_def}} ->
           case Util.create_encoder_name(
                  {:ok, {child_type_def, child_schema_def}},
@@ -327,5 +327,16 @@ defmodule JS2E.Printer.AllOfPrinter do
           {:error, error}
       end
     end)
+  end
+
+  defp to_encoder_property(
+         {:ok, type_def, _schema_def},
+         _schema_dict,
+         _module_name
+       ) do
+    error_msg =
+      "allOf printer expected ObjectType but found #{type_def.__struct__}"
+
+    ErrorUtil.unexpected_type(type_def.path, error_msg)
   end
 end

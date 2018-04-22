@@ -91,7 +91,7 @@ defmodule JS2E.Printer do
     |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
   end
 
-  @spec filter_aliases(Types.typeDictionary()) :: Types.typeDictionary()
+  @spec filter_aliases(Types.typeDictionary()) :: [Types.typeDefinition()]
   defp filter_aliases(type_dict) do
     type_dict
     |> Enum.reduce([], fn {path, value}, values ->
@@ -103,12 +103,19 @@ defmodule JS2E.Printer do
     end)
   end
 
+  @type process_fun ::
+          (Types.typeDefinition(),
+           SchemaDefinition.t(),
+           Types.schemaDictionary(),
+           String.t() ->
+             PrinterResult.t())
+
   @spec merge_results(
-          Types.typeDictionary(),
+          [Types.typeDefinition()],
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t(),
-          fun
+          process_fun
         ) :: PrinterResult.t()
   defp merge_results(values, schema_def, schema_dict, module_name, process_fun) do
     values
