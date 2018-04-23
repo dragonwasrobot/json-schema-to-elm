@@ -52,6 +52,7 @@ defmodule JS2E.Printer do
     values =
       type_dict
       |> filter_aliases
+      |> filter_anonymous
       |> Enum.sort(&(&1.name < &2.name))
 
     types_result =
@@ -99,6 +100,19 @@ defmodule JS2E.Printer do
         [value | values]
       else
         values
+      end
+    end)
+  end
+
+  @spec filter_anonymous([Types.typeDefinition()]) :: [Types.typeDefinition()]
+  defp filter_anonymous(type_defs) do
+    type_defs
+    |> Enum.reduce([], fn type_def, result_type_defs ->
+      if String.starts_with?(type_def.name, "__") and
+           String.ends_with?(type_def.name, "__") do
+        result_type_defs
+      else
+        [type_def | result_type_defs]
       end
     end)
   end

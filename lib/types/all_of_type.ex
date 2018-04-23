@@ -4,61 +4,101 @@ defmodule JS2E.Types.AllOfType do
 
   JSON Schema:
 
-      "shape": {
+  The following example schema has the path "#/definitions/fancyCircle"
+
+      {
         "allOf": [
           {
-            "$ref": "#/definitions/circle"
+            "type": "object",
+            "properties": {
+              "color": {
+                "$ref": "#/definitions/color"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [ "color" ]
           },
           {
-            "$ref": "#/definitions/rectangle"
+            "$ref": "#/definitions/circle"
           }
         ]
       }
 
+  Where "#/definitions/color" resolves to:
+
+      {
+        "type": "string",
+        "enum": ["red", "yellow", "green"]
+      }
+
+  Where "#/definitions/circle" resolves to:
+
+      {
+         "type": "object",
+         "properties": {
+           "radius": {
+             "type": "number"
+           }
+         },
+         "required": [ "radius" ]
+      }
+
   Elixir intermediate representation:
 
-      %AllOfType{name: "shape",
-                 path: ["#", "shape"],
-                 types: [["#", "shape", "allOf", "0"],
-                         ["#", "shape", "allOf", "1"]]}
+      %AllOfType{name: "fancyCircle",
+                 path: ["#", "definitions", "fancyCircle"],
+                 types: [["#", "definitions", "fancyCircle", "allOf", "0"],
+                         ["#", "definitions", "fancyCircle", "allOf", "1"]]}
 
   Elm code generated:
 
   - Type definition
 
-      type alias Shape =
-          { circle : Circle
-          , rectangle : Rectangle
+      type alias FancyCircle =
+          { color : Color
+          , description : Maybe String
+          , radius : Float
           }
 
   - Decoder definition
 
-      shapeDecoder : Decoder Shape
-      shapeDecoder =
-          decode Shape
-              |> required "circle" circleDecoder
-              |> required "rectangle" rectangleDecoder
+      fancyCircleDecoder : Decoder FancyCircle
+      fancyCircleDecoder =
+          decode FancyCircle
+              |> required "color" (Decode.string |> andThen colorDecoder)
+              |> optional "description" (nullable Decode.string) Nothing
+              |> required "radius" Decode.float
 
   - Decoder usage
 
-      |> required "shape" shapeDecoder
+      |> required "fancyCircle" fancyCircleDecoder
 
   - Encoder definition
 
-      encodeShape : Shape -> Value
-      encodeShape shape =
+      encodeFancyCircle : FancyCircle -> Value
+      encodeFancyCircle fancyCircle =
           let
-              circle =
-                  encodeCircle shape.circle
+              color =
+                  encodeColor fancyCircle.color
 
-              rectangle =
-                  encodeRectangle shape.rectangle
+              description =
+                  case fancyCircle.description of
+                      Just description ->
+                          [ ( "description", Encode.string description ) ]
+
+                      Nothing ->
+                          []
+
+              radius =
+                  [ ( "radius", Encode.float circle.radius ) ]
           in
-              object <| circle ++ rectangle
+              object <| color ++ description ++ radius
 
   - Encoder usage
 
-      encodeShape shape
+      encodeFancyCircle fancyCircle
 
   """
 

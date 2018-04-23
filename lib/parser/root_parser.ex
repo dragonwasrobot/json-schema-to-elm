@@ -6,9 +6,12 @@ defmodule JS2E.Parser.RootParser do
   require Logger
 
   alias JS2E.Parser.{
+    AllOfParser,
+    AnyOfParser,
     ArrayParser,
     DefinitionsParser,
     ObjectParser,
+    OneOfParser,
     TupleParser,
     TypeReferenceParser,
     Util,
@@ -25,7 +28,7 @@ defmodule JS2E.Parser.RootParser do
   def parse_schema(root_node, schema_file_path) do
     with {:ok, _schema_version} <- parse_schema_version(root_node),
          {:ok, schema_id} <- parse_schema_id(root_node) do
-      title = Map.get(root_node, "title", "")
+      title = Map.get(root_node, "title", "Root")
       description = Map.get(root_node, "description")
 
       root_node_no_def = Map.delete(root_node, "definitions")
@@ -90,22 +93,33 @@ defmodule JS2E.Parser.RootParser do
   end
 
   @spec parse_root_object(map, URI.t(), String.t()) :: ParserResult.t()
-  defp parse_root_object(schema_root_node, schema_id, _title) do
+  defp parse_root_object(schema_root_node, schema_id, name) do
     type_path = TypePath.from_string("#")
-    name = "#"
 
     cond do
+      AllOfParser.type?(schema_root_node) ->
+        schema_root_node
+        |> AllOfParser.parse(schema_root_node, schema_id, type_path, name)
+
+      AnyOfParser.type?(schema_root_node) ->
+        schema_root_node
+        |> AnyOfParser.parse(schema_root_node, schema_id, type_path, name)
+
       ArrayParser.type?(schema_root_node) ->
         schema_root_node
-        |> Util.parse_type(schema_id, [], name)
+        |> ArrayParser.parse(schema_root_node, schema_id, type_path, name)
 
       ObjectParser.type?(schema_root_node) ->
         schema_root_node
-        |> Util.parse_type(schema_id, [], name)
+        |> ObjectParser.parse(schema_root_node, schema_id, type_path, name)
+
+      OneOfParser.type?(schema_root_node) ->
+        schema_root_node
+        |> OneOfParser.parse(schema_root_node, schema_id, type_path, name)
 
       TupleParser.type?(schema_root_node) ->
         schema_root_node
-        |> Util.parse_type(schema_id, [], name)
+        |> TupleParser.parse(schema_root_node, schema_id, type_path, name)
 
       TypeReferenceParser.type?(schema_root_node) ->
         schema_root_node

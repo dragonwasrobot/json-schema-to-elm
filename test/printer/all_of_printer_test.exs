@@ -14,79 +14,78 @@ defmodule JS2ETest.Printer.AllOfPrinter do
 
   alias JS2E.Printer.AllOfPrinter
 
-  def module_name, do: "Data"
+  defp path, do: ["#", "definitions", "fancyCircle"]
 
-  def type_dict do
-    %{
-      "#/schema/allOf/0" => %ObjectType{
-        name: "0",
-        path: ["#", "schema", "allOf", "0"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "schema", "allOf", "0", "properties", "color"],
-          "title" => ["#", "schema", "allOf", "0", "properties", "title"],
-          "radius" => ["#", "schema", "allOf", "0", "properties", "radius"]
-        }
-      },
-      "#/schema/allOf/0/properties/color" => %TypeReference{
-        name: "color",
-        path: ["#", "definitions", "color"]
-      },
-      "#/schema/allOf/0/properties/radius" => %PrimitiveType{
-        name: "radius",
-        path: ["#", "schema", "allOf", "0", "properties", "radius"],
-        type: "number"
-      },
-      "#/schema/allOf/0/properties/title" => %PrimitiveType{
-        name: "title",
-        path: ["#", "schema", "allOf", "0", "properties", "title"],
-        type: "string"
-      },
-      "#/schema/allOf/1" => %ObjectType{
-        name: "1",
-        path: ["#", "schema", "allOf", "1"],
-        required: ["type"],
-        properties: %{
-          "type" => ["#", "schema", "allOf", "1", "properties", "type"]
-        }
-      },
-      "#/schema/allOf/1/properties/type" => %PrimitiveType{
-        name: "type",
-        path: ["#", "schema", "allOf", "1", "properties", "type"],
-        type: "string"
-      },
-      "#/definitions/color" => %EnumType{
-        name: "color",
-        path: ["#", "definitions", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      }
+  def all_of_type do
+    %AllOfType{
+      name: "fancyCircle",
+      path: ["#", "definitions", "fancyCircle"],
+      types: [
+        path() ++ ["allOf", "0"],
+        path() ++ ["allOf", "1"]
+      ]
     }
   end
 
   def schema_def do
     %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
+      description: "'allOf' example schema",
+      id: URI.parse("http://example.com/all_of_example.json"),
+      title: "AllOfExample",
       types: type_dict()
     }
   end
 
-  def all_of_type do
-    %AllOfType{
-      name: "schema",
-      path: ["#", "schema"],
-      types: [
-        ["#", "schema", "allOf", "0"],
-        ["#", "schema", "allOf", "1"]
-      ]
+  def type_dict do
+    %{
+      "#/definitions/fancyCircle/allOf/0" => %ObjectType{
+        name: "0",
+        path: path() ++ ["allOf", "0"],
+        required: ["color", "radius"],
+        properties: %{
+          "color" => path() ++ ["allOf", "0", "properties", "color"],
+          "description" => path() ++ ["allOf", "0", "properties", "description"]
+        }
+      },
+      "#/definitions/fancyCircle/allOf/0/properties/color" => %TypeReference{
+        name: "color",
+        path: ["#", "definitions", "color"]
+      },
+      "#/definitions/color" => %EnumType{
+        name: "color",
+        path: ["#", "definitions", "color"],
+        type: "string",
+        values: ["red", "yellow", "green"]
+      },
+      "#/definitions/fancyCircle/allOf/0/properties/description" =>
+        %PrimitiveType{
+          name: "description",
+          path: path() ++ ["allOf", "0", "properties", "description"],
+          type: "string"
+        },
+      "#/definitions/fancyCircle/allOf/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
+      },
+      "#/definitions/circle" => %ObjectType{
+        name: "circle",
+        path: ["#", "definitions", "circle"],
+        required: ["radius"],
+        properties: %{
+          "radius" => ["#", "definitions", "circle", "properties", "radius"]
+        }
+      },
+      "#/definitions/circle/properties/radius" => %PrimitiveType{
+        name: "radius",
+        path: ["#", "definitions", "circle", "properties", "radius"],
+        type: "string"
+      }
     }
   end
 
-  test "print 'all of' type value" do
-    module_name = "Data"
+  def module_name, do: "Data"
 
+  test "print 'all of' type value" do
     result =
       all_of_type()
       |> AllOfPrinter.print_type(schema_def(), %{}, module_name())
@@ -94,9 +93,10 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     all_of_type_program = result.printed_schema
 
     expected_all_of_type_program = """
-    type alias Schema =
-        { zero : Zero
-        , one : One
+    type alias FancyCircle =
+        { color : Color
+        , description : Maybe String
+        , radius : Float
         }
     """
 
@@ -109,11 +109,12 @@ defmodule JS2ETest.Printer.AllOfPrinter do
       |> AllOfPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_all_of_decoder_program = """
-    schemaDecoder : Decoder Schema
-    schemaDecoder =
-        decode Schema
-            |> custom zeroDecoder
-            |> custom oneDecoder
+    fancyCircleDecoder : Decoder FancyCircle
+    fancyCircleDecoder =
+        decode FancyCircle
+            |> required "color" (Decode.string |> andThen colorDecoder)
+            |> optional "description" (nullable Decode.string) Nothing
+            |> required "radius" Decode.float
     """
 
     all_of_decoder_program = result.printed_schema
@@ -127,23 +128,24 @@ defmodule JS2ETest.Printer.AllOfPrinter do
       |> AllOfPrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_all_of_encoder_program = """
-    encodeSchema : Schema -> Value
-    encodeSchema schema =
+    encodeFancyCircle : FancyCircle -> Value
+    encodeFancyCircle fancyCircle =
         let
             color =
-                encodeColor schema.zero.color
+                encodeColor fancyCircle.color
+
+            description =
+                case fancyCircle.description of
+                    Just description ->
+                        [ ( "description", Encode.string description ) ]
+
+                    Nothing ->
+                        []
 
             radius =
-                Encode.float schema.zero.radius
-
-            title =
-                Encode.string schema.zero.title
-
-            type =
-                Encode.string schema.one.type
+                [ ( "radius", Encode.float circle.radius ) ]
         in
-            object <|
-                color ++ radius ++ title ++ type
+            object <| color ++ description ++ radius
     """
 
     all_of_encoder_program = result.printed_schema

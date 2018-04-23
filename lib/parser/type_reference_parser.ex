@@ -38,7 +38,7 @@ defmodule JS2E.Parser.TypeReferenceParser do
   @impl JS2E.Parser.ParserBehaviour
   @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
           ParserResult.t()
-  def parse(%{"$ref" => ref}, _parent_id, id, path, name) do
+  def parse(%{"$ref" => ref}, parent_id, id, path, name) do
     ref_path =
       ref
       |> to_type_identifier
@@ -53,7 +53,7 @@ defmodule JS2E.Parser.TypeReferenceParser do
   @spec to_type_identifier(String.t()) :: Types.typeIdentifier()
   defp to_type_identifier(path) do
     if URI.parse(path).scheme != nil do
-      path |> URI.parse()
+      path |> URI.parse() |> to_string
     else
       path |> TypePath.from_string()
     end

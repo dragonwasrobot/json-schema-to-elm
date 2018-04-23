@@ -50,24 +50,6 @@ defmodule JS2E.Printer.Util do
   end
 
   @doc ~S"""
-  Upcases the first letter of a string.
-
-  ## Examples
-
-      iex> upcase_first("foobar")
-      "Foobar"
-
-  """
-  @spec upcase_first(String.t()) :: String.t()
-  def upcase_first(string) when is_binary(string) do
-    if String.length(string) > 0 do
-      String.upcase(String.at(string, 0)) <> String.slice(string, 1..-1)
-    else
-      ""
-    end
-  end
-
-  @doc ~S"""
   Prettifies anonymous schema names like `0` and `1` into - slightly -
   better names like `zero` and `one`
 
@@ -92,10 +74,133 @@ defmodule JS2E.Printer.Util do
   def normalize_name("8"), do: "eight"
   def normalize_name("9"), do: "nine"
   def normalize_name("10"), do: "ten"
-  def normalize_name(name), do: name
+  def normalize_name(name), do: downcase_first(name)
+
+  @doc ~S"""
+  Filters out or translates all symbols that the Elm compiler does not allow in
+  an identifier:
+
+      ?!@#$%^&*()[]{}\/<>|`'",.+~=:;
+
+  into something more Elm parser friendly. Note that hyphens (-) and underscores
+  (_) should be converted to camelCase using the appropriate helper functions.
+
+  ## Examples
+
+      iex> normalize_symbols("myAngry!!Name")
+      "myAngryBangBangName"
+
+      iex> normalize_symbols("name@Domain")
+      "nameAtDomain"
+
+      iex> normalize_symbols("#Browns")
+      "HashBrowns"
+
+      iex> normalize_symbols("$Bill")
+      "DollarBill"
+
+      iex> normalize_symbols("identity")
+      "identity"
+
+  """
+  @spec normalize_symbols(String.t()) :: String.t()
+  def normalize_symbols(str) do
+    str
+    |> String.replace("?", "Huh")
+    |> String.replace("!", "Bang")
+    |> String.replace("@", "At")
+    |> String.replace("#", "Hash")
+    |> String.replace("$", "Dollar")
+    |> String.replace("%", "Percent")
+    |> String.replace("^", "Hat")
+    |> String.replace("&", "And")
+    |> String.replace("*", "Times")
+    |> String.replace("(", "LParen")
+    |> String.replace(")", "RParen")
+    |> String.replace("[", "LBracket")
+    |> String.replace("]", "RBracket")
+    |> String.replace("{", "LBrace")
+    |> String.replace("}", "RBrace")
+    |> String.replace("<", "Lt")
+    |> String.replace(">", "Gt")
+    |> String.replace("\\", "Backslash")
+    |> String.replace("/", "Slash")
+    |> String.replace("|", "Pipe")
+    |> String.replace("`", "Tick")
+    |> String.replace("'", "Quote")
+    |> String.replace("\"", "DoubleQuote")
+    |> String.replace(".", "Dot")
+    |> String.replace(",", "Comma")
+    |> String.replace("-", "Minus")
+    |> String.replace("+", "Plus")
+    |> String.replace("~", "Tilde")
+    |> String.replace("=", "Equal")
+    |> String.replace(":", "Colon")
+    |> String.replace(";", "Semicolon")
+  end
+
+  @doc ~S"""
+  Turns a kebab-cased identifier into a camelCased one
+
+  ## Examples
+
+  iex> kebab_to_camel_case("i-want-to-be-camel-cased")
+  "iWantToBeCamelCased"
+
+  iex> kebab_to_camel_case("IlikeMySelfJustthewayIAm")
+  "ilikeMySelfJustthewayIAm"
+
+  """
+  @spec kebab_to_camel_case(String.t()) :: String.t()
+  def kebab_to_camel_case(str) do
+    str
+    |> String.split("-")
+    |> Enum.map(fn word -> upcase_first(word) end)
+    |> Enum.join()
+    |> downcase_first()
+  end
+
+  @doc ~S"""
+  Turns a snake_cased identifier into a camelCased one
+
+  ## Examples
+
+      iex> snake_to_camel_case("i_want_to_be_camel_cased")
+      "iWantToBeCamelCased"
+
+      iex> snake_to_camel_case("IlikeMySelfJustthewayIAm")
+      "ilikeMySelfJustthewayIAm"
+
+  """
+  @spec snake_to_camel_case(String.t()) :: String.t()
+  def snake_to_camel_case(str) do
+    str
+    |> String.split("_")
+    |> Enum.map(fn word -> upcase_first(word) end)
+    |> Enum.join()
+    |> downcase_first()
+  end
 
   @doc ~S"""
   Upcases the first letter of a string.
+
+  ## Examples
+
+      iex> upcase_first("foobar")
+      "Foobar"
+
+  """
+  @spec upcase_first(String.t()) :: String.t()
+  def upcase_first(string) when is_binary(string) do
+    if String.length(string) > 0 do
+      String.upcase(String.at(string, 0)) <> String.slice(string, 1..-1)
+    else
+      ""
+    end
+  end
+
+  @doc ~S"""
+  Downcases the first letter of a string.
 
   ## Examples
 
@@ -134,16 +239,7 @@ defmodule JS2E.Printer.Util do
         determine_primitive_type(resolved_type.type)
       else
         resolved_type_name = resolved_type.name
-
-        if resolved_type_name == "#" do
-          if resolved_schema.title != nil do
-            {:ok, upcase_first(resolved_schema.title)}
-          else
-            {:ok, "Root"}
-          end
-        else
-          {:ok, upcase_first(resolved_type_name)}
-        end
+        {:ok, upcase_first(resolved_type_name)}
       end
 
     case type_name do
