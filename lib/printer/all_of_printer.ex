@@ -6,6 +6,7 @@ defmodule JS2E.Printer.AllOfPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer.{ErrorUtil, Util, PrinterError, PrinterResult}
+  alias JS2E.Printer.Utils.{Naming, Indentation}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{AllOfType, ObjectType, SchemaDefinition}
 
@@ -32,8 +33,8 @@ defmodule JS2E.Printer.AllOfPrinter do
         schema_dict,
         module_name
       ) do
-    normalized_name = Util.normalize_name(name)
-    type_name = Util.upcase_first(normalized_name)
+    normalized_name = Naming.normalize_identifier(name, :downcase)
+    type_name = Naming.upcase_first(normalized_name)
 
     {type_fields, errors} =
       types
@@ -80,11 +81,9 @@ defmodule JS2E.Printer.AllOfPrinter do
 
     case field_type_result do
       {:ok, field_type} ->
-        field_name =
-          field_type |> Util.normalize_name() |> Util.downcase_first()
+        field_name = field_type |> Naming.normalize_identifier(:downcase)
 
-        field_type_name =
-          field_type |> Util.normalize_name() |> Util.upcase_first()
+        field_type_name = field_type |> Naming.normalize_identifier(:upcase)
 
         {:ok, %{name: field_name, type: field_type_name}}
 
@@ -120,9 +119,9 @@ defmodule JS2E.Printer.AllOfPrinter do
       |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    normalized_name = Util.normalize_name(name)
+    normalized_name = Naming.normalize_identifier(name, :downcase)
     decoder_name = "#{normalized_name}Decoder"
-    type_name = Util.upcase_first(normalized_name)
+    type_name = Naming.upcase_first(normalized_name)
 
     decoder_name
     |> decoder_template(type_name, clauses)
@@ -223,8 +222,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   defp create_decoder_normal_clause(property_name, decoder_name) do
     {:ok,
      %{
-       property_name: Util.normalize_name(property_name),
-       decoder_name: Util.normalize_name(decoder_name)
+       property_name: Naming.normalize_identifier(property_name, :downcase),
+       decoder_name: Naming.normalize_identifier(decoder_name, :downcase)
      }}
   end
 
@@ -256,14 +255,13 @@ defmodule JS2E.Printer.AllOfPrinter do
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    normalized_name = Util.normalize_name(name)
-    type_name = Util.upcase_first(normalized_name)
+    argument_name = Naming.normalize_identifier(name, :downcase)
+    type_name = Naming.upcase_first(argument_name)
     encoder_name = "encode#{type_name}"
-    argument_name = Util.downcase_first(type_name)
 
     encoder_name
     |> encoder_template(type_name, argument_name, encoder_properties)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -300,7 +298,7 @@ defmodule JS2E.Printer.AllOfPrinter do
          schema_dict,
          module_name
        ) do
-    parent_name = Util.normalize_name(type_def.name)
+    parent_name = Naming.normalize_identifier(type_def.name)
 
     type_def.properties
     |> Enum.map(fn {_child_name, child_path} ->

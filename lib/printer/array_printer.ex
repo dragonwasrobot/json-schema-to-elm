@@ -6,6 +6,7 @@ defmodule JS2E.Printer.ArrayPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer.{Util, PrinterError, PrinterResult}
+  alias JS2E.Printer.Utils.{Naming, Indentation}
   alias JS2E.Types
   alias JS2E.Types.{ArrayType, SchemaDefinition}
 
@@ -55,8 +56,7 @@ defmodule JS2E.Printer.ArrayPrinter do
            Util.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_decoder_name} <- determine_decoder_name(items_type) do
-      "#{name}Decoder"
-      |> Util.downcase_first()
+      "#{Naming.normalize_identifier(name, :downcase)}Decoder"
       |> decoder_template(items_type_name, items_decoder_name)
       |> PrinterResult.new()
     else
@@ -71,12 +71,12 @@ defmodule JS2E.Printer.ArrayPrinter do
     if Util.primitive_type?(items_type) do
       Util.determine_primitive_type(items_type.type)
     else
-      items_type_name = items_type.name
+      items_type_name = Naming.normalize_identifier(items_type.name, :upcase)
 
-      if items_type_name == "#" do
+      if items_type_name == "Hash" do
         {:ok, "Root"}
       else
-        {:ok, Util.upcase_first(items_type_name)}
+        {:ok, items_type_name}
       end
     end
   end
@@ -87,9 +87,9 @@ defmodule JS2E.Printer.ArrayPrinter do
     if Util.primitive_type?(items_type) do
       Util.determine_primitive_type_decoder(items_type.type)
     else
-      items_type_name = items_type.name
+      items_type_name = Naming.normalize_identifier(items_type.name, :downcase)
 
-      if items_type_name == "#" do
+      if items_type_name == "hash" do
         {:ok, "rootDecoder"}
       else
         {:ok, "#{items_type_name}Decoder"}
@@ -124,7 +124,7 @@ defmodule JS2E.Printer.ArrayPrinter do
            Util.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_encoder_name} <- determine_encoder_name(items_type) do
-      "encode#{items_type_name}s"
+      "encode#{Naming.normalize_identifier(items_type_name, :upcase)}s"
       |> encoder_template(name, items_type_name, items_encoder_name)
       |> PrinterResult.new()
     else
@@ -139,12 +139,12 @@ defmodule JS2E.Printer.ArrayPrinter do
     if Util.primitive_type?(items_type) do
       Util.determine_primitive_type_encoder(items_type.type)
     else
-      items_type_name = items_type.name
+      items_type_name = Naming.normalize_identifier(items_type.name, :upcase)
 
-      if items_type_name == "#" do
+      if items_type_name == "Hash" do
         {:ok, "encodeRoot"}
       else
-        {:ok, "encode#{Util.upcase_first(items_type_name)}"}
+        {:ok, "encode#{items_type_name}"}
       end
     end
   end

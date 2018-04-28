@@ -8,6 +8,7 @@ defmodule JS2E.Printer.PreamblePrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer.{PrinterResult, PrinterError, Util}
+  alias JS2E.Printer.Utils.{Naming, Indentation}
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 

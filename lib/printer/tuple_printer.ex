@@ -6,6 +6,7 @@ defmodule JS2E.Printer.TuplePrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer.{Util, PrinterError, PrinterResult}
+  alias JS2E.Printer.Utils.{Naming, Indentation}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{TupleType, SchemaDefinition}
 
@@ -38,7 +39,7 @@ defmodule JS2E.Printer.TuplePrinter do
       |> Util.split_ok_and_errors()
 
     name
-    |> Util.upcase_first()
+    |> Naming.normalize_identifier(:upcase)
     |> type_template(type_fields)
     |> PrinterResult.new(errors)
   end
@@ -103,8 +104,9 @@ defmodule JS2E.Printer.TuplePrinter do
       |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    decoder_name = "#{name}Decoder"
-    type_name = Util.upcase_first(name)
+    normalized_name = Naming.normalize_identifier(name, :downcase)
+    decoder_name = "#{normalized_name}Decoder"
+    type_name = Naming.upcase_first(normalized_name)
 
     decoder_name
     |> decoder_template(type_name, decoder_clauses)
@@ -218,12 +220,12 @@ defmodule JS2E.Printer.TuplePrinter do
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
       |> Util.split_ok_and_errors()
 
-    type_name = Util.upcase_first(name)
+    type_name = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{type_name}"
 
     encoder_name
     |> encoder_template(type_name, encoder_properties)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 

@@ -6,6 +6,7 @@ defmodule JS2E.Printer.ObjectPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer.{Util, PrinterError, PrinterResult}
+  alias JS2E.Printer.Utils.{Naming, Indentation}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{ObjectType, SchemaDefinition}
 
@@ -165,7 +166,7 @@ defmodule JS2E.Printer.ObjectPrinter do
         module_name
       ) do
     type_name = create_root_name(name, schema_def)
-    decoder_name = "#{Util.downcase_first(type_name)}Decoder"
+    decoder_name = "#{Naming.downcase_first(type_name)}Decoder"
 
     {decoder_clauses, errors} =
       properties
@@ -369,7 +370,7 @@ defmodule JS2E.Printer.ObjectPrinter do
       ) do
     type_name = create_root_name(name, schema_def)
     encoder_name = "encode#{type_name}"
-    argument_name = Util.downcase_first(type_name)
+    argument_name = Naming.downcase_first(type_name)
 
     {encoder_properties, errors} =
       properties
@@ -384,7 +385,7 @@ defmodule JS2E.Printer.ObjectPrinter do
 
     encoder_name
     |> encoder_template(type_name, argument_name, encoder_properties)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -460,14 +461,16 @@ defmodule JS2E.Printer.ObjectPrinter do
 
   @spec create_root_name(String.t(), SchemaDefinition.t()) :: String.t()
   defp create_root_name(name, schema_def) do
-    if name == "#" do
+    normalized_name = Naming.normalize_identifier(name, :upcase)
+
+    if normalized_name == "Hash" do
       if schema_def.title != nil do
-        Util.upcase_first(schema_def.title)
+        Naming.upcase_first(schema_def.title)
       else
         "Root"
       end
     else
-      Util.upcase_first(name)
+      normalized_name
     end
   end
 end

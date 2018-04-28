@@ -70,10 +70,4 @@ defmodule JS2E.Parser.TupleParser do
     |> ParserResult.new()
     |> ParserResult.merge(child_types_result)
   end
-
-  def parse(%{"items" => items}, _parent_id, _id, path, _name) do
-    items_type = ErrorUtil.get_type(items)
-    error = ErrorUtil.invalid_type(path, "items", "list or object", items_type)
-    ParserResult.new(%{}, [], [error])
-  end
 end

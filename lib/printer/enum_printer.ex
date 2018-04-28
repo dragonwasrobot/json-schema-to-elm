@@ -6,6 +6,7 @@ defmodule JS2E.Printer.EnumPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer.{Util, PrinterError, PrinterResult, ErrorUtil}
+  alias JS2E.Printer.Utils.{Naming, Indentation}
   alias JS2E.Types
   alias JS2E.Types.{EnumType, SchemaDefinition}
 
@@ -38,7 +39,7 @@ defmodule JS2E.Printer.EnumPrinter do
       |> Util.split_ok_and_errors()
 
     name
-    |> Util.upcase_first()
+    |> Naming.normalize_identifier(:upcase)
     |> type_template(clauses)
     |> PrinterResult.new(errors)
   end
@@ -69,8 +70,8 @@ defmodule JS2E.Printer.EnumPrinter do
       ) do
     case Util.determine_primitive_type(type) do
       {:ok, argument_type} ->
-        decoder_name = "#{Util.downcase_first(name)}Decoder"
-        decoder_type = Util.upcase_first(name)
+        decoder_name = "#{Naming.normalize_identifier(name, :downcase)}Decoder"
+        decoder_type = Naming.upcase_first(name)
 
         {decoder_cases, errors} =
           values
@@ -142,7 +143,7 @@ defmodule JS2E.Printer.EnumPrinter do
         _schema_dict,
         _module_name
       ) do
-    argument_type = Util.upcase_first(name)
+    argument_type = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{argument_type}"
 
     {encoder_cases, errors} =
@@ -152,7 +153,7 @@ defmodule JS2E.Printer.EnumPrinter do
 
     encoder_name
     |> encoder_template(name, argument_type, encoder_cases)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -200,7 +201,7 @@ defmodule JS2E.Printer.EnumPrinter do
   defp create_elm_value(value, type_name) do
     case type_name do
       "string" ->
-        {:ok, Util.upcase_first(value)}
+        {:ok, Naming.normalize_identifier(value, :upcase)}
 
       "integer" ->
         {:ok, "Int#{value}"}
