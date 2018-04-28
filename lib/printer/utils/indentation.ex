@@ -11,8 +11,8 @@ defmodule JS2E.Printer.Utils.Indentation do
 
   ## Examples
 
-  iex> indent(2)
-  "        "
+      iex> indent(2)
+      "        "
 
   """
   @spec indent(pos_integer) :: String.t()

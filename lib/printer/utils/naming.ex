@@ -13,7 +13,7 @@ defmodule JS2E.Printer.Utils.Naming do
 
   Also turns kebab-case, snake_case, and space case into camelCase.
 
-  Examples
+  ## Examples
 
       iex> normalize_identifier("0")
       "zero"
@@ -28,52 +28,71 @@ defmodule JS2E.Printer.Utils.Naming do
       "nameAtDomain"
 
       iex> normalize_identifier("#Browns")
-      "HashBrowns"
+      "hashBrowns"
 
       iex> normalize_identifier("$Bill")
-      "DollarBill"
+      "dollarBill"
 
       iex> normalize_identifier("identity")
       "identity"
 
-      iex> space_to_camel_case("i want to be camel cased")
+      iex> normalize_identifier("i want to be camel cased")
       "iWantToBeCamelCased"
 
-      iex> space to camel case("dontEverChange")
+      iex> normalize_identifier("i-want-to-be-camel-cased")
+      "iWantToBeCamelCased"
+
+      iex> normalize_identifier("DontEverChange")
       "dontEverChange"
 
-      iex> kebab_to_camel_case("i-want-to-be-camel-cased")
+      iex> normalize_identifier("i_want_to_be_camel_cased")
       "iWantToBeCamelCased"
-
-      iex> kebab_to_camel_case("DontEverChange")
-      "DontEverChange"
-
-      iex> snake_to_camel_case("i_want_to_be_camel_cased")
-      "iWantToBeCamelCased"
-
-      iex> snake_to_camel_case("dontEverChange")
-      "dontEverChange"
 
   """
   @spec normalize_identifier(String.t(), casing) :: String.t()
   def normalize_identifier(identifier, casing \\ :none) do
     normalized_identifier =
       identifier
-      |> normalize_name
-      |> normalize_symbols
       |> kebab_to_camel_case
       |> snake_to_camel_case
       |> space_to_camel_case
+      |> normalize_name
+      |> normalize_symbols
+      |> downcase_first
 
     case casing do
       :none ->
-        normalized_identifier
+        if determine_case(identifier) == :upcase do
+          upcase_first(normalized_identifier)
+        else
+          # We prefer to downcase
+          downcase_first(normalized_identifier)
+        end
 
       :upcase ->
         upcase_first(normalized_identifier)
 
       :downcase ->
         downcase_first(normalized_identifier)
+    end
+  end
+
+  # Determines the casing of a string, e.g.
+  # - the string `"Abc"` returns `:upcase`,
+  # - the string `"abc"` returns `:downcase`, and
+  # - the string `"$bc"` returns `:none`
+  defp determine_case(s) do
+    first = s
+
+    cond do
+      first |> String.upcase() == first and first |> String.downcase() != first ->
+        :upcase
+
+      first |> String.upcase() != first and first |> String.downcase() == first ->
+        :downcase
+
+      true ->
+        :none
     end
   end
 
