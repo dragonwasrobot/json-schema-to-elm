@@ -7,8 +7,7 @@ defmodule JS2E.Printer.PreamblePrinter do
   @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{PrinterResult, PrinterError, Util}
-  alias JS2E.Printer.Utils.{Naming, Indentation}
+  alias JS2E.Printer.PrinterResult
   alias JS2E.Types
   alias JS2E.Types.{TypeReference, SchemaDefinition}
 
@@ -69,10 +68,12 @@ defmodule JS2E.Printer.PreamblePrinter do
   defp get_type_references(type_dict) do
     type_dict
     |> Enum.reduce([], fn {_path, type}, types ->
-      if Util.get_string_name(type) == "TypeReference" do
-        [type | types]
-      else
-        types
+      case type do
+        %TypeReference{} ->
+          [type | types]
+
+        _ ->
+          types
       end
     end)
   end

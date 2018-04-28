@@ -5,8 +5,8 @@ defmodule JS2E.Printer.EnumPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterError, PrinterResult, ErrorUtil}
-  alias JS2E.Printer.Utils.{Naming, Indentation}
+  alias JS2E.Printer.{PrinterError, PrinterResult, ErrorUtil}
+  alias JS2E.Printer.Utils.{Naming, Indentation, ElmTypes, CommonOperations}
   alias JS2E.Types
   alias JS2E.Types.{EnumType, SchemaDefinition}
 
@@ -36,7 +36,7 @@ defmodule JS2E.Printer.EnumPrinter do
     {clauses, errors} =
       values
       |> Enum.map(&create_elm_value(&1, type))
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     name
     |> Naming.normalize_identifier(:upcase)
@@ -68,7 +68,7 @@ defmodule JS2E.Printer.EnumPrinter do
         _schema_dict,
         _module_name
       ) do
-    case Util.determine_primitive_type(type) do
+    case ElmTypes.determine_primitive_type_name(type) do
       {:ok, argument_type} ->
         decoder_name = "#{Naming.normalize_identifier(name, :downcase)}Decoder"
         decoder_type = Naming.upcase_first(name)
@@ -76,7 +76,7 @@ defmodule JS2E.Printer.EnumPrinter do
         {decoder_cases, errors} =
           values
           |> create_decoder_cases(type)
-          |> Util.split_ok_and_errors()
+          |> CommonOperations.split_ok_and_errors()
 
         decoder_name
         |> decoder_template(decoder_type, name, argument_type, decoder_cases)
@@ -149,7 +149,7 @@ defmodule JS2E.Printer.EnumPrinter do
     {encoder_cases, errors} =
       values
       |> create_encoder_cases(type)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     encoder_name
     |> encoder_template(name, argument_type, encoder_cases)

@@ -5,10 +5,27 @@ defmodule JS2E.Printer.ObjectPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterError, PrinterResult}
-  alias JS2E.Printer.Utils.{Naming, Indentation}
+  alias JS2E.Printer.{PrinterError, PrinterResult}
+
+  alias JS2E.Printer.Utils.{
+    Naming,
+    Indentation,
+    ElmTypes,
+    ElmDecoders,
+    ElmEncoders,
+    ResolveType,
+    CommonOperations
+  }
+
   alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{ObjectType, SchemaDefinition}
+
+  alias JS2E.Types.{
+    EnumType,
+    OneOfType,
+    ObjectType,
+    UnionType,
+    SchemaDefinition
+  }
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -52,7 +69,7 @@ defmodule JS2E.Printer.ObjectPrinter do
 
     {fields, errors} =
       fields_result
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     type_name
     |> type_template(fields)
@@ -110,8 +127,8 @@ defmodule JS2E.Printer.ObjectPrinter do
 
     field_type_result =
       property_path
-      |> Util.resolve_type(properties_path, schema_def, schema_dict)
-      |> Util.create_type_name(schema_def, module_name)
+      |> ResolveType.resolve_type(properties_path, schema_def, schema_dict)
+      |> ElmTypes.create_type_name(schema_def, module_name)
       |> check_if_maybe(property_name, required)
 
     case field_type_result do
@@ -177,7 +194,7 @@ defmodule JS2E.Printer.ObjectPrinter do
         schema_dict,
         module_name
       )
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     decoder_name
     |> decoder_template(type_name, decoder_clauses)
@@ -232,26 +249,23 @@ defmodule JS2E.Printer.ObjectPrinter do
     properties_path = TypePath.add_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           Util.resolve_type(
+           ResolveType.resolve_type(
              property_path,
              properties_path,
              schema_def,
              schema_dict
            ),
          {:ok, decoder_name} <-
-           Util.create_decoder_name(
+           ElmDecoders.create_decoder_name(
              {:ok, {resolved_type, resolved_schema}},
              schema_def,
              module_name
            ) do
       is_required = property_name in required
 
-      cond do
-        Util.union_type?(resolved_type) or Util.one_of_type?(resolved_type) ->
-          create_decoder_union_clause(property_name, decoder_name, is_required)
-
-        Util.enum_type?(resolved_type) ->
-          case Util.determine_primitive_type_decoder(resolved_type.type) do
+      case resolved_type do
+        %EnumType{} ->
+          case ElmDecoders.determine_primitive_type_decoder(resolved_type.type) do
             {:ok, property_type_decoder} ->
               create_decoder_enum_clause(
                 property_name,
@@ -264,7 +278,13 @@ defmodule JS2E.Printer.ObjectPrinter do
               {:error, error}
           end
 
-        true ->
+        %OneOfType{} ->
+          create_decoder_union_clause(property_name, decoder_name, is_required)
+
+        %UnionType{} ->
+          create_decoder_union_clause(property_name, decoder_name, is_required)
+
+        _ ->
           create_decoder_normal_clause(property_name, decoder_name, is_required)
       end
     else
@@ -381,7 +401,7 @@ defmodule JS2E.Printer.ObjectPrinter do
         schema_dict,
         module_name
       )
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     encoder_name
     |> encoder_template(type_name, argument_name, encoder_properties)
@@ -437,14 +457,14 @@ defmodule JS2E.Printer.ObjectPrinter do
     properties_path = TypePath.add_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           Util.resolve_type(
+           ResolveType.resolve_type(
              property_path,
              properties_path,
              schema_def,
              schema_dict
            ),
          {:ok, encoder_name} <-
-           Util.create_encoder_name(
+           ElmEncoders.create_encoder_name(
              {:ok, {resolved_type, resolved_schema}},
              schema_def,
              module_name

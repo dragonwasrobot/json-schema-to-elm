@@ -4,6 +4,19 @@ defmodule JS2E.Printer.Utils.Naming do
   identifiers in the Elm output.
   """
 
+  alias JS2E.Types.SchemaDefinition
+
+  @spec qualify_name(SchemaDefinition.t(), String.t(), String.t()) :: String.t()
+  def qualify_name(schema_def, type_name, module_name) do
+    schema_name = schema_def.title
+
+    if String.length(schema_name) > 0 do
+      "#{module_name}.#{schema_name}.#{type_name}"
+    else
+      "#{module_name}.#{type_name}"
+    end
+  end
+
   @type casing :: :upcase | :downcase | :none
 
   @doc ~S"""

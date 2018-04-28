@@ -5,8 +5,8 @@ defmodule JS2E.Printer.UnionPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterError, PrinterResult, ErrorUtil}
-  alias JS2E.Printer.Utils.{Naming, Indentation}
+  alias JS2E.Printer.{PrinterError, PrinterResult, ErrorUtil}
+  alias JS2E.Printer.Utils.{Naming, Indentation, CommonOperations}
   alias JS2E.{Types}
   alias JS2E.Types.{UnionType, SchemaDefinition}
 
@@ -36,7 +36,7 @@ defmodule JS2E.Printer.UnionPrinter do
     {type_clauses, errors} =
       types
       |> create_type_clauses(name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     name
     |> Naming.normalize_identifier(:upcase)
@@ -108,7 +108,7 @@ defmodule JS2E.Printer.UnionPrinter do
     {decoder_clauses, errors} =
       types
       |> create_clause_decoders(type_name, nullable?)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     decoder_name
     |> decoder_template(decoder_type, nullable?, decoder_clauses)
@@ -203,7 +203,7 @@ defmodule JS2E.Printer.UnionPrinter do
     {encoder_cases, errors} =
       types
       |> create_encoder_cases(name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     type_name = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{type_name}"

@@ -4,7 +4,7 @@ defmodule JS2E.Printer.ErrorUtil do
   """
 
   alias JS2E.{Types, TypePath}
-  alias JS2E.Printer.{PrinterError}
+  alias JS2E.Printer.PrinterError
 
   @spec unresolved_reference(
           Types.typeIdentifier(),

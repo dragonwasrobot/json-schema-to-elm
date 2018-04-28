@@ -5,10 +5,20 @@ defmodule JS2E.Printer.TuplePrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterError, PrinterResult}
-  alias JS2E.Printer.Utils.{Naming, Indentation}
+  alias JS2E.Printer.{PrinterError, PrinterResult}
+
+  alias JS2E.Printer.Utils.{
+    Naming,
+    Indentation,
+    ElmTypes,
+    ElmDecoders,
+    ElmEncoders,
+    ResolveType,
+    CommonOperations
+  }
+
   alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{TupleType, SchemaDefinition}
+  alias JS2E.Types.{EnumType, OneOfType, TupleType, UnionType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -36,7 +46,7 @@ defmodule JS2E.Printer.TuplePrinter do
     {type_fields, errors} =
       types
       |> create_type_fields(path, schema_def, schema_dict, module_name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     name
     |> Naming.normalize_identifier(:upcase)
@@ -73,8 +83,8 @@ defmodule JS2E.Printer.TuplePrinter do
          module_name
        ) do
     type_path
-    |> Util.resolve_type(parent, schema_def, schema_dict)
-    |> Util.create_type_name(schema_def, module_name)
+    |> ResolveType.resolve_type(parent, schema_def, schema_dict)
+    |> ElmTypes.create_type_name(schema_def, module_name)
   end
 
   # Decoder
@@ -102,7 +112,7 @@ defmodule JS2E.Printer.TuplePrinter do
     {decoder_clauses, errors} =
       type_paths
       |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     normalized_name = Naming.normalize_identifier(name, :downcase)
     decoder_name = "#{normalized_name}Decoder"
@@ -148,19 +158,16 @@ defmodule JS2E.Printer.TuplePrinter do
          module_name
        ) do
     with {:ok, {property_type, resolved_schema_def}} <-
-           Util.resolve_type(type_path, parent, schema_def, schema_dict),
+           ResolveType.resolve_type(type_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <-
-           Util.create_decoder_name(
+           ElmDecoders.create_decoder_name(
              {:ok, {property_type, resolved_schema_def}},
              schema_def,
              module_name
            ) do
-      cond do
-        Util.union_type?(property_type) or Util.one_of_type?(property_type) ->
-          create_decoder_union_clause(decoder_name)
-
-        Util.enum_type?(property_type) ->
-          case Util.determine_primitive_type_decoder(property_type.type) do
+      case property_type do
+        %EnumType{} ->
+          case ElmDecoders.determine_primitive_type_decoder(property_type.type) do
             {:ok, property_type_decoder} ->
               create_decoder_enum_clause(property_type_decoder, decoder_name)
 
@@ -168,7 +175,13 @@ defmodule JS2E.Printer.TuplePrinter do
               {:error, error}
           end
 
-        true ->
+        %OneOfType{} ->
+          create_decoder_union_clause(decoder_name)
+
+        %UnionType{} ->
+          create_decoder_union_clause(decoder_name)
+
+        _ ->
           create_decoder_normal_clause(decoder_name)
       end
     else
@@ -218,7 +231,7 @@ defmodule JS2E.Printer.TuplePrinter do
     {encoder_properties, errors} =
       type_paths
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     type_name = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{type_name}"
@@ -244,7 +257,7 @@ defmodule JS2E.Printer.TuplePrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(&Util.resolve_type(&1, parent, schema_def, schema_dict))
+    |> Enum.map(&ResolveType.resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
   end
 
@@ -262,7 +275,7 @@ defmodule JS2E.Printer.TuplePrinter do
          module_name
        ) do
     encoder_name_result =
-      Util.create_encoder_name(
+      ElmEncoders.create_encoder_name(
         {:ok, {resolved_property, resolved_schema}},
         schema_def,
         module_name
