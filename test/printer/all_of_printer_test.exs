@@ -41,7 +41,7 @@ defmodule JS2ETest.Printer.AllOfPrinter do
       "#/definitions/fancyCircle/allOf/0" => %ObjectType{
         name: "0",
         path: path() ++ ["allOf", "0"],
-        required: ["color", "radius"],
+        required: ["color"],
         properties: %{
           "color" => path() ++ ["allOf", "0", "properties", "color"],
           "description" => path() ++ ["allOf", "0", "properties", "description"]
@@ -78,7 +78,7 @@ defmodule JS2ETest.Printer.AllOfPrinter do
       "#/definitions/circle/properties/radius" => %PrimitiveType{
         name: "radius",
         path: ["#", "definitions", "circle", "properties", "radius"],
-        type: "string"
+        type: "number"
       }
     }
   end
@@ -94,9 +94,8 @@ defmodule JS2ETest.Printer.AllOfPrinter do
 
     expected_all_of_type_program = """
     type alias FancyCircle =
-        { color : Color
-        , description : Maybe String
-        , radius : Float
+        { zero : Zero
+        , circle : Circle
         }
     """
 
@@ -112,9 +111,8 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     fancyCircleDecoder : Decoder FancyCircle
     fancyCircleDecoder =
         decode FancyCircle
-            |> required "color" (Decode.string |> andThen colorDecoder)
-            |> optional "description" (nullable Decode.string) Nothing
-            |> required "radius" Decode.float
+            |> custom zeroDecoder
+            |> custom circleDecoder
     """
 
     all_of_decoder_program = result.printed_schema
@@ -132,20 +130,21 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     encodeFancyCircle fancyCircle =
         let
             color =
-                encodeColor fancyCircle.color
+                [ ( "color", encodeColor fancyCircle.zero.color ) ]
 
             description =
-                case fancyCircle.description of
-                    Just description ->
-                        [ ( "description", Encode.string description ) ]
-
-                    Nothing ->
-                        []
+                fancyCircle.zero.description
+                    |> Maybe.map
+                        (\\description ->
+                            [ ( "description", Encode.string description ) ]
+                        )
+                    |> Maybe.withDefault []
 
             radius =
-                [ ( "radius", Encode.float circle.radius ) ]
+                [ ( "radius", Encode.float fancyCircle.circle.radius ) ]
         in
-            object <| color ++ description ++ radius
+            object <|
+                color ++ description ++ radius
     """
 
     all_of_encoder_program = result.printed_schema
