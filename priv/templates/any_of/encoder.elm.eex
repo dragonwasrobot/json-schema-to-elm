@@ -2,12 +2,18 @@
 <%= encoder_name %> <%= argument_name %> =
     let<%= for property <- properties do %>
         <%= property.name %> =
-            case <%= argument_name %>.<%= property.name %> of
-                Just <%= property.name %> ->
-                    <%= property.encoder_name %> <%= property.name %>
-
-                Nothing ->
-                    []
+            <%= argument_name %>.<%= property.parent_name %>
+                |> Maybe.map
+                    (\<%= property.parent_name %> -><%= if property.required == true do %>
+                        [ ( "<%= property.name %>", <%= property.encoder_name %> <%= property.parent_name %>.<%= property.name %> ) ]<% else %>
+                        <%= property.parent_name %>.<%= property.name %>
+                            |> Maybe.map
+                                (\<%= property.name %> ->
+                                    [ ( "<%= property.name %>", <%= property.encoder_name %> <%= property.name %> ) ]
+                                )
+                            |> Maybe.withDefault []<% end %>
+                    )
+                |> Maybe.withDefault []
 <% end %><%#
 %>    in
         object <|

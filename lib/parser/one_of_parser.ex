@@ -50,7 +50,7 @@ defmodule JS2E.Parser.OneOfParser do
 
   """
   @impl JS2E.Parser.ParserBehaviour
-  @spec type?(Types.node()) :: boolean
+  @spec type?(Types.schemaNode()) :: boolean
   def type?(schema_node) do
     one_of = schema_node["oneOf"]
     is_list(one_of) && length(one_of) > 0
@@ -60,7 +60,7 @@ defmodule JS2E.Parser.OneOfParser do
   Parses a JSON schema oneOf type into an `JS2E.Types.OneOfType`.
   """
   @impl JS2E.Parser.ParserBehaviour
-  @spec parse(Types.node(), URI.t(), URI.t(), TypePath.t(), String.t()) ::
+  @spec parse(Types.schemaNode(), URI.t(), URI.t(), TypePath.t(), String.t()) ::
           ParserResult.t()
   def parse(%{"oneOf" => one_of}, parent_id, id, path, name)
       when is_list(one_of) do

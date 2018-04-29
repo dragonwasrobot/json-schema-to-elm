@@ -2,113 +2,117 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{AnyOfType, ObjectType, TypeReference, SchemaDefinition}
+
+  alias JS2E.Types.{
+    AnyOfType,
+    EnumType,
+    ObjectType,
+    PrimitiveType,
+    TypeReference,
+    SchemaDefinition
+  }
+
   alias JS2E.Printer.AnyOfPrinter
 
-  test "print 'any of' type value" do
-    module_name = "Domain"
+  defp path, do: ["#", "definitions", "fancyCircle"]
 
-    type_dict = %{
-      "#/shape/0" => %TypeReference{
-        name: "square",
-        path: ["#", "definitions", "square"]
-      },
-      "#/shape/1" => %TypeReference{
-        name: "circle",
-        path: ["#", "definitions", "circle"]
-      },
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
+  def any_of_type do
+    %AnyOfType{
+      name: "fancyCircle",
+      path: ["#", "definitions", "fancyCircle"],
+      types: [
+        path() ++ ["anyOf", "0"],
+        path() ++ ["anyOf", "1"]
+      ]
+    }
+  end
+
+  def schema_def do
+    %SchemaDefinition{
+      description: "'anyOf' example schema",
+      id: URI.parse("http://example.com/any_of_example.json"),
+      title: "AnyOfExample",
+      types: type_dict()
+    }
+  end
+
+  def type_dict do
+    %{
+      "#/definitions/fancyCircle/anyOf/0" => %ObjectType{
+        name: "0",
+        path: path() ++ ["anyOf", "0"],
+        required: ["color"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
+          "color" => path() ++ ["anyOf", "0", "properties", "color"],
+          "description" => path() ++ ["anyOf", "0", "properties", "description"]
         }
+      },
+      "#/definitions/fancyCircle/anyOf/0/properties/color" => %TypeReference{
+        name: "color",
+        path: ["#", "definitions", "color"]
+      },
+      "#/definitions/color" => %EnumType{
+        name: "color",
+        path: ["#", "definitions", "color"],
+        type: "string",
+        values: ["red", "yellow", "green"]
+      },
+      "#/definitions/fancyCircle/anyOf/0/properties/description" =>
+        %PrimitiveType{
+          name: "description",
+          path: path() ++ ["anyOf", "0", "properties", "description"],
+          type: "string"
+        },
+      "#/definitions/fancyCircle/anyOf/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
       },
       "#/definitions/circle" => %ObjectType{
         name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
+        path: ["#", "definitions", "circle"],
+        required: ["radius"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
+          "radius" => ["#", "definitions", "circle", "properties", "radius"]
         }
+      },
+      "#/definitions/circle/properties/radius" => %PrimitiveType{
+        name: "radius",
+        path: ["#", "definitions", "circle", "properties", "radius"],
+        type: "number"
       }
     }
+  end
 
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
+  def module_name, do: "Data"
 
+  test "print 'any of' type value" do
     result =
-      %AnyOfType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        types: [["#", "shape", "0"], ["#", "shape", "1"]]
-      }
-      |> AnyOfPrinter.print_type(schema_def, %{}, module_name)
+      any_of_type()
+      |> AnyOfPrinter.print_type(schema_def(), %{}, module_name())
+
+    any_of_type_program = result.printed_schema
 
     expected_any_of_type_program = """
-    type alias Shape =
-        { square : Maybe Square
+    type alias FancyCircle =
+        { zero : Maybe Zero
         , circle : Maybe Circle
         }
     """
-
-    any_of_type_program = result.printed_schema
 
     assert any_of_type_program == expected_any_of_type_program
   end
 
   test "print 'any of' decoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %AnyOfType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        types: [["#", "definitions", "square"], ["#", "definitions", "circle"]]
-      }
-      |> AnyOfPrinter.print_decoder(schema_def, %{}, module_name)
+      any_of_type()
+      |> AnyOfPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_any_of_decoder_program = """
-    shapeDecoder : Decoder Shape
-    shapeDecoder =
-        decode Shape
-            |> optional "square" (nullable squareDecoder) Nothing
-            |> optional "circle" (nullable circleDecoder) Nothing
+    fancyCircleDecoder : Decoder FancyCircle
+    fancyCircleDecoder =
+        decode FancyCircle
+            |> custom (nullable zeroDecoder)
+            |> custom (nullable circleDecoder)
     """
 
     any_of_decoder_program = result.printed_schema
@@ -117,69 +121,48 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
   end
 
   test "print 'any of' encoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %AnyOfType{
-        name: "shape",
-        path: ["#", "definitions", "shape"],
-        types: [["#", "definitions", "square"], ["#", "definitions", "circle"]]
-      }
-      |> AnyOfPrinter.print_encoder(schema_def, %{}, module_name)
-
-    expected_any_of_encoder_program = """
-    encodeShape : Shape -> Value
-    encodeShape shape =
-        let
-            square =
-                case shape.square of
-                    Just square ->
-                        encodeSquare square
-
-                    Nothing ->
-                        []
-
-            circle =
-                case shape.circle of
-                    Just circle ->
-                        encodeCircle circle
-
-                    Nothing ->
-                        []
-        in
-            object <|
-                square ++ circle
-    """
+      any_of_type()
+      |> AnyOfPrinter.print_encoder(schema_def(), %{}, module_name())
 
     any_of_encoder_program = result.printed_schema
+
+    expected_any_of_encoder_program = """
+    encodeFancyCircle : FancyCircle -> Value
+    encodeFancyCircle fancyCircle =
+        let
+            color =
+                fancyCircle.zero
+                    |> Maybe.map
+                        (\\zero ->
+                            [ ( "color", encodeColor zero.color ) ]
+                        )
+                    |> Maybe.withDefault []
+
+            description =
+                fancyCircle.zero
+                    |> Maybe.map
+                        (\\zero ->
+                            zero.description
+                                |> Maybe.map
+                                    (\\description ->
+                                        [ ( "description", Encode.string description ) ]
+                                    )
+                                |> Maybe.withDefault []
+                        )
+                    |> Maybe.withDefault []
+
+            radius =
+                fancyCircle.circle
+                    |> Maybe.map
+                        (\\circle ->
+                            [ ( "radius", Encode.float circle.radius ) ]
+                        )
+                    |> Maybe.withDefault []
+        in
+            object <|
+                color ++ description ++ radius
+    """
 
     assert any_of_encoder_program == expected_any_of_encoder_program
   end

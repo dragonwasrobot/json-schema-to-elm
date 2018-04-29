@@ -30,5 +30,5 @@ import Json.Encode as Encode
         , list
         )
 <%= for import_name <- imports do %><%#
-%>import <%= prefix %><%= import_name %><%#
-%><% end %>
+%>import <%= prefix %><%= import_name %>
+<% end %>

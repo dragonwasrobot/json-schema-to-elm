@@ -6,85 +6,87 @@ defmodule JS2ETest.Parser.AllOfParser do
   alias JS2E.Types.{AllOfType, ObjectType, PrimitiveType, TypeReference}
   alias JS2E.Parser.AllOfParser
 
-  test "parse primitive all_of type" do
-    parser_result =
-      ~S"""
-      {
-        "allOf": [
-          {
-            "type": "object",
-            "properties": {
-              "color": {
-                "$ref": "#/color"
-              },
-              "title": {
-                "type": "string"
-              },
-              "radius": {
-                "type": "number"
-              }
+  defp all_of_type do
+    ~S"""
+    {
+      "allOf": [
+        {
+          "type": "object",
+          "properties": {
+            "color": {
+              "$ref": "#/definitions/color"
             },
-            "required": [ "color", "radius" ]
+            "description": {
+              "type": "string"
+            }
           },
-          {
-            "type": "string"
-          }
-        ]
-      }
-      """
+          "required": [ "color" ]
+        },
+        {
+          "$ref": "#/definitions/circle"
+        }
+      ]
+    }
+    """
+  end
+
+  defp parent_id, do: "http://www.example.com/schemas/fancyCircle.json"
+  defp id, do: nil
+  defp path, do: ["#", "definitions", "fancyCircle"]
+  defp name, do: "fancyCircle"
+
+  test "can parse all_of type" do
+    parser_result =
+      all_of_type()
       |> Poison.decode!()
-      |> AllOfParser.parse(nil, nil, ["#", "schema"], "schema")
+      |> AllOfParser.parse(parent_id(), id(), path(), name())
+
+    expected_all_of_type = %AllOfType{
+      name: "fancyCircle",
+      path: ["#", "definitions", "fancyCircle"],
+      types: [
+        path() ++ ["allOf", "0"],
+        path() ++ ["allOf", "1"]
+      ]
+    }
 
     expected_object_type = %ObjectType{
       name: "0",
-      path: ["#", "schema", "allOf", "0"],
-      required: ["color", "radius"],
+      path: path() ++ ["allOf", "0"],
+      required: ["color"],
       properties: %{
-        "color" => ["#", "schema", "allOf", "0", "properties", "color"],
-        "title" => ["#", "schema", "allOf", "0", "properties", "title"],
-        "radius" => ["#", "schema", "allOf", "0", "properties", "radius"]
+        "color" => path() ++ ["allOf", "0", "properties", "color"],
+        "description" => path() ++ ["allOf", "0", "properties", "description"]
       }
     }
 
-    expected_primitive_type = %PrimitiveType{
+    expected_color_type = %TypeReference{
+      name: "color",
+      path: ["#", "definitions", "color"]
+    }
+
+    expected_description_type = %PrimitiveType{
+      name: "description",
+      path: path() ++ ["allOf", "0", "properties", "description"],
+      type: "string"
+    }
+
+    expected_circle_type = %TypeReference{
       name: "1",
-      path: ["#", "schema", "allOf", "1"],
-      type: "string"
-    }
-
-    expected_color_type = %TypeReference{name: "color", path: ["#", "color"]}
-
-    expected_radius_type = %PrimitiveType{
-      name: "radius",
-      path: ["#", "schema", "allOf", "0", "properties", "radius"],
-      type: "number"
-    }
-
-    expected_title_type = %PrimitiveType{
-      name: "title",
-      path: ["#", "schema", "allOf", "0", "properties", "title"],
-      type: "string"
-    }
-
-    expected_all_of_type = %AllOfType{
-      name: "schema",
-      path: ["#", "schema"],
-      types: [
-        ["#", "schema", "allOf", "0"],
-        ["#", "schema", "allOf", "1"]
-      ]
+      path: ["#", "definitions", "circle"]
     }
 
     assert parser_result.errors == []
     assert parser_result.warnings == []
 
     assert parser_result.type_dict == %{
-             "#/schema" => expected_all_of_type,
-             "#/schema/allOf/0" => expected_object_type,
-             "#/schema/allOf/1" => expected_primitive_type,
-             "#/schema/allOf/0/properties/color" => expected_color_type,
-             "#/schema/allOf/0/properties/radius" => expected_radius_type,
-             "#/schema/allOf/0/properties/title" => expected_title_type
+             "#/definitions/fancyCircle" => expected_all_of_type,
+             "#/definitions/fancyCircle/allOf/0" => expected_object_type,
+             "#/definitions/fancyCircle/allOf/0/properties/color" =>
+               expected_color_type,
+             "#/definitions/fancyCircle/allOf/0/properties/description" =>
+               expected_description_type,
+             "#/definitions/fancyCircle/allOf/1" => expected_circle_type
            }
   end
 end

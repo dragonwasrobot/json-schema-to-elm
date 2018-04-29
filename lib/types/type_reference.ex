@@ -32,7 +32,7 @@ defmodule JS2E.Types.TypeReference do
   Elixir intermediate representation:
 
       %TypeReference{name: "self",
-                     path: ["#", "definitions", "link"]}
+                     path: ["#", "definitions", "foo"]}
 
       %TypeReference{name: "other",
                      path: %URI{scheme: "http",

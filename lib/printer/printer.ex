@@ -5,9 +5,44 @@ defmodule JS2E.Printer do
   """
 
   require Logger
-  alias JS2E.Printer.{Util, PreamblePrinter, PrinterResult, SchemaResult}
+
+  alias JS2E.Printer.{
+    ErrorUtil,
+    PreamblePrinter,
+    PrinterResult,
+    SchemaResult
+  }
+
   alias JS2E.Types
-  alias JS2E.Types.SchemaDefinition
+
+  alias JS2E.Types.{
+    AllOfType,
+    AnyOfType,
+    ArrayType,
+    EnumType,
+    ObjectType,
+    OneOfType,
+    PrimitiveType,
+    TupleType,
+    TypeReference,
+    UnionType,
+    SchemaDefinition
+  }
+
+  alias JS2E.Printer.{
+    ErrorUtil,
+    AllOfPrinter,
+    AnyOfPrinter,
+    ArrayPrinter,
+    EnumPrinter,
+    ObjectPrinter,
+    OneOfPrinter,
+    PrimitivePrinter,
+    TuplePrinter,
+    TypeReferencePrinter,
+    UnionPrinter,
+    PrinterResult
+  }
 
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult
   def print_schemas(schema_dict, module_name \\ "") do
@@ -55,13 +90,7 @@ defmodule JS2E.Printer do
       |> Enum.sort(&(&1.name < &2.name))
 
     types_result =
-      merge_results(
-        values,
-        schema_def,
-        schema_dict,
-        module_name,
-        &Util.print_type/4
-      )
+      merge_results(values, schema_def, schema_dict, module_name, &print_type/4)
 
     decoders_result =
       merge_results(
@@ -69,7 +98,7 @@ defmodule JS2E.Printer do
         schema_def,
         schema_dict,
         module_name,
-        &Util.print_decoder/4
+        &print_decoder/4
       )
 
     encoders_result =
@@ -78,7 +107,7 @@ defmodule JS2E.Printer do
         schema_def,
         schema_dict,
         module_name,
-        &Util.print_encoder/4
+        &print_encoder/4
       )
 
     printer_result =
@@ -91,7 +120,7 @@ defmodule JS2E.Printer do
     |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
   end
 
-  @spec filter_aliases(Types.typeDictionary()) :: Types.typeDictionary()
+  @spec filter_aliases(Types.typeDictionary()) :: [Types.typeDefinition()]
   defp filter_aliases(type_dict) do
     type_dict
     |> Enum.reduce([], fn {path, value}, values ->
@@ -103,12 +132,19 @@ defmodule JS2E.Printer do
     end)
   end
 
+  @type process_fun ::
+          (Types.typeDefinition(),
+           SchemaDefinition.t(),
+           Types.schemaDictionary(),
+           String.t() ->
+             PrinterResult.t())
+
   @spec merge_results(
-          Types.typeDictionary(),
+          [Types.typeDefinition()],
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t(),
-          fun
+          process_fun
         ) :: PrinterResult.t()
   defp merge_results(values, schema_def, schema_dict, module_name, process_fun) do
     values
@@ -116,5 +152,255 @@ defmodule JS2E.Printer do
     |> Enum.reduce(PrinterResult.new(), fn type_result, acc ->
       PrinterResult.merge(acc, type_result)
     end)
+  end
+
+  @spec print_type(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_type(type_def, schema_def, schema_dict, module_name) do
+    case type_def do
+      %AllOfType{} ->
+        AllOfPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %AnyOfType{} ->
+        AnyOfPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %ArrayType{} ->
+        ArrayPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %EnumType{} ->
+        EnumPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %ObjectType{} ->
+        ObjectPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %OneOfType{} ->
+        OneOfPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %PrimitiveType{} ->
+        PrimitivePrinter.print_type(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %TupleType{} ->
+        TuplePrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      %TypeReference{} ->
+        TypeReferencePrinter.print_type(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %UnionType{} ->
+        UnionPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+
+      _ ->
+        struct_name = get_struct_name(type_def)
+        PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    end
+  end
+
+  @spec print_decoder(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_decoder(type_def, schema_def, schema_dict, module_name) do
+    case type_def do
+      %AllOfType{} ->
+        AllOfPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %AnyOfType{} ->
+        AnyOfPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %ArrayType{} ->
+        ArrayPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %EnumType{} ->
+        EnumPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %ObjectType{} ->
+        ObjectPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %OneOfType{} ->
+        OneOfPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %PrimitiveType{} ->
+        PrimitivePrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %TupleType{} ->
+        TuplePrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %TypeReference{} ->
+        TypeReferencePrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %UnionType{} ->
+        UnionPrinter.print_decoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      _ ->
+        struct_name = get_struct_name(type_def)
+        PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    end
+  end
+
+  @spec print_encoder(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_encoder(type_def, schema_def, schema_dict, module_name) do
+    case type_def do
+      %AllOfType{} ->
+        AllOfPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %AnyOfType{} ->
+        AnyOfPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %ArrayType{} ->
+        ArrayPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %EnumType{} ->
+        EnumPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %ObjectType{} ->
+        ObjectPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %OneOfType{} ->
+        OneOfPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %PrimitiveType{} ->
+        PrimitivePrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %TupleType{} ->
+        TuplePrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %TypeReference{} ->
+        TypeReferencePrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      %UnionType{} ->
+        UnionPrinter.print_encoder(
+          type_def,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+
+      _ ->
+        struct_name = get_struct_name(type_def)
+        PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    end
+  end
+
+  @spec get_struct_name(struct) :: String.t()
+  defp get_struct_name(struct) do
+    struct.__struct__
+    |> to_string
+    |> String.split(".")
+    |> List.last()
   end
 end

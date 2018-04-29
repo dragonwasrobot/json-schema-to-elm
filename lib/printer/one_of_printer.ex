@@ -5,7 +5,8 @@ defmodule JS2E.Printer.OneOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult}
+  alias JS2E.Printer.{PrinterError, PrinterResult}
+  alias JS2E.Printer.Utils.{Naming, Indentation, ResolveType, CommonOperations}
   alias JS2E.{TypePath, Types}
   alias JS2E.Types.{OneOfType, SchemaDefinition}
 
@@ -32,12 +33,12 @@ defmodule JS2E.Printer.OneOfPrinter do
         schema_dict,
         _module_name
       ) do
-    type_name = Util.upcase_first(name)
+    type_name = Naming.normalize_identifier(name, :upcase)
 
     {type_clauses, errors} =
       types
       |> create_type_clauses(name, path, schema_def, schema_dict)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     type_name
     |> type_template(type_clauses)
@@ -64,16 +65,21 @@ defmodule JS2E.Printer.OneOfPrinter do
           Types.schemaDictionary()
         ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_type_clause(type_clause_id, name, parent, schema_def, schema_dict) do
-    case Util.resolve_type(type_clause_id, parent, schema_def, schema_dict) do
+    case ResolveType.resolve_type(
+           type_clause_id,
+           parent,
+           schema_def,
+           schema_dict
+         ) do
       {:ok, {type_clause, _resolved_schema_def}} ->
-        type_value = Util.upcase_first(type_clause.name)
+        type_value = Naming.normalize_identifier(type_clause.name, :upcase)
 
         type_prefix =
           type_value
           |> String.slice(0..1)
           |> String.capitalize()
 
-        type_name = Util.upcase_first(name)
+        type_name = Naming.normalize_identifier(name, :upcase)
 
         {:ok, %{name: "#{type_name}#{type_prefix}", type: type_value}}
 
@@ -107,10 +113,11 @@ defmodule JS2E.Printer.OneOfPrinter do
     {clause_decoders, errors} =
       types
       |> create_decoder_clauses(name, path, schema_def, schema_dict)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
-    decoder_name = "#{name}Decoder"
-    decoder_type = Util.upcase_first(name)
+    normalized_name = Naming.normalize_identifier(name, :downcase)
+    decoder_name = "#{normalized_name}Decoder"
+    decoder_type = Naming.upcase_first(normalized_name)
 
     decoder_name
     |> decoder_template(decoder_type, clause_decoders)
@@ -151,15 +158,21 @@ defmodule JS2E.Printer.OneOfPrinter do
          schema_def,
          schema_dict
        ) do
-    case Util.resolve_type(type_clause_id, parent, schema_def, schema_dict) do
+    case ResolveType.resolve_type(
+           type_clause_id,
+           parent,
+           schema_def,
+           schema_dict
+         ) do
       {:ok, {type_clause, _resolved_schema_def}} ->
         type_prefix =
           type_clause.name
-          |> Util.upcase_first()
+          |> Naming.normalize_identifier(:upcase)
           |> String.slice(0..1)
           |> String.capitalize()
 
-        success_name = "#{Util.upcase_first(name)}#{type_prefix}"
+        success_name =
+          "#{Naming.normalize_identifier(name, :upcase)}#{type_prefix}"
 
         {:ok,
          "#{type_clause.name}Decoder |> andThen (succeed << #{success_name})"}
@@ -195,14 +208,14 @@ defmodule JS2E.Printer.OneOfPrinter do
     {encoder_cases, errors} =
       types
       |> create_encoder_cases(name, path, schema_def, schema_dict)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
-    type_name = Util.upcase_first(name)
+    type_name = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{type_name}"
 
     encoder_name
     |> encoder_template(type_name, name, encoder_cases)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -228,11 +241,11 @@ defmodule JS2E.Printer.OneOfPrinter do
           Types.schemaDictionary()
         ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_encoder_clause(type_path, name, parent, schema_def, schema_dict) do
-    case Util.resolve_type(type_path, parent, schema_def, schema_dict) do
+    case ResolveType.resolve_type(type_path, parent, schema_def, schema_dict) do
       {:ok, {clause_type, _resolved_schema_def}} ->
-        type_name = Util.upcase_first(name)
-        argument_name = clause_type.name
-        type_value = Util.upcase_first(argument_name)
+        type_name = Naming.normalize_identifier(name, :upcase)
+        argument_name = Naming.normalize_identifier(clause_type.name, :downcase)
+        type_value = Naming.upcase_first(argument_name)
 
         type_prefix =
           type_value

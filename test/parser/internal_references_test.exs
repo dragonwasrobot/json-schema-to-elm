@@ -11,9 +11,8 @@ defmodule JS2ETest.Parser.InternalReferences do
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "description": "Demonstrates the different types of internal references",
-        "title": "Internal references",
+        "title": "InternalReference",
         "id": "http://example.com/root.json",
-        "type": "object",
         "$ref": "#/definitions/C",
         "definitions": {
           "A": {
@@ -44,7 +43,7 @@ defmodule JS2ETest.Parser.InternalReferences do
       |> RootParser.parse_schema("examples/example.json")
 
     expected_root_type_reference = %TypeReference{
-      name: "#",
+      name: "InternalReference",
       path: ["#", "definitions", "C"]
     }
 
@@ -80,7 +79,7 @@ defmodule JS2ETest.Parser.InternalReferences do
                file_path: "examples/example.json",
                description:
                  "Demonstrates the different types of internal references",
-               title: "Internal references",
+               title: "InternalReference",
                id: URI.parse("http://example.com/root.json"),
                types: %{
                  "#" => expected_root_type_reference,

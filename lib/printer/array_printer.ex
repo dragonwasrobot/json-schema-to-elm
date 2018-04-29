@@ -5,9 +5,18 @@ defmodule JS2E.Printer.ArrayPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult}
+  alias JS2E.Printer.{PrinterError, PrinterResult}
+
+  alias JS2E.Printer.Utils.{
+    Naming,
+    ElmTypes,
+    ElmDecoders,
+    ElmEncoders,
+    ResolveType
+  }
+
   alias JS2E.Types
-  alias JS2E.Types.{ArrayType, SchemaDefinition}
+  alias JS2E.Types.{ArrayType, PrimitiveType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -52,11 +61,10 @@ defmodule JS2E.Printer.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           Util.resolve_type(items_path, path, schema_def, schema_dict),
+           ResolveType.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_decoder_name} <- determine_decoder_name(items_type) do
-      "#{name}Decoder"
-      |> Util.downcase_first()
+      "#{Naming.normalize_identifier(name, :downcase)}Decoder"
       |> decoder_template(items_type_name, items_decoder_name)
       |> PrinterResult.new()
     else
@@ -68,32 +76,37 @@ defmodule JS2E.Printer.ArrayPrinter do
   @spec determine_type_name(Types.typeDefinition()) ::
           {:ok, String.t()} | {:error, PrinterError.t()}
   defp determine_type_name(items_type) do
-    if Util.primitive_type?(items_type) do
-      Util.determine_primitive_type(items_type.type)
-    else
-      items_type_name = items_type.name
+    case items_type do
+      %PrimitiveType{} ->
+        ElmTypes.determine_primitive_type_name(items_type.type)
 
-      if items_type_name == "#" do
-        {:ok, "Root"}
-      else
-        {:ok, Util.upcase_first(items_type_name)}
-      end
+      _ ->
+        items_type_name = Naming.normalize_identifier(items_type.name, :upcase)
+
+        if items_type_name == "Hash" do
+          {:ok, "Root"}
+        else
+          {:ok, items_type_name}
+        end
     end
   end
 
   @spec determine_decoder_name(Types.typeDefinition()) ::
           {:ok, String.t()} | {:error, PrinterError.t()}
   defp determine_decoder_name(items_type) do
-    if Util.primitive_type?(items_type) do
-      Util.determine_primitive_type_decoder(items_type.type)
-    else
-      items_type_name = items_type.name
+    case items_type do
+      %PrimitiveType{} ->
+        ElmDecoders.determine_primitive_type_decoder(items_type.type)
 
-      if items_type_name == "#" do
-        {:ok, "rootDecoder"}
-      else
-        {:ok, "#{items_type_name}Decoder"}
-      end
+      _ ->
+        items_type_name =
+          Naming.normalize_identifier(items_type.name, :downcase)
+
+        if items_type_name == "hash" do
+          {:ok, "rootDecoder"}
+        else
+          {:ok, "#{items_type_name}Decoder"}
+        end
     end
   end
 
@@ -121,10 +134,10 @@ defmodule JS2E.Printer.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           Util.resolve_type(items_path, path, schema_def, schema_dict),
+           ResolveType.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_encoder_name} <- determine_encoder_name(items_type) do
-      "encode#{items_type_name}s"
+      "encode#{Naming.normalize_identifier(items_type_name, :upcase)}s"
       |> encoder_template(name, items_type_name, items_encoder_name)
       |> PrinterResult.new()
     else
@@ -136,16 +149,18 @@ defmodule JS2E.Printer.ArrayPrinter do
   @spec determine_encoder_name(Types.typeDefinition()) ::
           {:ok, String.t()} | {:error, PrinterError.t()}
   defp determine_encoder_name(items_type) do
-    if Util.primitive_type?(items_type) do
-      Util.determine_primitive_type_encoder(items_type.type)
-    else
-      items_type_name = items_type.name
+    case items_type do
+      %PrimitiveType{} ->
+        ElmEncoders.determine_primitive_type_encoder(items_type.type)
 
-      if items_type_name == "#" do
-        {:ok, "encodeRoot"}
-      else
-        {:ok, "encode#{Util.upcase_first(items_type_name)}"}
-      end
+      _ ->
+        items_type_name = Naming.normalize_identifier(items_type.name, :upcase)
+
+        if items_type_name == "Hash" do
+          {:ok, "encodeRoot"}
+        else
+          {:ok, "encode#{items_type_name}"}
+        end
     end
   end
 end

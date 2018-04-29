@@ -11,7 +11,6 @@ defmodule JS2ETest.Parser.DefinitionsParser do
       ~S"""
       {
         "$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "Root",
         "id": "http://example.com/root.json",
         "type": "array",
         "items": { "$ref": "#/definitions/positiveInteger" },
@@ -28,7 +27,7 @@ defmodule JS2ETest.Parser.DefinitionsParser do
       |> RootParser.parse_schema("examples/example.json")
 
     expected_root_type_reference = %ArrayType{
-      name: "#",
+      name: "Root",
       path: ["#"],
       items: ["#", "items"]
     }

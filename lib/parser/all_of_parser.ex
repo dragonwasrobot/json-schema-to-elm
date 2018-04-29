@@ -30,7 +30,7 @@ defmodule JS2E.Parser.AllOfParser do
   """
 
   require Logger
-  alias JS2E.Parser.{Util, ErrorUtil, ParserResult}
+  alias JS2E.Parser.{Util, ParserResult}
   alias JS2E.{Types, TypePath}
   alias JS2E.Types.AllOfType
 
@@ -50,7 +50,7 @@ defmodule JS2E.Parser.AllOfParser do
 
   """
   @impl JS2E.Parser.ParserBehaviour
-  @spec type?(Types.node()) :: boolean
+  @spec type?(Types.schemaNode()) :: boolean
   def type?(%{"allOf" => all_of})
       when is_list(all_of) and length(all_of) > 0,
       do: true
@@ -61,8 +61,13 @@ defmodule JS2E.Parser.AllOfParser do
   Parses a JSON schema allOf type into an `JS2E.Types.AllOfType`.
   """
   @impl JS2E.Parser.ParserBehaviour
-  @spec parse(Types.node(), URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
-          ParserResult.t()
+  @spec parse(
+          Types.schemaNode(),
+          URI.t(),
+          URI.t() | nil,
+          TypePath.t(),
+          String.t()
+        ) :: ParserResult.t()
   def parse(%{"allOf" => all_of}, parent_id, id, path, name)
       when is_list(all_of) do
     child_path = TypePath.add_child(path, "allOf")

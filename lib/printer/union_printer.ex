@@ -5,7 +5,8 @@ defmodule JS2E.Printer.UnionPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult, ErrorUtil}
+  alias JS2E.Printer.{PrinterError, PrinterResult, ErrorUtil}
+  alias JS2E.Printer.Utils.{Naming, Indentation, CommonOperations}
   alias JS2E.{Types}
   alias JS2E.Types.{UnionType, SchemaDefinition}
 
@@ -35,10 +36,10 @@ defmodule JS2E.Printer.UnionPrinter do
     {type_clauses, errors} =
       types
       |> create_type_clauses(name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     name
-    |> Util.upcase_first()
+    |> Naming.normalize_identifier(:upcase)
     |> type_template(type_clauses)
     |> PrinterResult.new(errors)
   end
@@ -55,7 +56,7 @@ defmodule JS2E.Printer.UnionPrinter do
   @spec to_type_clause(String.t(), String.t()) ::
           {:ok, map} | {:error, PrinterError.t()}
   defp to_type_clause(type_id, name) do
-    type_name = Util.upcase_first(name)
+    type_name = Naming.normalize_identifier(name, :upcase)
 
     case type_id do
       "boolean" ->
@@ -98,15 +99,16 @@ defmodule JS2E.Printer.UnionPrinter do
         _schema_dict,
         _module_name
       ) do
-    decoder_name = "#{name}Decoder"
-    type_name = Util.upcase_first(name)
+    normalized_name = Naming.normalize_identifier(name, :downcase)
+    decoder_name = "#{normalized_name}Decoder"
+    type_name = Naming.upcase_first(normalized_name)
     nullable? = "null" in types
     decoder_type = check_if_maybe(type_name, nullable?)
 
     {decoder_clauses, errors} =
       types
       |> create_clause_decoders(type_name, nullable?)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
     decoder_name
     |> decoder_template(decoder_type, nullable?, decoder_clauses)
@@ -201,14 +203,14 @@ defmodule JS2E.Printer.UnionPrinter do
     {encoder_cases, errors} =
       types
       |> create_encoder_cases(name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
-    type_name = Util.upcase_first(name)
+    type_name = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{type_name}"
 
     encoder_name
     |> encoder_template(type_name, name, encoder_cases)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -243,7 +245,8 @@ defmodule JS2E.Printer.UnionPrinter do
 
     case type_id_result do
       {:ok, {constructor_suffix, encoder_name, argument_name}} ->
-        constructor_name = Util.upcase_first(name) <> constructor_suffix
+        constructor_name =
+          Naming.normalize_identifier(name, :upcase) <> constructor_suffix
 
         {:ok,
          %{

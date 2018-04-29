@@ -95,7 +95,7 @@ defmodule JS2E.Parser.ParserResult do
   type dictionaries to the list of errors in the merged `ParserResult`.
 
   """
-  @spec merge(ParserResult.t(), ParserResult.t()) :: ParserResult.t()
+  @spec merge(t, t) :: t
   def merge(
         %__MODULE__{
           type_dict: type_dict1,
@@ -141,8 +141,8 @@ defmodule JS2E.Parser.SchemaResult do
 
   @type t :: %__MODULE__{
           schema_dict: Types.schemaDictionary(),
-          warnings: [{Path.t(), ParserWarning.t()}],
-          errors: [{Path.t(), ParserError.t()}]
+          warnings: [{Path.t(), [ParserWarning.t()]}],
+          errors: [{Path.t(), [ParserError.t()]}]
         }
 
   defstruct [:schema_dict, :warnings, :errors]
@@ -158,13 +158,9 @@ defmodule JS2E.Parser.SchemaResult do
   dictionary corresponding to the succesfully parsed JSON schema files,
   and a list of warnings and errors encountered while parsing.
   """
-  @spec new(
-          [{Path.t(), Types.schemaDictionary()}],
-          [{Path.t(), ParserWarning.t()}],
-          [
-            {Path.t(), ParserError.t()}
-          ]
-        ) :: t
+  @spec new(Types.schemaDictionary(), [{Path.t(), [ParserWarning.t()]}], [
+          {Path.t(), [ParserError.t()]}
+        ]) :: t
   def new(schema_dict, warnings \\ [], errors \\ []) do
     %__MODULE__{schema_dict: schema_dict, warnings: warnings, errors: errors}
   end
@@ -174,7 +170,7 @@ defmodule JS2E.Parser.SchemaResult do
   schema dictionaries to the list of errors in the merged `SchemaResult`.
 
   """
-  @spec merge(SchemaResult.t(), SchemaResult.t()) :: SchemaResult.t()
+  @spec merge(t, t) :: t
   def merge(
         %__MODULE__{
           schema_dict: schema_dict1,

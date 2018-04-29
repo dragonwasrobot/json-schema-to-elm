@@ -5,9 +5,28 @@ defmodule JS2E.Printer.AnyOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{Util, PrinterResult}
+  alias JS2E.Printer.{PrinterError, ErrorUtil, PrinterResult}
+
+  alias JS2E.Printer.Utils.{
+    Naming,
+    Indentation,
+    ElmTypes,
+    ElmDecoders,
+    ElmEncoders,
+    ResolveType,
+    CommonOperations
+  }
+
   alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{AnyOfType, SchemaDefinition}
+
+  alias JS2E.Types.{
+    AnyOfType,
+    EnumType,
+    ObjectType,
+    OneOfType,
+    UnionType,
+    SchemaDefinition
+  }
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -32,31 +51,21 @@ defmodule JS2E.Printer.AnyOfPrinter do
         schema_dict,
         module_name
       ) do
-    type_name = Util.upcase_first(name)
+    type_name = Naming.normalize_identifier(name, :upcase)
 
     {type_fields, errors} =
       types
-      |> create_type_fields(path, schema_def, schema_dict, module_name)
-      |> Util.split_ok_and_errors()
+      |> Enum.map(
+        &create_type_field(&1, path, schema_def, schema_dict, module_name)
+      )
+      |> CommonOperations.split_ok_and_errors()
 
     type_name
     |> type_template(type_fields)
     |> PrinterResult.new(errors)
   end
 
-  @spec create_type_fields(
-          [TypePath.t()],
-          TypePath.t(),
-          SchemaDefinition.t(),
-          Types.schemaDictionary(),
-          String.t()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_type_fields(types, parent, schema_def, schema_dict, module_name) do
-    types
-    |> Enum.map(
-      &create_type_field(&1, parent, schema_def, schema_dict, module_name)
-    )
-  end
+  @type elm_type_field :: %{name: String.t(), type: String.t()}
 
   @spec create_type_field(
           TypePath.t(),
@@ -64,7 +73,7 @@ defmodule JS2E.Printer.AnyOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterErrot.t()}
+        ) :: {:ok, elm_type_field} | {:error, PrinterError.t()}
   defp create_type_field(
          type_path,
          parent,
@@ -74,13 +83,15 @@ defmodule JS2E.Printer.AnyOfPrinter do
        ) do
     field_type_result =
       type_path
-      |> Util.resolve_type(parent, schema_def, schema_dict)
-      |> Util.create_type_name(schema_def, module_name)
+      |> ResolveType.resolve_type(parent, schema_def, schema_dict)
+      |> ElmTypes.create_type_name(schema_def, module_name)
 
     case field_type_result do
       {:ok, field_type} ->
-        field_name = Util.downcase_first(field_type)
-        {:ok, %{name: field_name, type: "Maybe #{field_type}"}}
+        field_name = field_type |> Naming.normalize_identifier(:downcase)
+        field_type_name = "Maybe #{Naming.upcase_first(field_name)}"
+
+        {:ok, %{name: field_name, type: field_type_name}}
 
       {:error, error} ->
         {:error, error}
@@ -111,35 +122,18 @@ defmodule JS2E.Printer.AnyOfPrinter do
       ) do
     {decoder_clauses, errors} =
       type_paths
-      |> create_decoder_clauses(path, schema_def, schema_dict, module_name)
-      |> Util.split_ok_and_errors()
+      |> Enum.map(
+        &create_decoder_property(&1, path, schema_def, schema_dict, module_name)
+      )
+      |> CommonOperations.split_ok_and_errors()
 
-    decoder_name = "#{name}Decoder"
-    type_name = Util.upcase_first(name)
+    normalized_name = Naming.normalize_identifier(name, :downcase)
+    decoder_name = "#{normalized_name}Decoder"
+    type_name = Naming.upcase_first(normalized_name)
 
     decoder_name
     |> decoder_template(type_name, decoder_clauses)
     |> PrinterResult.new(errors)
-  end
-
-  @spec create_decoder_clauses(
-          [TypePath.t()],
-          TypePath.t(),
-          SchemaDefinition.t(),
-          Types.schemaDictionary(),
-          String.t()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_decoder_clauses(
-         type_paths,
-         parent,
-         schema_def,
-         schema_dict,
-         module_name
-       ) do
-    type_paths
-    |> Enum.map(
-      &create_decoder_property(&1, parent, schema_def, schema_dict, module_name)
-    )
   end
 
   @spec create_decoder_property(
@@ -157,21 +151,18 @@ defmodule JS2E.Printer.AnyOfPrinter do
          module_name
        ) do
     with {:ok, {property_type, resolved_schema_def}} <-
-           Util.resolve_type(type_path, parent, schema_def, schema_dict),
+           ResolveType.resolve_type(type_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <-
-           Util.create_decoder_name(
+           ElmDecoders.create_decoder_name(
              {:ok, {property_type, resolved_schema_def}},
              schema_def,
              module_name
            ) do
       property_name = property_type.name
 
-      cond do
-        Util.union_type?(property_type) or Util.one_of_type?(property_type) ->
-          create_decoder_union_clause(property_name, decoder_name)
-
-        Util.enum_type?(property_type) ->
-          case Util.determine_primitive_type_decoder(property_type.type) do
+      case property_type do
+        %EnumType{} ->
+          case ElmDecoders.determine_primitive_type_decoder(property_type.type) do
             {:ok, property_type_decoder} ->
               create_decoder_enum_clause(
                 property_name,
@@ -183,7 +174,13 @@ defmodule JS2E.Printer.AnyOfPrinter do
               {:error, error}
           end
 
-        true ->
+        %OneOfType{} ->
+          create_decoder_union_clause(property_name, decoder_name)
+
+        %UnionType{} ->
+          create_decoder_union_clause(property_name, decoder_name)
+
+        _ ->
           create_decoder_normal_clause(property_name, decoder_name)
       end
     else
@@ -243,15 +240,15 @@ defmodule JS2E.Printer.AnyOfPrinter do
     {encoder_properties, errors} =
       type_paths
       |> create_encoder_properties(path, schema_def, schema_dict, module_name)
-      |> Util.split_ok_and_errors()
+      |> CommonOperations.split_ok_and_errors()
 
-    type_name = Util.upcase_first(name)
+    argument_name = Naming.normalize_identifier(name, :downcase)
+    type_name = Naming.upcase_first(argument_name)
     encoder_name = "encode#{type_name}"
-    argument_name = Util.downcase_first(type_name)
 
     encoder_name
     |> encoder_template(type_name, argument_name, encoder_properties)
-    |> Util.trim_newlines()
+    |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
 
@@ -261,7 +258,7 @@ defmodule JS2E.Printer.AnyOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [map]} | {:error, PrinterError.t()}
+        ) :: [{:ok, [map]} | {:error, PrinterError.t()}]
   defp create_encoder_properties(
          type_paths,
          parent,
@@ -270,30 +267,70 @@ defmodule JS2E.Printer.AnyOfPrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(&Util.resolve_type(&1, parent, schema_def, schema_dict))
+    |> Enum.map(&ResolveType.resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
+    |> Enum.concat()
   end
+
+  @type elm_encoder :: %{
+          name: String.t(),
+          encoder_name: String.t(),
+          required: boolean
+        }
 
   @spec to_encoder_property(
           {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
           | {:error, PrinterError.t()},
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) :: {:ok, elm_encoder} | {:error, PrinterError.t()}
   defp to_encoder_property({:error, error}, _sf, _md), do: {:error, error}
 
-  defp to_encoder_property({:ok, {property, schema}}, schema_def, module_name) do
-    case Util.create_encoder_name(
-           {:ok, {property, schema}},
-           schema_def,
-           module_name
-         ) do
-      {:ok, encoder_name} ->
-        updated_property = Map.put(property, :encoder_name, encoder_name)
-        {:ok, updated_property}
+  defp to_encoder_property(
+         {:ok, {%ObjectType{} = type_def, schema_def}},
+         schema_dict,
+         module_name
+       ) do
+    parent_name = Naming.normalize_identifier(type_def.name)
+    required = type_def.required
 
-      {:error, error} ->
-        {:error, error}
-    end
+    type_def.properties
+    |> Enum.map(fn {child_name, child_path} ->
+      with {:ok, {child_type_def, child_schema_def}} <-
+             ResolveType.resolve_type(
+               child_path,
+               type_def.path,
+               schema_def,
+               schema_dict
+             ),
+           {:ok, encoder_name} <-
+             ElmEncoders.create_encoder_name(
+               {:ok, {child_type_def, child_schema_def}},
+               schema_def,
+               module_name
+             ) do
+        updated_child_property =
+          child_type_def
+          |> Map.put(:required, child_name in required)
+          |> Map.put(:encoder_name, encoder_name)
+          |> Map.put(:parent_name, parent_name)
+
+        {:ok, updated_child_property}
+      else
+        {:error, error} ->
+          {:error, error}
+      end
+    end)
+  end
+
+  defp to_encoder_property(
+         {:ok, type_def, _schema_def},
+         _schema_dict,
+         _module_name
+       ) do
+    error_msg =
+      "anyOf printer expected ObjectType but found #{type_def.__struct__}"
+
+    ErrorUtil.unexpected_type(type_def.path, error_msg)
   end
 end
