@@ -302,31 +302,27 @@ defmodule JS2E.Printer.AllOfPrinter do
 
     type_def.properties
     |> Enum.map(fn {child_name, child_path} ->
-      case ResolveType.resolve_type(
-             child_path,
-             type_def.path,
-             schema_def,
-             schema_dict
-           ) do
-        {:ok, {child_type_def, child_schema_def}} ->
-          case ElmEncoders.create_encoder_name(
-                 {:ok, {child_type_def, child_schema_def}},
-                 schema_dict,
-                 module_name
-               ) do
-            {:ok, encoder_name} ->
-              updated_child_property =
-                child_type_def
-                |> Map.put(:required, child_name in required)
-                |> Map.put(:encoder_name, encoder_name)
-                |> Map.put(:parent_name, parent_name)
+      with {:ok, {child_type_def, child_schema_def}} <-
+             ResolveType.resolve_type(
+               child_path,
+               type_def.path,
+               schema_def,
+               schema_dict
+             ),
+           {:ok, encoder_name} <-
+             ElmEncoders.create_encoder_name(
+               {:ok, {child_type_def, child_schema_def}},
+               schema_def,
+               module_name
+             ) do
+        updated_child_property =
+          child_type_def
+          |> Map.put(:required, child_name in required)
+          |> Map.put(:encoder_name, encoder_name)
+          |> Map.put(:parent_name, parent_name)
 
-              {:ok, updated_child_property}
-
-            {:error, error} ->
-              {:error, error}
-          end
-
+        {:ok, updated_child_property}
+      else
         {:error, error} ->
           {:error, error}
       end

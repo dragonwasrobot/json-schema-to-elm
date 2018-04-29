@@ -23,7 +23,7 @@ defmodule JS2E.Printer.Utils.ElmEncoders do
 
   def create_encoder_name(
         {:ok, {resolved_type, resolved_schema}},
-        schema_def,
+        context_schema,
         module_name
       ) do
     encoder_name_result =
@@ -47,7 +47,7 @@ defmodule JS2E.Printer.Utils.ElmEncoders do
 
     case encoder_name_result do
       {:ok, encoder_name} ->
-        if resolved_schema.id != schema_def.id do
+        if resolved_schema.id != context_schema.id do
           {:ok, Naming.qualify_name(resolved_schema, encoder_name, module_name)}
         else
           {:ok, encoder_name}
