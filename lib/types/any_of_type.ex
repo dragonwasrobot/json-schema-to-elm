@@ -2,42 +2,70 @@ defmodule JS2E.Types.AnyOfType do
   @moduledoc ~S"""
   Represents a custom 'any_of' type definition in a JSON schema.
 
-  JSON Schema:
+  The following example schema has the path "#/definitions/fancyCircle"
 
-      "shape": {
-        "anyOf": [
+      {
+        "allOf": [
           {
-            "$ref": "#/definitions/circle"
+            "type": "object",
+            "properties": {
+              "color": {
+                "$ref": "#/definitions/color"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [ "color" ]
           },
           {
-            "$ref": "#/definitions/rectangle"
+            "$ref": "#/definitions/circle"
           }
         ]
       }
 
+  Where "#/definitions/color" resolves to:
+
+      {
+        "type": "string",
+        "enum": ["red", "yellow", "green"]
+      }
+
+  Where "#/definitions/circle" resolves to:
+
+      {
+         "type": "object",
+         "properties": {
+           "radius": {
+             "type": "number"
+           }
+         },
+         "required": [ "radius" ]
+      }
+
   Elixir intermediate representation:
 
-      %AnyOfType{name: "shape",
-                 path: ["#", "shape"],
-                 types: [["#", "shape", "anyOf", "0"],
-                         ["#", "shape", "anyOf", "1"]]}
+      %AnyOfType{name: "fancyCircle",
+                 path: ["#", "definitions", "fancyCircle"],
+                 types: [["#", "definitions", "fancyCircle", "allOf", "0"],
+                         ["#", "definitions", "fancyCircle", "allOf", "1"]]}
 
   Elm code generated:
 
   - Type definition
 
-      type alias Shape =
-          { circle : Maybe Circle
-          , rectangle : Maybe Rectangle
+      type alias FancyCircle =
+          { zero : Maybe Zero
+          , circle : Maybe Circle
           }
 
   - Decoder definition
 
-      shapeDecoder : Decoder Shape
-      shapeDecoder =
-          decode Shape
-              |> optional "circle" (nullable circleDecoder) Nothing
-              |> optional "rectangle" (nullable rectangleDecoder) Nothing
+      fancyCircleDecoder : Decoder FancyCircle
+      fancyCircleDecoder =
+          decode FancyCircle
+              |> custom (nullable zeroDecoder)
+              |> custom (nullable circleDecoder)
 
   - Decoder usage
 
@@ -45,20 +73,40 @@ defmodule JS2E.Types.AnyOfType do
 
   - Encoder definition
 
-      encodeShape : Shape -> Value
-      encodeShape shape =
+      encodeFancyCircle : FancyCircle -> Value
+      encodeFancyCircle fancyCircle =
           let
-              circle =
-                  encodeCircle shape.circle
+              color =
+                  fancyCircle.zero
+                      |> Maybe.map
+                          (\zero ->
+                              [ ( "color", encodeColor zero.color ) ]
+                          )
+                      |> Maybe.withDefault []
 
-              rectangle =
-                  encodeRectangle shape.rectangle
+              description =
+                  fancyCircle.zero
+                      |> Maybe.map
+                          (\zero ->
+                              zero.description
+                                  |> Maybe.map
+                                      (\description ->
+                                          [ ( "description", Encode.string description ) ]
+                                      )
+                                  |> Maybe.withDefault []
+                          )
+                      |> Maybe.withDefault []
+
+              radius =
+                  fancyCircle.circle
+                      |> Maybe.map
+                          (\circle ->
+                              [ ( "radius", Encode.float circle.radius ) ]
+                          )
+                      |> Maybe.withDefault []
           in
-              object <| circle ++ rectangle
-
-  - Encoder usage
-
-      encodeShape shape
+              object <|
+                  color ++ description ++ radius
 
   """
 

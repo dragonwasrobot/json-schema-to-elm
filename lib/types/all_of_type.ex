@@ -57,9 +57,8 @@ defmodule JS2E.Types.AllOfType do
   - Type definition
 
       type alias FancyCircle =
-          { color : Color
-          , description : Maybe String
-          , radius : Float
+          { zero : Zero
+          , circle : Circle
           }
 
   - Decoder definition
@@ -67,13 +66,8 @@ defmodule JS2E.Types.AllOfType do
       fancyCircleDecoder : Decoder FancyCircle
       fancyCircleDecoder =
           decode FancyCircle
-              |> required "color" (Decode.string |> andThen colorDecoder)
-              |> optional "description" (nullable Decode.string) Nothing
-              |> required "radius" Decode.float
-
-  - Decoder usage
-
-      |> required "fancyCircle" fancyCircleDecoder
+              |> custom zeroDecoder
+              |> custom circleDecoder
 
   - Encoder definition
 
@@ -81,24 +75,21 @@ defmodule JS2E.Types.AllOfType do
       encodeFancyCircle fancyCircle =
           let
               color =
-                  encodeColor fancyCircle.color
+                  [ ( "color", encodeColor fancyCircle.zero.color ) ]
 
               description =
-                  case fancyCircle.description of
-                      Just description ->
-                          [ ( "description", Encode.string description ) ]
-
-                      Nothing ->
-                          []
+                  fancyCircle.zero.description
+                      |> Maybe.map
+                          (\description ->
+                              [ ( "description", Encode.string description ) ]
+                          )
+                      |> Maybe.withDefault []
 
               radius =
-                  [ ( "radius", Encode.float circle.radius ) ]
+                  [ ( "radius", Encode.float fancyCircle.circle.radius ) ]
           in
-              object <| color ++ description ++ radius
-
-  - Encoder usage
-
-      encodeFancyCircle fancyCircle
+              object <|
+                  color ++ description ++ radius
 
   """
 
