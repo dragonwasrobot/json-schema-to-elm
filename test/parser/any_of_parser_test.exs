@@ -37,7 +37,7 @@ defmodule JS2ETest.Parser.AnyOfParser do
       |> AnyOfParser.parse(parent, nil, ["#", "schema"], "schema")
 
     expected_object_type = %ObjectType{
-      name: "__SCHEMA_ANYOF_0__",
+      name: "0",
       path: ["#", "schema", "anyOf", "0"],
       required: ["color", "radius"],
       properties: %{
@@ -48,7 +48,7 @@ defmodule JS2ETest.Parser.AnyOfParser do
     }
 
     expected_primitive_type = %PrimitiveType{
-      name: "__SCHEMA_ANYOF_1__",
+      name: "1",
       path: ["#", "schema", "anyOf", "1"],
       type: "string"
     }

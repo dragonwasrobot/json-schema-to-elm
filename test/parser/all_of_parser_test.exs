@@ -51,7 +51,7 @@ defmodule JS2ETest.Parser.AllOfParser do
     }
 
     expected_object_type = %ObjectType{
-      name: "__FANCYCIRCLE_ALLOF_0__",
+      name: "0",
       path: path() ++ ["allOf", "0"],
       required: ["color"],
       properties: %{
@@ -72,7 +72,7 @@ defmodule JS2ETest.Parser.AllOfParser do
     }
 
     expected_circle_type = %TypeReference{
-      name: "__FANCYCIRCLE_ALLOF_1__",
+      name: "1",
       path: ["#", "definitions", "circle"]
     }
 

@@ -65,7 +65,7 @@ defmodule JS2E.Parser.Util do
   def create_types_list(type_dict, path) do
     type_dict
     |> Enum.reduce(%{}, fn {child_abs_path, child_type}, reference_dict ->
-      normalized_child_name = determine_child_idx(child_type.name)
+      normalized_child_name = child_type.name
       child_type_path = TypePath.add_child(path, normalized_child_name)
 
       if child_type_path == TypePath.from_string(child_abs_path) do
@@ -124,16 +124,7 @@ defmodule JS2E.Parser.Util do
           child_parent_id = determine_parent_id(id, parent_id)
           type_path = TypePath.add_child(path, name)
 
-          child_name =
-            case Integer.parse(name) do
-              {idx, ""} ->
-                determine_child_name(path, idx)
-
-              _ ->
-                name
-            end
-
-          node_parser.(schema_node, child_parent_id, id, type_path, child_name)
+          node_parser.(schema_node, child_parent_id, id, type_path, name)
       end
 
     if Enum.empty?(definitions_result.type_dict) and
@@ -201,47 +192,4 @@ defmodule JS2E.Parser.Util do
       parent_id
     end
   end
-
-  @spec determine_child_name(TypePath.t(), non_neg_integer) :: String.t()
-  def determine_child_name(path, idx) do
-    parent_name = Enum.fetch!(path, length(path) - 2)
-    child_type = Enum.fetch!(path, length(path) - 1)
-    "__#{String.upcase(parent_name)}_#{String.upcase(child_type)}_#{idx}__"
-  end
-
-  @spec determine_child_idx(String.t()) :: String.t()
-  def determine_child_idx(name) do
-    if String.starts_with?(name, "__") and String.ends_with?(name, "__") do
-      int_result =
-        name
-        |> String.trim("_")
-        |> String.split("_")
-        |> List.last()
-        |> Integer.parse()
-
-      case int_result do
-        {idx, ""} ->
-          to_string(idx)
-
-        _ ->
-          name
-      end
-    else
-      name
-    end
-  end
-
-  @spec index_to_text(non_neg_integer) :: String.t()
-  def index_to_text(0), do: "zero"
-  def index_to_text(1), do: "one"
-  def index_to_text(2), do: "two"
-  def index_to_text(3), do: "three"
-  def index_to_text(4), do: "four"
-  def index_to_text(5), do: "five"
-  def index_to_text(6), do: "six"
-  def index_to_text(7), do: "seven"
-  def index_to_text(8), do: "eight"
-  def index_to_text(9), do: "nine"
-  def index_to_text(10), do: "ten"
-  def index_to_text(idx), do: "entry#{idx}"
 end

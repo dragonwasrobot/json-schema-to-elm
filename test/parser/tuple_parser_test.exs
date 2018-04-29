@@ -29,12 +29,12 @@ defmodule JS2ETest.Parser.TupleParser do
     }
 
     expected_rectangle_type_reference = %TypeReference{
-      name: "__SHAPEPAIR_ITEMS_0__",
+      name: "0",
       path: ["#", "definitions", "rectangle"]
     }
 
     expected_circle_type_reference = %TypeReference{
-      name: "__SHAPEPAIR_ITEMS_1__",
+      name: "1",
       path: ["#", "definitions", "circle"]
     }
 
