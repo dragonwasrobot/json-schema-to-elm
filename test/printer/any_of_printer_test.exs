@@ -111,7 +111,7 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
             \\fancyCircle ->
                 fancyCircle
                     |> encodeFancyCircle
-                    |> (decodeValue fancyCircleDecoder)
+                    |> Decode.decodeValue fancyCircleDecoder
                     |> Expect.equal (Ok fancyCircle)
     """
 

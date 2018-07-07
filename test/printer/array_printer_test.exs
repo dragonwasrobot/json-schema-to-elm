@@ -66,7 +66,7 @@ defmodule JS2ETest.Printer.ArrayPrinter do
             \\colors ->
                 colors
                     |> encodeColors
-                    |> (decodeValue colorsDecoder)
+                    |> Decode.decodeValue colorsDecoder
                     |> Expect.equal (Ok colors)
     """
 

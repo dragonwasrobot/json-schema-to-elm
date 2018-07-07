@@ -81,7 +81,7 @@ defmodule JS2ETest.Printer.TuplePrinter do
             \\shapePair ->
                 shapePair
                     |> encodeShapePair
-                    |> (decodeValue shapePairDecoder)
+                    |> Decode.decodeValue shapePairDecoder
                     |> Expect.equal (Ok shapePair)
     """
 

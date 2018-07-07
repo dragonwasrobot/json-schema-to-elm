@@ -173,7 +173,7 @@ defmodule JS2ETest.Printer.EnumPrinter do
             \\color ->
                 color
                     |> encodeColor
-                    |> (decodeValue colorDecoder)
+                    |> Decode.decodeValue colorDecoder
                     |> Expect.equal (Ok color)
     """
 

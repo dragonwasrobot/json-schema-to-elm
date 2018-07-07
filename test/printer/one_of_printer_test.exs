@@ -78,7 +78,7 @@ defmodule JS2ETest.Printer.OneOfPrinter do
             \\shape ->
                 shape
                     |> encodeShape
-                    |> (decodeValue shapeDecoder)
+                    |> Decode.decodeValue shapeDecoder
                     |> Expect.equal (Ok shape)
     """
 

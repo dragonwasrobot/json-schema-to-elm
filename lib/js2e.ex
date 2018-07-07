@@ -98,7 +98,8 @@ defmodule JS2E do
         "Data"
       end
 
-    module_name
+    "js2e_output"
+    |> Path.join(module_name)
     |> String.replace(".", "/")
     |> File.mkdir_p!()
 

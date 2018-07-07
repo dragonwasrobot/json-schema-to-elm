@@ -113,7 +113,7 @@ defmodule JS2ETest.Printer.UnionPrinter do
             \\favoriteNumber ->
                 favoriteNumber
                     |> encodeFavoriteNumber
-                    |> (decodeValue favoriteNumberDecoder)
+                    |> Decode.decodeValue favoriteNumberDecoder
                     |> Expect.equal (Ok favoriteNumber)
     """
 

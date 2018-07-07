@@ -92,7 +92,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
             \\circle ->
                 circle
                     |> encodeCircle
-                    |> (decodeValue circleDecoder)
+                    |> Decode.decodeValue circleDecoder
                     |> Expect.equal (Ok circle)
     """
 
