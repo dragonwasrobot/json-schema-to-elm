@@ -11,9 +11,9 @@ defmodule JS2E.Parser.UnionParser do
   """
 
   require Logger
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Parser.{Util, ParserResult}
-  alias JS2E.Types.UnionType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.UnionType
 
   @doc ~S"""
   Returns true if the json subschema represents a union type.

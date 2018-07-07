@@ -2,8 +2,9 @@ defmodule JS2ETest.Parser.ArrayParser do
   use ExUnit.Case
   doctest JS2E.Parser.ArrayParser, import: true
 
-  alias JS2E.Types.{ArrayType, TypeReference}
-  alias JS2E.Parser.ArrayParser
+  alias JS2E.{Parser, Types}
+  alias Parser.ArrayParser
+  alias Types.{ArrayType, TypeReference}
 
   test "parse array type" do
     parser_result =

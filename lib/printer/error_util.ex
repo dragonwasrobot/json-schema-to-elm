@@ -3,8 +3,8 @@ defmodule JS2E.Printer.ErrorUtil do
   Contains helper functions for reporting printer errors.
   """
 
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Printer.PrinterError
+  alias JS2E.{Printer, TypePath, Types}
+  alias Printer.PrinterError
 
   @spec unresolved_reference(
           Types.typeIdentifier(),

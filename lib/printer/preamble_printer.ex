@@ -7,9 +7,9 @@ defmodule JS2E.Printer.PreamblePrinter do
   @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.PrinterResult
-  alias JS2E.Types
-  alias JS2E.Types.{TypeReference, SchemaDefinition}
+  alias JS2E.{Printer, Types}
+  alias Printer.PrinterResult
+  alias Types.{SchemaDefinition, TypeReference}
 
   EEx.function_from_file(:defp, :preamble_template, @preamble_location, [
     :prefix,

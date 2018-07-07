@@ -1,25 +1,112 @@
 defmodule JS2ETest.Printer.AllOfPrinter do
   use ExUnit.Case
-
   require Logger
+  alias JS2E.Printer.AllOfPrinter
 
   alias JS2E.Types.{
     AllOfType,
     EnumType,
     ObjectType,
     PrimitiveType,
-    TypeReference,
-    SchemaDefinition
+    SchemaDefinition,
+    TypeReference
   }
 
-  alias JS2E.Printer.AllOfPrinter
+  test "print 'all of' type value" do
+    result =
+      all_of_type()
+      |> AllOfPrinter.print_type(schema_def(), %{}, module_name())
+
+    all_of_type_program = result.printed_schema
+
+    expected_all_of_type_program = """
+    type alias FancyCircle =
+        { zero : Zero
+        , circle : Circle
+        }
+    """
+
+    assert all_of_type_program == expected_all_of_type_program
+  end
+
+  test "print 'all of' decoder" do
+    result =
+      all_of_type()
+      |> AllOfPrinter.print_decoder(schema_def(), %{}, module_name())
+
+    expected_all_of_decoder_program = """
+    fancyCircleDecoder : Decoder FancyCircle
+    fancyCircleDecoder =
+        decode FancyCircle
+            |> custom zeroDecoder
+            |> custom circleDecoder
+    """
+
+    all_of_decoder_program = result.printed_schema
+
+    assert all_of_decoder_program == expected_all_of_decoder_program
+  end
+
+  test "print 'all of' encoder" do
+    result =
+      all_of_type()
+      |> AllOfPrinter.print_encoder(schema_def(), %{}, module_name())
+
+    expected_all_of_encoder_program = """
+    encodeFancyCircle : FancyCircle -> Value
+    encodeFancyCircle fancyCircle =
+        let
+            color =
+                encodeWith encodeColor "color" fancyCircle.zero.color
+
+            description =
+                encodeMaybeWith Encode.string "description" fancyCircle.zero.description
+
+            radius =
+                encodeWith Encode.float "radius" fancyCircle.circle.radius
+        in
+            object <|
+                color ++ description ++ radius
+    """
+
+    all_of_encoder_program = result.printed_schema
+
+    assert all_of_encoder_program == expected_all_of_encoder_program
+  end
+
+  test "print 'all of' fuzzer" do
+    result =
+      all_of_type()
+      |> AllOfPrinter.print_fuzzer(schema_def(), %{}, module_name())
+
+    expected_all_of_fuzzer_program = """
+    fancyCircleFuzzer : Fuzzer FancyCircle
+    fancyCircleFuzzer =
+        Fuzz.map2 FancyCircle zeroFuzzer circleFuzzer
+
+
+    encodeDecodeFancyCircleTest : Test
+    encodeDecodeFancyCircleTest =
+        fuzz fancyCircleFuzzer "can encode and decode FancyCircle object" <|
+            \\fancyCircle ->
+                fancyCircle
+                    |> encodeFancyCircle
+                    |> (decodeValue fancyCircleDecoder)
+                    |> Expect.equal (Ok fancyCircle)
+    """
+
+    all_of_fuzzer_program = result.printed_schema
+
+    assert all_of_fuzzer_program == expected_all_of_fuzzer_program
+  end
 
   defp path, do: ["#", "definitions", "fancyCircle"]
+  def module_name, do: "Data"
 
   def all_of_type do
     %AllOfType{
       name: "fancyCircle",
-      path: ["#", "definitions", "fancyCircle"],
+      path: path(),
       types: [
         path() ++ ["allOf", "0"],
         path() ++ ["allOf", "1"]
@@ -81,74 +168,5 @@ defmodule JS2ETest.Printer.AllOfPrinter do
         type: "number"
       }
     }
-  end
-
-  def module_name, do: "Data"
-
-  test "print 'all of' type value" do
-    result =
-      all_of_type()
-      |> AllOfPrinter.print_type(schema_def(), %{}, module_name())
-
-    all_of_type_program = result.printed_schema
-
-    expected_all_of_type_program = """
-    type alias FancyCircle =
-        { zero : Zero
-        , circle : Circle
-        }
-    """
-
-    assert all_of_type_program == expected_all_of_type_program
-  end
-
-  test "print 'all of' decoder" do
-    result =
-      all_of_type()
-      |> AllOfPrinter.print_decoder(schema_def(), %{}, module_name())
-
-    expected_all_of_decoder_program = """
-    fancyCircleDecoder : Decoder FancyCircle
-    fancyCircleDecoder =
-        decode FancyCircle
-            |> custom zeroDecoder
-            |> custom circleDecoder
-    """
-
-    all_of_decoder_program = result.printed_schema
-
-    assert all_of_decoder_program == expected_all_of_decoder_program
-  end
-
-  test "print 'all of' encoder" do
-    result =
-      all_of_type()
-      |> AllOfPrinter.print_encoder(schema_def(), %{}, module_name())
-
-    expected_all_of_encoder_program = """
-    encodeFancyCircle : FancyCircle -> Value
-    encodeFancyCircle fancyCircle =
-        let
-            color =
-                [ ( "color", encodeColor fancyCircle.zero.color ) ]
-
-            description =
-                fancyCircle.zero.description
-                    |> Maybe.map
-                        (\\description ->
-                            [ ( "description", Encode.string description ) ]
-                        )
-                    |> Maybe.withDefault []
-
-            radius =
-                [ ( "radius", Encode.float fancyCircle.circle.radius ) ]
-        in
-            object <|
-                color ++ description ++ radius
-    """
-
-    all_of_encoder_program = result.printed_schema
-
-    assert all_of_encoder_program == expected_all_of_encoder_program
   end
 end

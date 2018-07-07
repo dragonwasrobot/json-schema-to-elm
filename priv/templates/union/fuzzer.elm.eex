@@ -1,0 +1,13 @@
+<%= fuzzer_name %> : Fuzzer <%= type_name %>
+<%= fuzzer_name %> =
+    Fuzz.map [ <%= Enum.join(fuzzers, ", ") %> ]
+
+
+encodeDecode<%= type_name %>Test : Test
+encodeDecode<%= type_name %>Test =
+    fuzz <%= fuzzer_name %> "can encode and decode <%= type_name %> union" <|
+        \<%= argument_name %> ->
+            <%= argument_name %>
+                |> <%= encoder_name %>
+                |> (decodeValue <%= decoder_name %>)
+                |> Expect.equal (Ok <%= argument_name %>)

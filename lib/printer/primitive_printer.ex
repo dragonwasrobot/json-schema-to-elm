@@ -56,4 +56,20 @@ defmodule JS2E.Printer.PrimitivePrinter do
       ) do
     PrinterResult.new("")
   end
+
+  @impl JS2E.Printer.PrinterBehaviour
+  @spec print_fuzzer(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_fuzzer(
+        %PrimitiveType{name: _name, path: _path, type: _type},
+        _schema_def,
+        _schema_dict,
+        _module_name
+      ) do
+    PrinterResult.new("")
+  end
 end

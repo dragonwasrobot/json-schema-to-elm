@@ -6,16 +6,26 @@ defmodule JS2E.Printer do
 
   require Logger
 
-  alias JS2E.Printer.{
+  alias JS2E.{Printer, Types}
+
+  alias Printer.{
+    AllOfPrinter,
+    AnyOfPrinter,
+    ArrayPrinter,
+    EnumPrinter,
     ErrorUtil,
+    ObjectPrinter,
+    OneOfPrinter,
     PreamblePrinter,
+    PrimitivePrinter,
     PrinterResult,
-    SchemaResult
+    SchemaResult,
+    TuplePrinter,
+    TypeReferencePrinter,
+    UnionPrinter
   }
 
-  alias JS2E.Types
-
-  alias JS2E.Types.{
+  alias Types.{
     AllOfType,
     AnyOfType,
     ArrayType,
@@ -23,25 +33,10 @@ defmodule JS2E.Printer do
     ObjectType,
     OneOfType,
     PrimitiveType,
+    SchemaDefinition,
     TupleType,
     TypeReference,
-    UnionType,
-    SchemaDefinition
-  }
-
-  alias JS2E.Printer.{
-    ErrorUtil,
-    AllOfPrinter,
-    AnyOfPrinter,
-    ArrayPrinter,
-    EnumPrinter,
-    ObjectPrinter,
-    OneOfPrinter,
-    PrimitivePrinter,
-    TuplePrinter,
-    TypeReferencePrinter,
-    UnionPrinter,
-    PrinterResult
+    UnionType
   }
 
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult

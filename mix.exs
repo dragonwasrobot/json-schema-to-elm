@@ -43,8 +43,8 @@ defmodule JS2E.Mixfile do
     [
       {:apex, "~>1.0"},
       {:excoveralls, "~> 0.7", only: :test},
-      {:credo, "~> 0.8", only: [:dev, :test]},
-      {:dialyxir, "~> 0.5", only: :dev, runtime: false},
+      {:credo, "~> 0.9.1", only: [:dev, :test]},
+      {:dialyxir, "~> 1.0.0-rc.2", only: :dev, runtime: false},
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
       {:poison, "~> 3.0"}
     ]

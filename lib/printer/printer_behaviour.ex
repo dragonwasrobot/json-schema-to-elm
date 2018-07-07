@@ -27,4 +27,11 @@ defmodule JS2E.Printer.PrinterBehaviour do
               Types.schemaDictionary(),
               String.t()
             ) :: PrinterResult.t()
+
+  @callback print_fuzzer(
+              Types.typeDefinition(),
+              SchemaDefinition.t(),
+              Types.schemaDictionary(),
+              String.t()
+            ) :: PrinterResult.t()
 end

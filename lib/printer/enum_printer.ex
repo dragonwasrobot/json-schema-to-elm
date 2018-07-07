@@ -5,10 +5,10 @@ defmodule JS2E.Printer.EnumPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{PrinterError, PrinterResult, ErrorUtil}
-  alias JS2E.Printer.Utils.{Naming, Indentation, ElmTypes, CommonOperations}
-  alias JS2E.Types
-  alias JS2E.Types.{EnumType, SchemaDefinition}
+  alias JS2E.{Printer, Types}
+  alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
+  alias Types.{EnumType, SchemaDefinition}
+  alias Utils.{CommonOperations, ElmTypes, Indentation, Naming}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -217,5 +217,51 @@ defmodule JS2E.Printer.EnumPrinter do
       _ ->
         {:error, ErrorUtil.unknown_enum_type(type_name)}
     end
+  end
+
+  # Fuzzer
+
+  @fuzzer_location Path.join(@templates_location, "enum/fuzzer.elm.eex")
+  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
+    :type_name,
+    :argument_name,
+    :decoder_name,
+    :encoder_name,
+    :fuzzer_name,
+    :fuzzers
+  ])
+
+  @impl JS2E.Printer.PrinterBehaviour
+  @spec print_fuzzer(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_fuzzer(
+        %EnumType{name: name, path: _path, type: _type, values: values},
+        schema_def,
+        _schema_dict,
+        _module_name
+      ) do
+    type_name = Naming.create_root_name(name, schema_def)
+    argument_name = Naming.normalize_identifier(type_name, :downcase)
+    decoder_name = "#{Naming.normalize_identifier(type_name, :downcase)}Decoder"
+    encoder_name = "encode#{Naming.normalize_identifier(type_name, :upcase)}"
+    fuzzer_name = "#{Naming.normalize_identifier(type_name, :downcase)}Fuzzer"
+
+    fuzzers =
+      values
+      |> Enum.map(&"Fuzz.constant #{Naming.normalize_identifier(&1, :upcase)}")
+
+    type_name
+    |> fuzzer_template(
+      argument_name,
+      decoder_name,
+      encoder_name,
+      fuzzer_name,
+      fuzzers
+    )
+    |> PrinterResult.new()
   end
 end

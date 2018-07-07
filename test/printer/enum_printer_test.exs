@@ -2,27 +2,14 @@ defmodule JS2ETest.Printer.EnumPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{EnumType, SchemaDefinition}
-  alias JS2E.Printer.EnumPrinter
+  alias JS2E.{Printer, Types}
+  alias Printer.EnumPrinter
+  alias Types.{EnumType, SchemaDefinition}
 
   test "print enum type with string values" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %EnumType{
-        name: "color",
-        path: ["#", "definitions", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      }
-      |> EnumPrinter.print_type(schema_def, %{}, module_name)
+      enum_type_with_strings()
+      |> EnumPrinter.print_type(schema_def(), %{}, module_name())
 
     expected_enum_type_program = """
     type Color
@@ -38,23 +25,9 @@ defmodule JS2ETest.Printer.EnumPrinter do
   end
 
   test "print enum type with number values" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %EnumType{
-        name: "temperature",
-        path: ["#", "definitions", "temperature"],
-        type: "number",
-        values: [-0.618, 1.618, 3.14, 7.73]
-      }
-      |> EnumPrinter.print_type(schema_def, %{}, module_name)
+      enum_type_with_numbers()
+      |> EnumPrinter.print_type(schema_def(), %{}, module_name())
 
     expected_enum_type_program = """
     type Temperature
@@ -70,23 +43,9 @@ defmodule JS2ETest.Printer.EnumPrinter do
   end
 
   test "print enum decoder with string values" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %EnumType{
-        name: "color",
-        path: ["#", "definitions", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      }
-      |> EnumPrinter.print_decoder(schema_def, %{}, module_name)
+      enum_type_with_strings()
+      |> EnumPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_enum_decoder_program = """
     colorDecoder : String -> Decoder Color
@@ -114,23 +73,9 @@ defmodule JS2ETest.Printer.EnumPrinter do
   end
 
   test "print enum decoder with number values" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %EnumType{
-        name: "temperature",
-        path: ["#", "definitions", "temperature"],
-        type: "number",
-        values: [-0.618, 1.618, 3.14, 7.73]
-      }
-      |> EnumPrinter.print_decoder(schema_def, %{}, module_name)
+      enum_type_with_numbers()
+      |> EnumPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_enum_decoder_program = """
     temperatureDecoder : Float -> Decoder Temperature
@@ -158,23 +103,9 @@ defmodule JS2ETest.Printer.EnumPrinter do
   end
 
   test "print enum encoder with string values" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %EnumType{
-        name: "color",
-        path: ["#", "definitions", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      }
-      |> EnumPrinter.print_encoder(schema_def, %{}, module_name)
+      enum_type_with_strings()
+      |> EnumPrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_enum_encoder_program = """
     encodeColor : Color -> Value
@@ -199,23 +130,9 @@ defmodule JS2ETest.Printer.EnumPrinter do
   end
 
   test "print enum encoder with number values" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %EnumType{
-        name: "temperature",
-        path: ["#", "definitions", "temperature"],
-        type: "number",
-        values: [-0.618, 1.618, 3.14, 7.73]
-      }
-      |> EnumPrinter.print_encoder(schema_def, %{}, module_name)
+      enum_type_with_numbers()
+      |> EnumPrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_enum_encoder_program = """
     encodeTemperature : Temperature -> Value
@@ -238,4 +155,56 @@ defmodule JS2ETest.Printer.EnumPrinter do
 
     assert enum_encoder_program == expected_enum_encoder_program
   end
+
+  test "print enum fuzzer with string values" do
+    result =
+      enum_type_with_strings()
+      |> EnumPrinter.print_fuzzer(schema_def(), %{}, module_name())
+
+    expected_enum_fuzzer_program = """
+    colorFuzzer : Fuzzer Color
+    colorFuzzer =
+        Fuzz.oneOf [ Fuzz.constant None, Fuzz.constant Green, Fuzz.constant Yellow, Fuzz.constant Red ]
+
+
+    encodeDecodeColorTest : Test
+    encodeDecodeColorTest =
+        fuzz colorFuzzer "can encode and decode Color object" <|
+            \\color ->
+                color
+                    |> encodeColor
+                    |> (decodeValue colorDecoder)
+                    |> Expect.equal (Ok color)
+    """
+
+    enum_fuzzer_program = result.printed_schema
+
+    assert enum_fuzzer_program == expected_enum_fuzzer_program
+  end
+
+  defp module_name, do: "Domain"
+
+  defp enum_type_with_strings,
+    do: %EnumType{
+      name: "color",
+      path: ["#", "definitions", "color"],
+      type: "string",
+      values: ["none", "green", "yellow", "red"]
+    }
+
+  defp enum_type_with_numbers,
+    do: %EnumType{
+      name: "temperature",
+      path: ["#", "definitions", "temperature"],
+      type: "number",
+      values: [-0.618, 1.618, 3.14, 7.73]
+    }
+
+  defp schema_def,
+    do: %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      types: %{}
+    }
 end

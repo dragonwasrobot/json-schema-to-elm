@@ -18,10 +18,9 @@ defmodule JS2E do
   """
 
   require Logger
-  alias JS2E.Parser
-  alias JS2E.Parser.{ParserWarning, ParserError}
-  alias JS2E.Printer
-  alias JS2E.Printer.PrinterError
+  alias JS2E.{Parser, Printer}
+  alias Parser.{ParserError, ParserWarning}
+  alias Printer.PrinterError
 
   @spec main([String.t()]) :: :ok
   def main(args) do

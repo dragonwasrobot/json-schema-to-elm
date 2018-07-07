@@ -16,9 +16,9 @@ defmodule JS2E.Parser.TupleParser do
 
   require Logger
 
-  alias JS2E.Parser.{Util, ErrorUtil, ParserResult}
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Types.TupleType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.TupleType
 
   @doc ~S"""
   Returns true if the json subschema represents a tuple type.

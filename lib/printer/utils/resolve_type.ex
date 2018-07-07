@@ -4,9 +4,9 @@ defmodule JS2E.Printer.Utils.ResolveType do
   the `resolve_type` function.
   """
 
-  alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{PrimitiveType, TypeReference, SchemaDefinition}
-  alias JS2E.Printer.{ErrorUtil, PrinterError}
+  alias JS2E.{Printer, TypePath, Types}
+  alias Printer.{ErrorUtil, PrinterError}
+  alias Types.{PrimitiveType, SchemaDefinition, TypeReference}
 
   @spec resolve_type(
           Types.typeIdentifier(),

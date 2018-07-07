@@ -2,50 +2,14 @@ defmodule JS2ETest.Printer.ObjectPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{ObjectType, EnumType, PrimitiveType, SchemaDefinition}
-  alias JS2E.Printer.ObjectPrinter
+  alias JS2E.{Printer, Types}
+  alias Printer.ObjectPrinter
+  alias Types.{EnumType, ObjectType, PrimitiveType, SchemaDefinition}
 
   test "print object type" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/properties/color" => %EnumType{
-        name: "color",
-        path: ["#", "properties", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      },
-      "#/properties/title" => %PrimitiveType{
-        name: "title",
-        path: ["#", "properties", "title"],
-        type: "string"
-      },
-      "#/properties/radius" => %PrimitiveType{
-        name: "radius",
-        path: ["#", "properties", "radius"],
-        type: "number"
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "title"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-      |> ObjectPrinter.print_type(schema_def, %{}, module_name)
+      object_type()
+      |> ObjectPrinter.print_type(schema_def(), %{}, module_name())
 
     expected_object_type_program = """
     type alias Circle =
@@ -61,46 +25,9 @@ defmodule JS2ETest.Printer.ObjectPrinter do
   end
 
   test "print object decoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/properties/color" => %EnumType{
-        name: "color",
-        path: ["#", "properties", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      },
-      "#/properties/title" => %PrimitiveType{
-        name: "title",
-        path: ["#", "properties", "title"],
-        type: "string"
-      },
-      "#/properties/radius" => %PrimitiveType{
-        name: "radius",
-        path: ["#", "properties", "radius"],
-        type: "number"
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "title"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-      |> ObjectPrinter.print_decoder(schema_def, %{}, module_name)
+      object_type()
+      |> ObjectPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_object_decoder_program = """
     circleDecoder : Decoder Circle
@@ -117,46 +44,9 @@ defmodule JS2ETest.Printer.ObjectPrinter do
   end
 
   test "print object encoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/properties/color" => %EnumType{
-        name: "color",
-        path: ["#", "properties", "color"],
-        type: "string",
-        values: ["none", "green", "yellow", "red"]
-      },
-      "#/properties/title" => %PrimitiveType{
-        name: "title",
-        path: ["#", "properties", "title"],
-        type: "string"
-      },
-      "#/properties/radius" => %PrimitiveType{
-        name: "radius",
-        path: ["#", "properties", "radius"],
-        type: "number"
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "title"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-      |> ObjectPrinter.print_encoder(schema_def, %{}, module_name)
+      object_type()
+      |> ObjectPrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_object_encoder_program = """
     encodeCircle : Circle -> Value
@@ -184,4 +74,72 @@ defmodule JS2ETest.Printer.ObjectPrinter do
 
     assert object_encoder_program == expected_object_encoder_program
   end
+
+  test "print object fuzzer" do
+    result =
+      object_type()
+      |> ObjectPrinter.print_fuzzer(schema_def(), %{}, module_name())
+
+    expected_object_fuzzer = """
+    circleFuzzer : Fuzzer Circle
+    circleFuzzer =
+        Fuzz.map3 Circle colorFuzzer Fuzz.float (Fuzz.maybe Fuzz.string)
+
+
+    encodeDecodeCircleTest : Test
+    encodeDecodeCircleTest =
+        fuzz circleFuzzer "can encode and decode Circle object" <|
+            \\circle ->
+                circle
+                    |> encodeCircle
+                    |> (decodeValue circleDecoder)
+                    |> Expect.equal (Ok circle)
+    """
+
+    object_fuzzer = result.printed_schema
+
+    assert object_fuzzer == expected_object_fuzzer
+  end
+
+  defp module_name, do: "Domain"
+
+  defp type_dict,
+    do: %{
+      "#/properties/color" => %EnumType{
+        name: "color",
+        path: ["#", "properties", "color"],
+        type: "string",
+        values: ["none", "green", "yellow", "red"]
+      },
+      "#/properties/title" => %PrimitiveType{
+        name: "title",
+        path: ["#", "properties", "title"],
+        type: "string"
+      },
+      "#/properties/radius" => %PrimitiveType{
+        name: "radius",
+        path: ["#", "properties", "radius"],
+        type: "number"
+      }
+    }
+
+  defp schema_def,
+    do: %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      types: type_dict()
+    }
+
+  defp object_type,
+    do: %ObjectType{
+      name: "circle",
+      path: ["#"],
+      required: ["color", "radius"],
+      properties: %{
+        "color" => ["#", "properties", "color"],
+        "title" => ["#", "properties", "title"],
+        "radius" => ["#", "properties", "radius"]
+      }
+    }
 end

@@ -2,8 +2,9 @@ defmodule JS2ETest.Parser.AnyOfParser do
   use ExUnit.Case
   doctest JS2E.Parser.AnyOfParser, import: true
 
-  alias JS2E.Types.{AnyOfType, ObjectType, PrimitiveType, TypeReference}
-  alias JS2E.Parser.AnyOfParser
+  alias JS2E.{Parser, Types}
+  alias Parser.AnyOfParser
+  alias Types.{AnyOfType, ObjectType, PrimitiveType, TypeReference}
 
   test "parse primitive any_of type" do
     parent = "http://www.example.com/schema.json"

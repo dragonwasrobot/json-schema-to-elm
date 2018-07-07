@@ -2,14 +2,14 @@ defmodule JS2ETest.Printer.ExternalReferences do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Printer
+  alias JS2E.{Printer, Types}
 
-  alias JS2E.Types.{
+  alias Types.{
     EnumType,
     ObjectType,
     PrimitiveType,
-    TypeReference,
-    SchemaDefinition
+    SchemaDefinition,
+    TypeReference
   }
 
   test "print external references" do

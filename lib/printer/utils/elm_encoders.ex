@@ -5,10 +5,10 @@ defmodule JS2E.Printer.Utils.ElmEncoders do
   """
 
   require Logger
-  alias JS2E.Types
-  alias JS2E.Types.{PrimitiveType, SchemaDefinition}
-  alias JS2E.Printer.Utils.Naming
-  alias JS2E.Printer.{ErrorUtil, PrinterError}
+  alias JS2E.{Printer, Types}
+  alias Printer.{ErrorUtil, PrinterError, Utils}
+  alias Types.{PrimitiveType, SchemaDefinition}
+  alias Utils.Naming
 
   @doc ~S"""
   Returns the encoder name given a JSON schema type definition.

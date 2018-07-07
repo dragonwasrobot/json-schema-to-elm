@@ -5,10 +5,10 @@ defmodule JS2E.Printer.OneOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{PrinterError, PrinterResult}
-  alias JS2E.Printer.Utils.{Naming, Indentation, ResolveType, CommonOperations}
-  alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{OneOfType, SchemaDefinition}
+  alias JS2E.{Printer, TypePath, Types}
+  alias Printer.{PrinterError, PrinterResult, Utils}
+  alias Types.{OneOfType, SchemaDefinition}
+  alias Utils.{CommonOperations, ElmFuzzers, Indentation, Naming, ResolveType}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -258,6 +258,118 @@ defmodule JS2E.Printer.OneOfPrinter do
            encoder: "encode#{type_value} #{argument_name}"
          }}
 
+      {:error, error} ->
+        {:error, error}
+    end
+  end
+
+  # Fuzzer
+
+  @fuzzer_location Path.join(@templates_location, "one_of/fuzzer.elm.eex")
+  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
+    :type_name,
+    :argument_name,
+    :decoder_name,
+    :encoder_name,
+    :fuzzer_name,
+    :fuzzers
+  ])
+
+  @impl JS2E.Printer.PrinterBehaviour
+  @spec print_fuzzer(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_fuzzer(
+        %OneOfType{name: name, path: path, types: types},
+        schema_def,
+        schema_dict,
+        module_name
+      ) do
+    type_name = Naming.create_root_name(name, schema_def)
+    argument_name = Naming.normalize_identifier(type_name, :downcase)
+    decoder_name = "#{Naming.normalize_identifier(type_name, :downcase)}Decoder"
+    encoder_name = "encode#{Naming.normalize_identifier(type_name, :upcase)}"
+    fuzzer_name = "#{Naming.normalize_identifier(type_name, :downcase)}Fuzzer"
+
+    {fuzzers, errors} =
+      types
+      |> create_fuzzer_properties(
+        path,
+        schema_def,
+        schema_dict,
+        module_name
+      )
+      |> CommonOperations.split_ok_and_errors()
+
+    type_name
+    |> fuzzer_template(
+      argument_name,
+      decoder_name,
+      encoder_name,
+      fuzzer_name,
+      fuzzers
+    )
+    |> PrinterResult.new(errors)
+  end
+
+  @spec create_fuzzer_properties(
+          [TypePath.t()],
+          TypePath.t(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
+  defp create_fuzzer_properties(
+         types,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
+    types
+    |> Enum.map(
+      &create_fuzzer_property(
+        &1,
+        parent,
+        schema_def,
+        schema_dict,
+        module_name
+      )
+    )
+  end
+
+  @spec create_fuzzer_property(
+          TypePath.t(),
+          TypePath.t(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+  defp create_fuzzer_property(
+         type,
+         parent,
+         schema_def,
+         schema_dict,
+         module_name
+       ) do
+    with {:ok, {resolved_type, resolved_schema}} <-
+           ResolveType.resolve_type(
+             type,
+             parent,
+             schema_def,
+             schema_dict
+           ),
+         {:ok, fuzzer_name} <-
+           ElmFuzzers.create_fuzzer_name(
+             {:ok, {resolved_type, resolved_schema}},
+             schema_def,
+             module_name
+           ) do
+      {:ok, "#{fuzzer_name}"}
+    else
       {:error, error} ->
         {:error, error}
     end

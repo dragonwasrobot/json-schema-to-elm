@@ -17,8 +17,8 @@ defmodule JS2E.Parser.DefinitionsParser do
 
   require Logger
 
-  alias JS2E.TypePath
-  alias JS2E.Parser.{Util, ParserResult}
+  alias JS2E.{Parser, TypePath}
+  alias Parser.{ParserResult, Util}
 
   @doc ~S"""
   Returns true if the json schema contains a 'definitions' property.

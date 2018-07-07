@@ -1,0 +1,75 @@
+module <%= prefix %>.Util exposing (..)
+
+-- Contains utility functions for encoding and decoding JSON values
+
+import Date.Extra as Date
+import Date
+import Json.Decode as Decode
+    exposing
+        ( succeed
+        , fail
+        , map
+        , maybe
+        , field
+        , index
+        , at
+        , andThen
+        , oneOf
+        , nullable
+        , Decoder
+        )
+import Json.Decode.Pipeline
+    exposing
+        ( decode
+        , required
+        , optional
+        , custom
+        )
+import Json.Encode as Encode
+    exposing
+        ( Value
+        , object
+        , list
+        )
+import Regex exposing (Regex)
+
+-- Decoding
+
+
+resultToDecoder : Result (Decoder a) (Decoder a) -> Decoder a
+resultToDecoder result =
+    case result of
+        Ok successDecoder ->
+            successDecoder
+
+        Err failDecoder ->
+            failDecoder
+
+
+dateDecoder : Decoder Date
+dateDecoder =
+    Decode.string
+        |> andThen
+            (Date.fromIsoString
+                >> (Result.map succeed)
+                >> (Result.mapError fail)
+                >> resultToDecoder
+            )
+
+
+-- Encoding
+
+
+encodeWith : (a -> Value) -> String -> a -> List ( String, Value )
+encodeWith toJsonValue key value =
+    [ ( key, toJsonValue value ) ]
+
+
+encodeMaybeWith : (a -> Value) -> String -> Maybe a -> List ( String, Value )
+encodeMaybeWith toJsonValue key maybe =
+    case maybe of
+        Just value ->
+            [ ( key, toJsonValue value ) ]
+
+        Nothing ->
+            []

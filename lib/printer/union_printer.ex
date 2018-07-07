@@ -5,10 +5,10 @@ defmodule JS2E.Printer.UnionPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.Printer.{PrinterError, PrinterResult, ErrorUtil}
-  alias JS2E.Printer.Utils.{Naming, Indentation, CommonOperations}
-  alias JS2E.{Types}
-  alias JS2E.Types.{UnionType, SchemaDefinition}
+  alias JS2E.{Printer, Types}
+  alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
+  alias Types.{SchemaDefinition, UnionType}
+  alias Utils.{CommonOperations, Indentation, Naming}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -256,6 +256,74 @@ defmodule JS2E.Printer.UnionPrinter do
 
       {:error, error} ->
         {:error, error}
+    end
+  end
+
+  # Fuzzer
+
+  @fuzzer_location Path.join(@templates_location, "union/fuzzer.elm.eex")
+  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
+    :type_name,
+    :argument_name,
+    :decoder_name,
+    :encoder_name,
+    :fuzzer_name,
+    :fuzzers
+  ])
+
+  @impl JS2E.Printer.PrinterBehaviour
+  @spec print_fuzzer(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_fuzzer(
+        %UnionType{name: name, path: _path, types: types},
+        schema_def,
+        _schema_dict,
+        _module_name
+      ) do
+    type_name = Naming.create_root_name(name, schema_def)
+    argument_name = Naming.normalize_identifier(type_name, :downcase)
+    decoder_name = "#{Naming.normalize_identifier(type_name, :downcase)}Decoder"
+    encoder_name = "encode#{Naming.normalize_identifier(type_name, :upcase)}"
+    fuzzer_name = "#{Naming.normalize_identifier(type_name, :downcase)}Fuzzer"
+
+    {fuzzers, errors} =
+      types
+      |> Enum.map(fn type -> primitive_type_to_fuzzer(type) end)
+      |> CommonOperations.split_ok_and_errors()
+
+    type_name
+    |> fuzzer_template(
+      argument_name,
+      decoder_name,
+      encoder_name,
+      fuzzer_name,
+      fuzzers
+    )
+    |> PrinterResult.new(errors)
+  end
+
+  @spec primitive_type_to_fuzzer(String.t()) ::
+          {:ok, String.t()} | {:error, PrinterError.t()}
+  defp primitive_type_to_fuzzer(type) do
+    case type do
+      "boolean" ->
+        {:ok, "Fuzz.bool"}
+
+      "integer" ->
+        {:ok, "Fuzz.int"}
+
+      "number" ->
+        {:ok, "Fuzz.float"}
+
+      "string" ->
+        {:ok, "Fuzz.string"}
+
+      unknown_type_id ->
+        {:error, ErrorUtil.unknown_primitive_type(unknown_type_id)}
     end
   end
 end

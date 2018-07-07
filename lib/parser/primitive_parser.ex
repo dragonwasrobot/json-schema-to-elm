@@ -12,9 +12,9 @@ defmodule JS2E.Parser.PrimitiveParser do
 
   require Logger
 
-  alias JS2E.TypePath
-  alias JS2E.Parser.{Util, ParserResult}
-  alias JS2E.Types.PrimitiveType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.PrimitiveType
 
   @doc ~S"""
   Returns true if the json subschema represents a primitive type.

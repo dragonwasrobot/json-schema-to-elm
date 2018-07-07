@@ -61,8 +61,8 @@ defmodule JS2E.Parser.ParserResult do
   """
 
   require Logger
-  alias JS2E.Types
-  alias JS2E.Parser.{ErrorUtil, ParserError, ParserWarning}
+  alias JS2E.{Parser, Types}
+  alias Parser.{ErrorUtil, ParserError, ParserWarning}
 
   @type t :: %__MODULE__{
           type_dict: Types.typeDictionary(),
