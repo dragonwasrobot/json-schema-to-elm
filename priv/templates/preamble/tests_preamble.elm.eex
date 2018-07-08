@@ -1,0 +1,12 @@
+module <%= prefix %><%= title %>Tests exposing (..)
+
+-- Tests: <%= description %>
+
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer)
+import Test exposing (..)
+import Json.Decode as Decode
+import <%= prefix %><%= title %> exposing (..)
+<%= for import_name <- imports do %><%#
+%>import <%= prefix %><%= import_name %>Tests as <%= import_name %>
+<% end %>

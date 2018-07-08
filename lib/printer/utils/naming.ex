@@ -26,9 +26,9 @@ defmodule JS2E.Printer.Utils.Naming do
     schema_name = schema_def.title
 
     if String.length(schema_name) > 0 do
-      "#{module_name}.#{schema_name}.#{type_name}"
+      "#{schema_name}.#{type_name}"
     else
-      "#{module_name}.#{type_name}"
+      "#{type_name}"
     end
   end
 

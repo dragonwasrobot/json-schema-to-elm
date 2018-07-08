@@ -3,13 +3,17 @@ defmodule JS2E.Printer.PreamblePrinter do
   A printer for printing a 'preamble' for a module.
   """
 
-  @templates_location Application.get_env(:js2e, :templates_location)
-  @preamble_location Path.join(@templates_location, "preamble/preamble.elm.eex")
-
   require Elixir.{EEx, Logger}
   alias JS2E.{Printer, Types}
   alias Printer.PrinterResult
   alias Types.{SchemaDefinition, TypeReference}
+
+  @templates_location Application.get_env(:js2e, :templates_location)
+
+  @preamble_location Path.join(
+                       @templates_location,
+                       "preamble/preamble.elm.eex"
+                     )
 
   EEx.function_from_file(:defp, :preamble_template, @preamble_location, [
     :prefix,
@@ -38,6 +42,46 @@ defmodule JS2E.Printer.PreamblePrinter do
     module_name
     |> create_prefix()
     |> preamble_template(title, description, imports)
+    |> PrinterResult.new()
+  end
+
+  @tests_preamble_location Path.join(
+                             @templates_location,
+                             "preamble/tests_preamble.elm.eex"
+                           )
+
+  EEx.function_from_file(
+    :defp,
+    :tests_preamble_template,
+    @tests_preamble_location,
+    [
+      :prefix,
+      :title,
+      :description,
+      :imports
+    ]
+  )
+
+  @spec print_tests_preamble(
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_tests_preamble(
+        %SchemaDefinition{
+          id: _id,
+          title: title,
+          description: description,
+          types: _type_dict
+        } = schema_def,
+        schema_dict,
+        module_name
+      ) do
+    imports = create_imports(schema_def, schema_dict)
+
+    module_name
+    |> create_prefix()
+    |> tests_preamble_template(title, description, imports)
     |> PrinterResult.new()
   end
 

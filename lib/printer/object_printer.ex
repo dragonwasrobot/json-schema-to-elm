@@ -19,14 +19,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   }
 
   alias JS2E.{TypePath, Types}
-
-  alias JS2E.Types.{
-    EnumType,
-    ObjectType,
-    OneOfType,
-    SchemaDefinition,
-    UnionType
-  }
+  alias JS2E.Types.{ObjectType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -264,100 +257,30 @@ defmodule JS2E.Printer.ObjectPrinter do
            ) do
       is_required = property_name in required
 
-      case resolved_type do
-        %EnumType{} ->
-          case ElmDecoders.determine_primitive_type_decoder(resolved_type.type) do
-            {:ok, property_type_decoder} ->
-              create_decoder_enum_clause(
-                property_name,
-                property_type_decoder,
-                decoder_name,
-                is_required
-              )
+      decoder_clause =
+        create_decoder_clause(property_name, decoder_name, is_required)
 
-            {:error, error} ->
-              {:error, error}
-          end
-
-        %OneOfType{} ->
-          create_decoder_union_clause(property_name, decoder_name, is_required)
-
-        %UnionType{} ->
-          create_decoder_union_clause(property_name, decoder_name, is_required)
-
-        _ ->
-          create_decoder_normal_clause(property_name, decoder_name, is_required)
-      end
+      {:ok, decoder_clause}
     else
       {:error, error} ->
         {:error, error}
     end
   end
 
-  @spec create_decoder_union_clause(String.t(), String.t(), boolean) ::
-          {:ok, map}
-  defp create_decoder_union_clause(property_name, decoder_name, is_required) do
+  @spec create_decoder_clause(String.t(), String.t(), boolean) :: map
+  defp create_decoder_clause(property_name, decoder_name, is_required) do
     if is_required do
-      {:ok,
-       %{
-         option: "required",
-         property_name: property_name,
-         decoder: decoder_name
-       }}
+      %{
+        option: "required",
+        property_name: property_name,
+        decoder: decoder_name
+      }
     else
-      {:ok,
-       %{
-         option: "optional",
-         property_name: property_name,
-         decoder: "(nullable #{decoder_name}) Nothing"
-       }}
-    end
-  end
-
-  @spec create_decoder_enum_clause(String.t(), String.t(), String.t(), boolean) ::
-          {:ok, map}
-  defp create_decoder_enum_clause(
-         property_name,
-         property_type_decoder,
-         decoder_name,
-         is_required
-       ) do
-    if is_required do
-      {:ok,
-       %{
-         option: "required",
-         property_name: property_name,
-         decoder: "(#{property_type_decoder} " <> "|> andThen #{decoder_name})"
-       }}
-    else
-      {:ok,
-       %{
-         option: "optional",
-         property_name: property_name,
-         decoder:
-           "(#{property_type_decoder} " <>
-             "|> andThen #{decoder_name} |> maybe) Nothing"
-       }}
-    end
-  end
-
-  @spec create_decoder_normal_clause(String.t(), String.t(), boolean) ::
-          {:ok, map}
-  defp create_decoder_normal_clause(property_name, decoder_name, is_required) do
-    if is_required do
-      {:ok,
-       %{
-         option: "required",
-         property_name: property_name,
-         decoder: decoder_name
-       }}
-    else
-      {:ok,
-       %{
-         option: "optional",
-         property_name: property_name,
-         decoder: "(nullable #{decoder_name}) Nothing"
-       }}
+      %{
+        option: "optional",
+        property_name: property_name,
+        decoder: "(nullable #{decoder_name}) Nothing"
+      }
     end
   end
 

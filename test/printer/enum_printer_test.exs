@@ -48,23 +48,27 @@ defmodule JS2ETest.Printer.EnumPrinter do
       |> EnumPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_enum_decoder_program = """
-    colorDecoder : String -> Decoder Color
-    colorDecoder color =
-        case color of
-            "none" ->
-                succeed None
+    colorDecoder : Decoder Color
+    colorDecoder =
+        Decode.string
+            |> andThen
+                (\\color ->
+                    case color of
+                        "none" ->
+                            succeed None
 
-            "green" ->
-                succeed Green
+                        "green" ->
+                            succeed Green
 
-            "yellow" ->
-                succeed Yellow
+                        "yellow" ->
+                            succeed Yellow
 
-            "red" ->
-                succeed Red
+                        "red" ->
+                            succeed Red
 
-            _ ->
-                fail <| "Unknown color type: " ++ color
+                        _ ->
+                            fail <| "Unknown color type: " ++ color
+                )
     """
 
     enum_decoder_program = result.printed_schema
@@ -78,23 +82,27 @@ defmodule JS2ETest.Printer.EnumPrinter do
       |> EnumPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_enum_decoder_program = """
-    temperatureDecoder : Float -> Decoder Temperature
-    temperatureDecoder temperature =
-        case temperature of
-            -0.618 ->
-                succeed FloatNeg0_618
+    temperatureDecoder : Decoder Temperature
+    temperatureDecoder =
+        Decode.string
+            |> andThen
+                (\\temperature ->
+                    case temperature of
+                        -0.618 ->
+                            succeed FloatNeg0_618
 
-            1.618 ->
-                succeed Float1_618
+                        1.618 ->
+                            succeed Float1_618
 
-            3.14 ->
-                succeed Float3_14
+                        3.14 ->
+                            succeed Float3_14
 
-            7.73 ->
-                succeed Float7_73
+                        7.73 ->
+                            succeed Float7_73
 
-            _ ->
-                fail <| "Unknown temperature type: " ++ temperature
+                        _ ->
+                            fail <| "Unknown temperature type: " ++ temperature
+                )
     """
 
     enum_decoder_program = result.printed_schema

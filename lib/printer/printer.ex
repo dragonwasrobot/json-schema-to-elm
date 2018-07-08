@@ -4,8 +4,8 @@ defmodule JS2E.Printer do
   of elm decoders.
   """
 
+  require Elixir.{EEx}
   require Logger
-
   alias JS2E.{Printer, Types}
 
   alias Printer.{
@@ -39,11 +39,28 @@ defmodule JS2E.Printer do
     UnionType
   }
 
-  @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult
+  @templates_location Application.get_env(:js2e, :templates_location)
+
+  @elm_package_location Path.join(
+                          @templates_location,
+                          "elm_package/elm_package.json.eex"
+                        )
+  EEx.function_from_file(
+    :defp,
+    :elm_package_template,
+    @elm_package_location
+  )
+
+  @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name \\ "") do
+    init_file_dict = %{
+      "./js2e_output/elm-package.json" => elm_package_template()
+    }
+
     schema_dict
-    |> Enum.reduce(SchemaResult.new(), fn {_id, schema_def}, acc ->
-      file_path = create_file_path(schema_def, module_name)
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
+                                                        acc ->
+      file_path = create_file_path(schema_def.title, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
       errors =
@@ -59,24 +76,9 @@ defmodule JS2E.Printer do
     end)
   end
 
-  @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
-  defp create_file_path(schema_def, module_name) do
-    title = schema_def.title
-
-    if module_name != "" do
-      "./#{module_name}/#{title}.elm"
-    else
-      "./#{title}.elm"
-    end
-  end
-
   @spec print_schema(SchemaDefinition.t(), Types.schemaDictionary(), String.t()) ::
           PrinterResult.t()
   def print_schema(schema_def, schema_dict, module_name) do
-    preamble_result =
-      schema_def
-      |> PreamblePrinter.print_preamble(schema_dict, module_name)
-
     type_dict = schema_def.types
 
     values =
@@ -84,8 +86,18 @@ defmodule JS2E.Printer do
       |> filter_aliases
       |> Enum.sort(&(&1.name < &2.name))
 
+    preamble_result =
+      schema_def
+      |> PreamblePrinter.print_preamble(schema_dict, module_name)
+
     types_result =
-      merge_results(values, schema_def, schema_dict, module_name, &print_type/4)
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &print_type/4
+      )
 
     decoders_result =
       merge_results(
@@ -105,6 +117,69 @@ defmodule JS2E.Printer do
         &print_encoder/4
       )
 
+    printer_result =
+      preamble_result
+      |> PrinterResult.merge(types_result)
+      |> PrinterResult.merge(decoders_result)
+      |> PrinterResult.merge(encoders_result)
+
+    printer_result
+    |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
+  end
+
+  @elm_package_test_location Path.join(
+                               @templates_location,
+                               "elm_package/elm_package_test.json.eex"
+                             )
+  EEx.function_from_file(
+    :defp,
+    :elm_package_test_template,
+    @elm_package_test_location
+  )
+
+  @spec print_schemas_tests(Types.schemaDictionary(), String.t()) ::
+          SchemaResult.t()
+  def print_schemas_tests(schema_dict, module_name \\ "") do
+    init_file_dict = %{
+      "./js2e_output/tests/elm-package.json" => elm_package_test_template()
+    }
+
+    schema_dict
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
+                                                        acc ->
+      file_path = create_file_path(schema_def.title, module_name, true)
+      result = print_schema_tests(schema_def, schema_dict, module_name)
+
+      errors =
+        if length(result.errors) > 0 do
+          [{schema_def.file_path, result.errors}]
+        else
+          []
+        end
+
+      %{file_path => result.printed_schema}
+      |> SchemaResult.new(errors)
+      |> SchemaResult.merge(acc)
+    end)
+  end
+
+  @spec print_schema_tests(
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_schema_tests(schema_def, schema_dict, module_name) do
+    type_dict = schema_def.types
+
+    values =
+      type_dict
+      |> filter_aliases
+      |> Enum.sort(&(&1.name < &2.name))
+
+    tests_preamble_result =
+      schema_def
+      |> PreamblePrinter.print_tests_preamble(schema_dict, module_name)
+
     fuzzers_result =
       merge_results(
         values,
@@ -114,14 +189,12 @@ defmodule JS2E.Printer do
         &print_fuzzer/4
       )
 
-    printer_result =
-      preamble_result
-      |> PrinterResult.merge(types_result)
-      |> PrinterResult.merge(decoders_result)
-      |> PrinterResult.merge(encoders_result)
+    tests_printer_result =
+      tests_preamble_result
+      |> PrinterResult.merge(fuzzers_result)
 
-    printer_result
-    |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
+    tests_printer_result
+    |> Map.put(:printed_schema, tests_printer_result.printed_schema <> "\n")
   end
 
   @spec filter_aliases(Types.typeDictionary()) :: [Types.typeDefinition()]
@@ -287,6 +360,23 @@ defmodule JS2E.Printer do
     else
       struct_name = get_struct_name(type_def)
       PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    end
+  end
+
+  @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
+  defp create_file_path(title, module_name, is_test \\ false) do
+    if is_test do
+      if module_name != "" do
+        "./js2e_output/tests/#{module_name}/#{title}Tests.elm"
+      else
+        "./js2e_output/tests/#{title}Tests.elm"
+      end
+    else
+      if module_name != "" do
+        "./js2e_output/#{module_name}/#{title}.elm"
+      else
+        "./js2e_output/#{title}.elm"
+      end
     end
   end
 

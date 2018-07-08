@@ -8,7 +8,7 @@ defmodule JS2E.Printer.EnumPrinter do
   alias JS2E.{Printer, Types}
   alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
   alias Types.{EnumType, SchemaDefinition}
-  alias Utils.{CommonOperations, ElmTypes, Indentation, Naming}
+  alias Utils.{CommonOperations, Indentation, Naming}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -51,7 +51,6 @@ defmodule JS2E.Printer.EnumPrinter do
     :decoder_name,
     :decoder_type,
     :argument_name,
-    :argument_type,
     :cases
   ])
 
@@ -68,23 +67,17 @@ defmodule JS2E.Printer.EnumPrinter do
         _schema_dict,
         _module_name
       ) do
-    case ElmTypes.determine_primitive_type_name(type) do
-      {:ok, argument_type} ->
-        decoder_name = "#{Naming.normalize_identifier(name, :downcase)}Decoder"
-        decoder_type = Naming.upcase_first(name)
+    decoder_name = "#{Naming.normalize_identifier(name, :downcase)}Decoder"
+    decoder_type = Naming.upcase_first(name)
 
-        {decoder_cases, errors} =
-          values
-          |> create_decoder_cases(type)
-          |> CommonOperations.split_ok_and_errors()
+    {decoder_cases, errors} =
+      values
+      |> create_decoder_cases(type)
+      |> CommonOperations.split_ok_and_errors()
 
-        decoder_name
-        |> decoder_template(decoder_type, name, argument_type, decoder_cases)
-        |> PrinterResult.new(errors)
-
-      {:error, error} ->
-        PrinterResult.new("", [error])
-    end
+    decoder_name
+    |> decoder_template(decoder_type, name, decoder_cases)
+    |> PrinterResult.new(errors)
   end
 
   @spec create_decoder_cases([String.t()], String.t()) :: [

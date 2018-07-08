@@ -1,9 +1,13 @@
-<%= decoder_name %> : <%= argument_type %> -> Decoder <%= decoder_type %>
-<%= decoder_name %> <%= argument_name %> =
-    case <%= argument_name %> of<%#
-    %><%= for case <- cases do %>
-        <%= case.raw_value %> ->
-            succeed <%= case.parsed_value %>
+<%= decoder_name %> : Decoder <%= decoder_type %>
+<%= decoder_name %> =
+    Decode.string
+        |> andThen
+            (\<%= argument_name %> ->
+                case <%= argument_name %> of<%#
+%><%= for case <- cases do %>
+                    <%= case.raw_value %> ->
+                        succeed <%= case.parsed_value %>
 <% end %>
-        _ ->
-            fail <| "Unknown <%= argument_name %> type: " ++ <%= argument_name %>
+                    _ ->
+                        fail <| "Unknown <%= argument_name %> type: " ++ <%= argument_name %>
+            )
