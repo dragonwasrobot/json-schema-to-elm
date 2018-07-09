@@ -2,9 +2,9 @@ defmodule JS2ETest.Parser.DefinitionsParser do
   use ExUnit.Case
   doctest JS2E.Parser.DefinitionsParser, import: true
 
-  alias JS2E.Types
-  alias Types.{ArrayType, TypeReference, PrimitiveType, SchemaDefinition}
-  alias JS2E.Parser.RootParser
+  alias JS2E.{Parser, Types}
+  alias Parser.RootParser
+  alias Types.{ArrayType, PrimitiveType, SchemaDefinition, TypeReference}
 
   test "parse definitions" do
     schema_result =

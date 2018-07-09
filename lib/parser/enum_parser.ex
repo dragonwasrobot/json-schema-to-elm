@@ -12,9 +12,9 @@ defmodule JS2E.Parser.EnumParser do
   """
 
   require Logger
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Parser.{Util, ParserResult}
-  alias JS2E.Types.EnumType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.EnumType
 
   @doc ~S"""
   Returns true if the json subschema represents an enum type.

@@ -2,8 +2,8 @@ defmodule JS2ETest.Parser.EnumParser do
   use ExUnit.Case
   doctest JS2E.Parser.EnumParser, import: true
 
-  alias JS2E.Types.EnumType
   alias JS2E.Parser.EnumParser
+  alias JS2E.Types.EnumType
 
   test "parse enum type with integer values" do
     parser_result =

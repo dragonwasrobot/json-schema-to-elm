@@ -23,9 +23,9 @@ defmodule JS2E.Parser.ObjectParser do
   """
 
   require Logger
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Parser.{Util, ParserResult}
-  alias JS2E.Types.ObjectType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.ObjectType
 
   @doc ~S"""
   Returns true if the json subschema represents an allOf type.

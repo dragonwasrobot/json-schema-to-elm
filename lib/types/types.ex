@@ -4,10 +4,9 @@ defmodule JS2E.Types do
   intermediate representations of JSON schema types.
   """
 
-  alias JS2E.TypePath
-  alias JS2E.Printers.PrinterResult
+  alias JS2E.{TypePath, Types}
 
-  alias JS2E.Types.{
+  alias Types.{
     AllOfType,
     AnyOfType,
     ArrayType,

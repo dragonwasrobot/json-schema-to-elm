@@ -5,23 +5,23 @@ defmodule JS2E.Parser.Util do
 
   require Logger
 
-  alias JS2E.Parser.{
+  alias JS2E.{Parser, TypePath, Types}
+
+  alias Parser.{
     AllOfParser,
     AnyOfParser,
     ArrayParser,
-    EnumParser,
     DefinitionsParser,
+    EnumParser,
+    ErrorUtil,
     ObjectParser,
     OneOfParser,
+    ParserResult,
     PrimitiveParser,
     TupleParser,
     TypeReferenceParser,
-    UnionParser,
-    ErrorUtil,
-    ParserResult
+    UnionParser
   }
-
-  alias JS2E.{TypePath, Types}
 
   @type nodeParser ::
           (Types.schemaNode(), URI.t(), URI.t(), TypePath.t(), String.t() ->

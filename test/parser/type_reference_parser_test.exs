@@ -2,8 +2,9 @@ defmodule JS2ETest.Parser.TypeReferenceParser do
   use ExUnit.Case
   doctest JS2E.Parser.TypeReferenceParser, import: true
 
-  alias JS2E.Types.TypeReference
-  alias JS2E.Parser.TypeReferenceParser
+  alias JS2E.{Parser, Types}
+  alias Parser.TypeReferenceParser
+  alias Types.TypeReference
 
   test "parse type reference" do
     parser_result =

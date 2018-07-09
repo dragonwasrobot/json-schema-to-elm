@@ -1,89 +1,16 @@
 defmodule JS2ETest.Printer.AllOfPrinter do
   use ExUnit.Case
-
   require Logger
+  alias JS2E.Printer.AllOfPrinter
 
   alias JS2E.Types.{
     AllOfType,
     EnumType,
     ObjectType,
     PrimitiveType,
-    TypeReference,
-    SchemaDefinition
+    SchemaDefinition,
+    TypeReference
   }
-
-  alias JS2E.Printer.AllOfPrinter
-
-  defp path, do: ["#", "definitions", "fancyCircle"]
-
-  def all_of_type do
-    %AllOfType{
-      name: "fancyCircle",
-      path: ["#", "definitions", "fancyCircle"],
-      types: [
-        path() ++ ["allOf", "0"],
-        path() ++ ["allOf", "1"]
-      ]
-    }
-  end
-
-  def schema_def do
-    %SchemaDefinition{
-      description: "'allOf' example schema",
-      id: URI.parse("http://example.com/all_of_example.json"),
-      title: "AllOfExample",
-      types: type_dict()
-    }
-  end
-
-  def type_dict do
-    %{
-      "#/definitions/fancyCircle/allOf/0" => %ObjectType{
-        name: "0",
-        path: path() ++ ["allOf", "0"],
-        required: ["color"],
-        properties: %{
-          "color" => path() ++ ["allOf", "0", "properties", "color"],
-          "description" => path() ++ ["allOf", "0", "properties", "description"]
-        }
-      },
-      "#/definitions/fancyCircle/allOf/0/properties/color" => %TypeReference{
-        name: "color",
-        path: ["#", "definitions", "color"]
-      },
-      "#/definitions/color" => %EnumType{
-        name: "color",
-        path: ["#", "definitions", "color"],
-        type: "string",
-        values: ["red", "yellow", "green"]
-      },
-      "#/definitions/fancyCircle/allOf/0/properties/description" =>
-        %PrimitiveType{
-          name: "description",
-          path: path() ++ ["allOf", "0", "properties", "description"],
-          type: "string"
-        },
-      "#/definitions/fancyCircle/allOf/1" => %TypeReference{
-        name: "1",
-        path: ["#", "definitions", "circle"]
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#", "definitions", "circle"],
-        required: ["radius"],
-        properties: %{
-          "radius" => ["#", "definitions", "circle", "properties", "radius"]
-        }
-      },
-      "#/definitions/circle/properties/radius" => %PrimitiveType{
-        name: "radius",
-        path: ["#", "definitions", "circle", "properties", "radius"],
-        type: "number"
-      }
-    }
-  end
-
-  def module_name, do: "Data"
 
   test "print 'all of' type value" do
     result =
@@ -150,5 +77,104 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     all_of_encoder_program = result.printed_schema
 
     assert all_of_encoder_program == expected_all_of_encoder_program
+  end
+
+  test "print 'all of' fuzzer" do
+    result =
+      all_of_type()
+      |> AllOfPrinter.print_fuzzer(schema_def(), %{}, module_name())
+
+    expected_all_of_fuzzer_program = """
+    fancyCircleFuzzer : Fuzzer FancyCircle
+    fancyCircleFuzzer =
+        Fuzz.map2
+            FancyCircle
+            zeroFuzzer
+            circleFuzzer
+
+
+    encodeDecodeFancyCircleTest : Test
+    encodeDecodeFancyCircleTest =
+        fuzz fancyCircleFuzzer "can encode and decode FancyCircle object" <|
+            \\fancyCircle ->
+                fancyCircle
+                    |> encodeFancyCircle
+                    |> Decode.decodeValue fancyCircleDecoder
+                    |> Expect.equal (Ok fancyCircle)
+    """
+
+    all_of_fuzzer_program = result.printed_schema
+
+    assert all_of_fuzzer_program == expected_all_of_fuzzer_program
+  end
+
+  defp path, do: ["#", "definitions", "fancyCircle"]
+  def module_name, do: "Data"
+
+  def all_of_type do
+    %AllOfType{
+      name: "fancyCircle",
+      path: path(),
+      types: [
+        path() ++ ["allOf", "0"],
+        path() ++ ["allOf", "1"]
+      ]
+    }
+  end
+
+  def schema_def do
+    %SchemaDefinition{
+      description: "'allOf' example schema",
+      id: URI.parse("http://example.com/all_of_example.json"),
+      title: "AllOfExample",
+      types: type_dict()
+    }
+  end
+
+  def type_dict do
+    %{
+      "#/definitions/fancyCircle/allOf/0" => %ObjectType{
+        name: "0",
+        path: path() ++ ["allOf", "0"],
+        required: ["color"],
+        properties: %{
+          "color" => path() ++ ["allOf", "0", "properties", "color"],
+          "description" => path() ++ ["allOf", "0", "properties", "description"]
+        }
+      },
+      "#/definitions/fancyCircle/allOf/0/properties/color" => %TypeReference{
+        name: "color",
+        path: ["#", "definitions", "color"]
+      },
+      "#/definitions/color" => %EnumType{
+        name: "color",
+        path: ["#", "definitions", "color"],
+        type: "string",
+        values: ["red", "yellow", "green"]
+      },
+      "#/definitions/fancyCircle/allOf/0/properties/description" =>
+        %PrimitiveType{
+          name: "description",
+          path: path() ++ ["allOf", "0", "properties", "description"],
+          type: "string"
+        },
+      "#/definitions/fancyCircle/allOf/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
+      },
+      "#/definitions/circle" => %ObjectType{
+        name: "circle",
+        path: ["#", "definitions", "circle"],
+        required: ["radius"],
+        properties: %{
+          "radius" => ["#", "definitions", "circle", "properties", "radius"]
+        }
+      },
+      "#/definitions/circle/properties/radius" => %PrimitiveType{
+        name: "radius",
+        path: ["#", "definitions", "circle", "properties", "radius"],
+        type: "number"
+      }
+    }
   end
 end

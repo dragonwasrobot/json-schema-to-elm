@@ -4,18 +4,28 @@ defmodule JS2E.Printer do
   of elm decoders.
   """
 
+  require Elixir.{EEx}
   require Logger
+  alias JS2E.{Printer, Types}
 
-  alias JS2E.Printer.{
+  alias Printer.{
+    AllOfPrinter,
+    AnyOfPrinter,
+    ArrayPrinter,
+    EnumPrinter,
     ErrorUtil,
+    ObjectPrinter,
+    OneOfPrinter,
     PreamblePrinter,
+    PrimitivePrinter,
     PrinterResult,
-    SchemaResult
+    SchemaResult,
+    TuplePrinter,
+    TypeReferencePrinter,
+    UnionPrinter
   }
 
-  alias JS2E.Types
-
-  alias JS2E.Types.{
+  alias Types.{
     AllOfType,
     AnyOfType,
     ArrayType,
@@ -23,32 +33,46 @@ defmodule JS2E.Printer do
     ObjectType,
     OneOfType,
     PrimitiveType,
+    SchemaDefinition,
     TupleType,
     TypeReference,
-    UnionType,
-    SchemaDefinition
+    UnionType
   }
 
-  alias JS2E.Printer.{
-    ErrorUtil,
-    AllOfPrinter,
-    AnyOfPrinter,
-    ArrayPrinter,
-    EnumPrinter,
-    ObjectPrinter,
-    OneOfPrinter,
-    PrimitivePrinter,
-    TuplePrinter,
-    TypeReferencePrinter,
-    UnionPrinter,
-    PrinterResult
-  }
+  @output_location Application.get_env(:js2e, :output_location)
+  @templates_location Application.get_env(:js2e, :templates_location)
 
-  @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult
+  @package_location Path.join(
+                      @templates_location,
+                      "elm_package/package.json.eex"
+                    )
+  EEx.function_from_file(
+    :defp,
+    :package_template,
+    @package_location
+  )
+
+  @elm_package_location Path.join(
+                          @templates_location,
+                          "elm_package/elm_package.json.eex"
+                        )
+  EEx.function_from_file(
+    :defp,
+    :elm_package_template,
+    @elm_package_location
+  )
+
+  @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name \\ "") do
+    init_file_dict = %{
+      "./#{@output_location}/package.json" => package_template(),
+      "./#{@output_location}/elm-package.json" => elm_package_template()
+    }
+
     schema_dict
-    |> Enum.reduce(SchemaResult.new(), fn {_id, schema_def}, acc ->
-      file_path = create_file_path(schema_def, module_name)
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
+                                                        acc ->
+      file_path = create_file_path(schema_def.title, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
       errors =
@@ -64,24 +88,9 @@ defmodule JS2E.Printer do
     end)
   end
 
-  @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
-  defp create_file_path(schema_def, module_name) do
-    title = schema_def.title
-
-    if module_name != "" do
-      "./#{module_name}/#{title}.elm"
-    else
-      "./#{title}.elm"
-    end
-  end
-
   @spec print_schema(SchemaDefinition.t(), Types.schemaDictionary(), String.t()) ::
           PrinterResult.t()
   def print_schema(schema_def, schema_dict, module_name) do
-    preamble_result =
-      schema_def
-      |> PreamblePrinter.print_preamble(schema_dict, module_name)
-
     type_dict = schema_def.types
 
     values =
@@ -89,8 +98,18 @@ defmodule JS2E.Printer do
       |> filter_aliases
       |> Enum.sort(&(&1.name < &2.name))
 
+    preamble_result =
+      schema_def
+      |> PreamblePrinter.print_preamble(schema_dict, module_name)
+
     types_result =
-      merge_results(values, schema_def, schema_dict, module_name, &print_type/4)
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &print_type/4
+      )
 
     decoders_result =
       merge_results(
@@ -118,6 +137,77 @@ defmodule JS2E.Printer do
 
     printer_result
     |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
+  end
+
+  @elm_package_test_location Path.join(
+                               @templates_location,
+                               "elm_package/elm_package_test.json.eex"
+                             )
+  EEx.function_from_file(
+    :defp,
+    :elm_package_test_template,
+    @elm_package_test_location
+  )
+
+  @spec print_schemas_tests(Types.schemaDictionary(), String.t()) ::
+          SchemaResult.t()
+  def print_schemas_tests(schema_dict, module_name \\ "") do
+    init_file_dict = %{
+      "./#{@output_location}/tests/elm-package.json" =>
+        elm_package_test_template()
+    }
+
+    schema_dict
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
+                                                        acc ->
+      file_path = create_file_path(schema_def.title, module_name, true)
+      result = print_schema_tests(schema_def, schema_dict, module_name)
+
+      errors =
+        if length(result.errors) > 0 do
+          [{schema_def.file_path, result.errors}]
+        else
+          []
+        end
+
+      %{file_path => result.printed_schema}
+      |> SchemaResult.new(errors)
+      |> SchemaResult.merge(acc)
+    end)
+  end
+
+  @spec print_schema_tests(
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_schema_tests(schema_def, schema_dict, module_name) do
+    type_dict = schema_def.types
+
+    values =
+      type_dict
+      |> filter_aliases
+      |> Enum.sort(&(&1.name < &2.name))
+
+    tests_preamble_result =
+      schema_def
+      |> PreamblePrinter.print_tests_preamble(schema_dict, module_name)
+
+    fuzzers_result =
+      merge_results(
+        values,
+        schema_def,
+        schema_dict,
+        module_name,
+        &print_fuzzer/4
+      )
+
+    tests_printer_result =
+      tests_preamble_result
+      |> PrinterResult.merge(fuzzers_result)
+
+    tests_printer_result
+    |> Map.put(:printed_schema, tests_printer_result.printed_schema <> "\n")
   end
 
   @spec filter_aliases(Types.typeDictionary()) :: [Types.typeDefinition()]
@@ -161,50 +251,29 @@ defmodule JS2E.Printer do
           String.t()
         ) :: PrinterResult.t()
   def print_type(type_def, schema_def, schema_dict, module_name) do
-    case type_def do
-      %AllOfType{} ->
-        AllOfPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+    type_printers = [
+      {AllOfType, &AllOfPrinter.print_type/4},
+      {AnyOfType, &AnyOfPrinter.print_type/4},
+      {ArrayType, &ArrayPrinter.print_type/4},
+      {EnumType, &EnumPrinter.print_type/4},
+      {ObjectType, &ObjectPrinter.print_type/4},
+      {OneOfType, &OneOfPrinter.print_type/4},
+      {PrimitiveType, &PrimitivePrinter.print_type/4},
+      {TupleType, &TuplePrinter.print_type/4},
+      {TypeReference, &TypeReferencePrinter.print_type/4},
+      {UnionType, &UnionPrinter.print_type/4}
+    ]
 
-      %AnyOfType{} ->
-        AnyOfPrinter.print_type(type_def, schema_def, schema_dict, module_name)
+    type_printer =
+      type_printers
+      |> Enum.find(fn {type, _printer} -> type == type_def.__struct__ end)
 
-      %ArrayType{} ->
-        ArrayPrinter.print_type(type_def, schema_def, schema_dict, module_name)
-
-      %EnumType{} ->
-        EnumPrinter.print_type(type_def, schema_def, schema_dict, module_name)
-
-      %ObjectType{} ->
-        ObjectPrinter.print_type(type_def, schema_def, schema_dict, module_name)
-
-      %OneOfType{} ->
-        OneOfPrinter.print_type(type_def, schema_def, schema_dict, module_name)
-
-      %PrimitiveType{} ->
-        PrimitivePrinter.print_type(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %TupleType{} ->
-        TuplePrinter.print_type(type_def, schema_def, schema_dict, module_name)
-
-      %TypeReference{} ->
-        TypeReferencePrinter.print_type(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %UnionType{} ->
-        UnionPrinter.print_type(type_def, schema_def, schema_dict, module_name)
-
-      _ ->
-        struct_name = get_struct_name(type_def)
-        PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    if type_printer != nil do
+      {_type, printer} = type_printer
+      printer.(type_def, schema_def, schema_dict, module_name)
+    else
+      struct_name = get_struct_name(type_def)
+      PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
     end
   end
 
@@ -215,90 +284,29 @@ defmodule JS2E.Printer do
           String.t()
         ) :: PrinterResult.t()
   def print_decoder(type_def, schema_def, schema_dict, module_name) do
-    case type_def do
-      %AllOfType{} ->
-        AllOfPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    decoder_printers = [
+      {AllOfType, &AllOfPrinter.print_decoder/4},
+      {AnyOfType, &AnyOfPrinter.print_decoder/4},
+      {ArrayType, &ArrayPrinter.print_decoder/4},
+      {EnumType, &EnumPrinter.print_decoder/4},
+      {ObjectType, &ObjectPrinter.print_decoder/4},
+      {OneOfType, &OneOfPrinter.print_decoder/4},
+      {PrimitiveType, &PrimitivePrinter.print_decoder/4},
+      {TupleType, &TuplePrinter.print_decoder/4},
+      {TypeReference, &TypeReferencePrinter.print_decoder/4},
+      {UnionType, &UnionPrinter.print_decoder/4}
+    ]
 
-      %AnyOfType{} ->
-        AnyOfPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    decoder_printer =
+      decoder_printers
+      |> Enum.find(fn {type, _printer} -> type == type_def.__struct__ end)
 
-      %ArrayType{} ->
-        ArrayPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %EnumType{} ->
-        EnumPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %ObjectType{} ->
-        ObjectPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %OneOfType{} ->
-        OneOfPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %PrimitiveType{} ->
-        PrimitivePrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %TupleType{} ->
-        TuplePrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %TypeReference{} ->
-        TypeReferencePrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %UnionType{} ->
-        UnionPrinter.print_decoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      _ ->
-        struct_name = get_struct_name(type_def)
-        PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    if decoder_printer != nil do
+      {_type, printer} = decoder_printer
+      printer.(type_def, schema_def, schema_dict, module_name)
+    else
+      struct_name = get_struct_name(type_def)
+      PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
     end
   end
 
@@ -309,90 +317,79 @@ defmodule JS2E.Printer do
           String.t()
         ) :: PrinterResult.t()
   def print_encoder(type_def, schema_def, schema_dict, module_name) do
-    case type_def do
-      %AllOfType{} ->
-        AllOfPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    encoder_printers = [
+      {AllOfType, &AllOfPrinter.print_encoder/4},
+      {AnyOfType, &AnyOfPrinter.print_encoder/4},
+      {ArrayType, &ArrayPrinter.print_encoder/4},
+      {EnumType, &EnumPrinter.print_encoder/4},
+      {ObjectType, &ObjectPrinter.print_encoder/4},
+      {OneOfType, &OneOfPrinter.print_encoder/4},
+      {PrimitiveType, &PrimitivePrinter.print_encoder/4},
+      {TupleType, &TuplePrinter.print_encoder/4},
+      {TypeReference, &TypeReferencePrinter.print_encoder/4},
+      {UnionType, &UnionPrinter.print_encoder/4}
+    ]
 
-      %AnyOfType{} ->
-        AnyOfPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    encoder_printer =
+      encoder_printers
+      |> Enum.find(fn {type, _printer} -> type == type_def.__struct__ end)
 
-      %ArrayType{} ->
-        ArrayPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    if encoder_printer != nil do
+      {_type, printer} = encoder_printer
+      printer.(type_def, schema_def, schema_dict, module_name)
+    else
+      struct_name = get_struct_name(type_def)
+      PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    end
+  end
 
-      %EnumType{} ->
-        EnumPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+  @spec print_fuzzer(
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
+          String.t()
+        ) :: PrinterResult.t()
+  def print_fuzzer(type_def, schema_def, schema_dict, module_name) do
+    fuzzer_printers = [
+      {AllOfType, &AllOfPrinter.print_fuzzer/4},
+      {AnyOfType, &AnyOfPrinter.print_fuzzer/4},
+      {ArrayType, &ArrayPrinter.print_fuzzer/4},
+      {EnumType, &EnumPrinter.print_fuzzer/4},
+      {ObjectType, &ObjectPrinter.print_fuzzer/4},
+      {OneOfType, &OneOfPrinter.print_fuzzer/4},
+      {PrimitiveType, &PrimitivePrinter.print_fuzzer/4},
+      {TupleType, &TuplePrinter.print_fuzzer/4},
+      {TypeReference, &TypeReferencePrinter.print_fuzzer/4},
+      {UnionType, &UnionPrinter.print_fuzzer/4}
+    ]
 
-      %ObjectType{} ->
-        ObjectPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    fuzzer_printer =
+      fuzzer_printers
+      |> Enum.find(fn {type, _printer} -> type == type_def.__struct__ end)
 
-      %OneOfType{} ->
-        OneOfPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
+    if fuzzer_printer != nil do
+      {_type, printer} = fuzzer_printer
+      printer.(type_def, schema_def, schema_dict, module_name)
+    else
+      struct_name = get_struct_name(type_def)
+      PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+    end
+  end
 
-      %PrimitiveType{} ->
-        PrimitivePrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %TupleType{} ->
-        TuplePrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %TypeReference{} ->
-        TypeReferencePrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      %UnionType{} ->
-        UnionPrinter.print_encoder(
-          type_def,
-          schema_def,
-          schema_dict,
-          module_name
-        )
-
-      _ ->
-        struct_name = get_struct_name(type_def)
-        PrinterResult.new("", [ErrorUtil.unknown_type(struct_name)])
+  @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
+  defp create_file_path(title, module_name, is_test \\ false) do
+    if is_test do
+      if module_name != "" do
+        "./#{@output_location}/tests/#{module_name}/#{title}Tests.elm"
+      else
+        "./#{@output_location}/tests/#{title}Tests.elm"
+      end
+    else
+      if module_name != "" do
+        "./#{@output_location}/#{module_name}/#{title}.elm"
+      else
+        "./#{@output_location}/#{title}.elm"
+      end
     end
   end
 

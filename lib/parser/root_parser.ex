@@ -5,24 +5,24 @@ defmodule JS2E.Parser.RootParser do
 
   require Logger
 
-  alias JS2E.Parser.{
+  alias JS2E.{Parser, TypePath, Types}
+
+  alias Parser.{
     AllOfParser,
     AnyOfParser,
     ArrayParser,
     DefinitionsParser,
+    ErrorUtil,
     ObjectParser,
     OneOfParser,
-    TupleParser,
-    TypeReferenceParser,
-    Util,
-    ErrorUtil,
     ParserError,
     ParserResult,
-    SchemaResult
+    SchemaResult,
+    TupleParser,
+    TypeReferenceParser
   }
 
-  alias JS2E.{TypePath, Types}
-  alias JS2E.Types.SchemaDefinition
+  alias Types.SchemaDefinition
 
   @spec parse_schema(Types.schemaNode(), Path.t()) :: SchemaResult.t()
   def parse_schema(root_node, schema_file_path) do

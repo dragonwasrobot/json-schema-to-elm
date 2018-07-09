@@ -15,9 +15,9 @@ defmodule JS2E.Parser.ArrayParser do
 
   require Logger
 
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Parser.{Util, ParserResult}
-  alias JS2E.Types.ArrayType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.ArrayType
 
   @doc ~S"""
   Returns true if the json subschema represents an array type.

@@ -2,55 +2,14 @@ defmodule JS2ETest.Printer.TuplePrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{TupleType, ObjectType, TypeReference, SchemaDefinition}
-  alias JS2E.Printer.TuplePrinter
+  alias JS2E.{Printer, Types}
+  alias Printer.TuplePrinter
+  alias Types.{ObjectType, SchemaDefinition, TupleType, TypeReference}
 
   test "print 'tuple' type value" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/shapePair/0" => %TypeReference{
-        name: "0",
-        path: ["#", "definitions", "square"]
-      },
-      "#/shapePair/1" => %TypeReference{
-        name: "1",
-        path: ["#", "definitions", "circle"]
-      },
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %TupleType{
-        name: "shapePair",
-        path: ["#", "shapePair"],
-        items: [["#", "shapePair", "0"], ["#", "shapePair", "1"]]
-      }
-      |> TuplePrinter.print_type(schema_def, %{}, module_name)
+      tuple_type()
+      |> TuplePrinter.print_type(schema_def(), %{}, module_name())
 
     expected_tuple_type_program = """
     type alias ShapePair =
@@ -65,51 +24,9 @@ defmodule JS2ETest.Printer.TuplePrinter do
   end
 
   test "print 'tuple' decoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/shapePair/0" => %TypeReference{
-        name: "0",
-        path: ["#", "definitions", "square"]
-      },
-      "#/shapePair/1" => %TypeReference{
-        name: "1",
-        path: ["#", "definitions", "circle"]
-      },
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %TupleType{
-        name: "shapePair",
-        path: ["#"],
-        items: [["#", "shapePair", "0"], ["#", "shapePair", "1"]]
-      }
-      |> TuplePrinter.print_decoder(schema_def, %{}, module_name)
+      tuple_type()
+      |> TuplePrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_tuple_decoder_program = """
     shapePairDecoder : Decoder ShapePair
@@ -125,51 +42,9 @@ defmodule JS2ETest.Printer.TuplePrinter do
   end
 
   test "print 'tuple' encoder" do
-    module_name = "Domain"
-
-    type_dict = %{
-      "#/shapePair/0" => %TypeReference{
-        name: "0",
-        path: ["#", "definitions", "square"]
-      },
-      "#/shapePair/1" => %TypeReference{
-        name: "1",
-        path: ["#", "definitions", "circle"]
-      },
-      "#/definitions/square" => %ObjectType{
-        name: "square",
-        path: ["#"],
-        required: ["color", "size"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
-        }
-      },
-      "#/definitions/circle" => %ObjectType{
-        name: "circle",
-        path: ["#"],
-        required: ["color", "radius"],
-        properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
-        }
-      }
-    }
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: type_dict
-    }
-
     result =
-      %TupleType{
-        name: "shapePair",
-        path: ["#"],
-        items: [["#", "shapePair", "0"], ["#", "shapePair", "1"]]
-      }
-      |> TuplePrinter.print_encoder(schema_def, %{}, module_name)
+      tuple_type()
+      |> TuplePrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_tuple_encoder_program = """
     encodeShapePair : ShapePair -> Value
@@ -188,4 +63,83 @@ defmodule JS2ETest.Printer.TuplePrinter do
 
     assert tuple_encoder_program == expected_tuple_encoder_program
   end
+
+  test "print tuple fuzzer" do
+    result =
+      tuple_type()
+      |> TuplePrinter.print_fuzzer(schema_def(), %{}, module_name())
+
+    expected_tuple_fuzzer = """
+    shapePairFuzzer : Fuzzer ShapePair
+    shapePairFuzzer =
+        Fuzz.tuple
+            (squareFuzzer
+            , circleFuzzer
+            )
+
+
+    encodeDecodeShapePairTest : Test
+    encodeDecodeShapePairTest =
+        fuzz shapePairFuzzer "can encode and decode ShapePair tuple" <|
+            \\shapePair ->
+                shapePair
+                    |> encodeShapePair
+                    |> Decode.decodeValue shapePairDecoder
+                    |> Expect.equal (Ok shapePair)
+    """
+
+    tuple_fuzzer = result.printed_schema
+
+    assert tuple_fuzzer == expected_tuple_fuzzer
+  end
+
+  defp module_name, do: "Domain"
+
+  defp tuple_type,
+    do: %TupleType{
+      name: "shapePair",
+      path: ["#", "shapePair"],
+      items: [
+        ["#", "shapePair", "0"],
+        ["#", "shapePair", "1"]
+      ]
+    }
+
+  defp schema_def,
+    do: %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      types: type_dict()
+    }
+
+  defp type_dict,
+    do: %{
+      "#/shapePair/0" => %TypeReference{
+        name: "0",
+        path: ["#", "definitions", "square"]
+      },
+      "#/shapePair/1" => %TypeReference{
+        name: "1",
+        path: ["#", "definitions", "circle"]
+      },
+      "#/definitions/square" => %ObjectType{
+        name: "square",
+        path: ["#"],
+        required: ["color", "size"],
+        properties: %{
+          "color" => ["#", "properties", "color"],
+          "title" => ["#", "properties", "size"]
+        }
+      },
+      "#/definitions/circle" => %ObjectType{
+        name: "circle",
+        path: ["#"],
+        required: ["color", "radius"],
+        properties: %{
+          "color" => ["#", "properties", "color"],
+          "radius" => ["#", "properties", "radius"]
+        }
+      }
+    }
 end

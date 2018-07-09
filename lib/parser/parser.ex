@@ -5,7 +5,7 @@ defmodule JS2E.Parser do
   """
 
   require Logger
-  alias JS2E.Parser.{RootParser, SchemaResult, ErrorUtil}
+  alias JS2E.Parser.{RootParser, SchemaResult}
 
   @spec parse_schema_files([Path.t()]) :: SchemaResult.t()
   def parse_schema_files(schema_paths) do

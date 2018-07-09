@@ -2,26 +2,14 @@ defmodule JS2ETest.Printer.UnionPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.Types.{UnionType, SchemaDefinition}
-  alias JS2E.Printer.UnionPrinter
+  alias JS2E.{Printer, Types}
+  alias Printer.UnionPrinter
+  alias Types.{SchemaDefinition, UnionType}
 
   test "print union type value" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %UnionType{
-        name: "favoriteNumber",
-        path: ["#", "definitions", "favoriteNumber"],
-        types: ["number", "integer"]
-      }
-      |> UnionPrinter.print_type(schema_def, %{}, module_name)
+      union_type()
+      |> UnionPrinter.print_type(schema_def(), %{}, module_name())
 
     expected_union_type_program = """
     type FavoriteNumber
@@ -35,22 +23,9 @@ defmodule JS2ETest.Printer.UnionPrinter do
   end
 
   test "print union type with null value" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %UnionType{
-        name: "favoriteNumber",
-        path: ["#", "definitions", "favoriteNumber"],
-        types: ["number", "integer", "null"]
-      }
-      |> UnionPrinter.print_type(schema_def, %{}, module_name)
+      union_type_with_null()
+      |> UnionPrinter.print_type(schema_def(), %{}, module_name())
 
     expected_union_type_program = """
     type FavoriteNumber
@@ -64,22 +39,9 @@ defmodule JS2ETest.Printer.UnionPrinter do
   end
 
   test "print union decoder" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %UnionType{
-        name: "favoriteNumber",
-        path: ["#", "definitions", "favoriteNumber"],
-        types: ["number", "integer"]
-      }
-      |> UnionPrinter.print_decoder(schema_def, %{}, module_name)
+      union_type()
+      |> UnionPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_union_decoder_program = """
     favoriteNumberDecoder : Decoder FavoriteNumber
@@ -95,22 +57,9 @@ defmodule JS2ETest.Printer.UnionPrinter do
   end
 
   test "print union decoder with null value" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %UnionType{
-        name: "favoriteNumber",
-        path: ["#", "definitions", "favoriteNumber"],
-        types: ["number", "integer", "null"]
-      }
-      |> UnionPrinter.print_decoder(schema_def, %{}, module_name)
+      union_type_with_null()
+      |> UnionPrinter.print_decoder(schema_def(), %{}, module_name())
 
     expected_union_decoder_program = """
     favoriteNumberDecoder : Decoder (Maybe FavoriteNumber)
@@ -127,22 +76,9 @@ defmodule JS2ETest.Printer.UnionPrinter do
   end
 
   test "print union encoder" do
-    module_name = "Domain"
-
-    schema_def = %SchemaDefinition{
-      description: "Test schema",
-      id: URI.parse("http://example.com/test.json"),
-      title: "Test",
-      types: %{}
-    }
-
     result =
-      %UnionType{
-        name: "favoriteNumber",
-        path: ["#", "definitions", "favoriteNumber"],
-        types: ["number", "integer"]
-      }
-      |> UnionPrinter.print_encoder(schema_def, %{}, module_name)
+      union_type()
+      |> UnionPrinter.print_encoder(schema_def(), %{}, module_name())
 
     expected_union_encoder_program = """
     encodeFavoriteNumber : FavoriteNumber -> Value
@@ -159,4 +95,57 @@ defmodule JS2ETest.Printer.UnionPrinter do
 
     assert union_encoder_program == expected_union_encoder_program
   end
+
+  test "print union fuzzer" do
+    result =
+      union_type()
+      |> UnionPrinter.print_fuzzer(schema_def(), %{}, module_name())
+
+    expected_union_fuzzer = """
+    favoriteNumberFuzzer : Fuzzer FavoriteNumber
+    favoriteNumberFuzzer =
+        Fuzz.map
+            [ Fuzz.float
+            , Fuzz.int
+            ]
+
+
+    encodeDecodeFavoriteNumberTest : Test
+    encodeDecodeFavoriteNumberTest =
+        fuzz favoriteNumberFuzzer "can encode and decode FavoriteNumber union" <|
+            \\favoriteNumber ->
+                favoriteNumber
+                    |> encodeFavoriteNumber
+                    |> Decode.decodeValue favoriteNumberDecoder
+                    |> Expect.equal (Ok favoriteNumber)
+    """
+
+    union_fuzzer = result.printed_schema
+
+    assert union_fuzzer == expected_union_fuzzer
+  end
+
+  defp module_name, do: "Domain"
+
+  defp schema_def,
+    do: %SchemaDefinition{
+      description: "Test schema",
+      id: URI.parse("http://example.com/test.json"),
+      title: "Test",
+      types: %{}
+    }
+
+  defp union_type,
+    do: %UnionType{
+      name: "favoriteNumber",
+      path: ["#", "definitions", "favoriteNumber"],
+      types: ["number", "integer"]
+    }
+
+  defp union_type_with_null,
+    do: %UnionType{
+      name: "favoriteNumber",
+      path: ["#", "definitions", "favoriteNumber"],
+      types: ["number", "integer", "null"]
+    }
 end

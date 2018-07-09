@@ -11,9 +11,9 @@ defmodule JS2E.Parser.TypeReferenceParser do
   """
 
   require Logger
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Parser.{Util, ParserResult}
-  alias JS2E.Types.TypeReference
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.TypeReference
 
   @doc ~S"""
   Returns true if the json subschema represents a reference to another schema.
@@ -38,10 +38,8 @@ defmodule JS2E.Parser.TypeReferenceParser do
   @impl JS2E.Parser.ParserBehaviour
   @spec parse(map, URI.t(), URI.t() | nil, TypePath.t(), String.t()) ::
           ParserResult.t()
-  def parse(%{"$ref" => ref}, parent_id, id, path, name) do
-    ref_path =
-      ref
-      |> to_type_identifier
+  def parse(%{"$ref" => ref}, _parent_id, id, path, name) do
+    ref_path = ref |> to_type_identifier
 
     type_reference = TypeReference.new(name, ref_path)
 

@@ -61,7 +61,10 @@ defmodule JS2E.Printer.PrinterResult do
   """
   @spec merge(t, t) :: t
   def merge(
-        %__MODULE__{printed_schema: printed_schema1, errors: errors1},
+        %__MODULE__{
+          printed_schema: printed_schema1,
+          errors: errors1
+        },
         %__MODULE__{
           printed_schema: printed_schema2,
           errors: errors2

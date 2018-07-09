@@ -3,8 +3,9 @@ defmodule JS2ETest.Parser.AllOfParser do
   doctest JS2E.Parser.AllOfParser, import: true
 
   require Logger
-  alias JS2E.Types.{AllOfType, ObjectType, PrimitiveType, TypeReference}
-  alias JS2E.Parser.AllOfParser
+  alias JS2E.{Parser, Types}
+  alias Parser.AllOfParser
+  alias Types.{AllOfType, ObjectType, PrimitiveType, TypeReference}
 
   defp all_of_type do
     ~S"""

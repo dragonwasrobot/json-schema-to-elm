@@ -18,10 +18,11 @@ defmodule JS2E do
   """
 
   require Logger
-  alias JS2E.Parser
-  alias JS2E.Parser.{ParserWarning, ParserError}
-  alias JS2E.Printer
-  alias JS2E.Printer.PrinterError
+  alias JS2E.{Parser, Printer}
+  alias Parser.{ParserError, ParserWarning}
+  alias Printer.PrinterError
+
+  @output_location Application.get_env(:js2e, :output_location)
 
   @spec main([String.t()]) :: :ok
   def main(args) do
@@ -99,7 +100,13 @@ defmodule JS2E do
         "Data"
       end
 
-    module_name
+    @output_location
+    |> Path.join(module_name)
+    |> String.replace(".", "/")
+    |> File.mkdir_p!()
+
+    "#{@output_location}/tests"
+    |> Path.join(module_name)
     |> String.replace(".", "/")
     |> File.mkdir_p!()
 
@@ -121,27 +128,68 @@ defmodule JS2E do
       printer_result =
         Printer.print_schemas(parser_result.schema_dict, module_name)
 
-      if length(printer_result.errors) > 0 do
-        pretty_printer_errors(printer_result.errors)
-      else
-        Logger.info("Printing Elm code to file(s)!")
+      tests_printer_result =
+        Printer.print_schemas_tests(parser_result.schema_dict, module_name)
 
-        file_dict = printer_result.file_dict
+      cond do
+        length(printer_result.errors) > 0 ->
+          pretty_printer_errors(printer_result.errors)
 
-        Enum.each(file_dict, fn {file_path, file_content} ->
-          normalized_file_path =
-            String.replace(
-              file_path,
-              module_name,
-              String.replace(module_name, ".", "/")
-            )
+        length(tests_printer_result.errors) > 0 ->
+          pretty_printer_errors(tests_printer_result.errors)
 
-          Logger.debug(fn -> "Writing file '#{file_path}'" end)
-          {:ok, file} = File.open(normalized_file_path, [:write])
-          IO.binwrite(file, file_content)
-          File.close(file)
-          Logger.info("Created file '#{file_path}'")
-        end)
+        true ->
+          Logger.info("Printing Elm code to file(s)!")
+
+          file_dict = printer_result.file_dict
+
+          Enum.each(file_dict, fn {file_path, file_content} ->
+            normalized_file_path =
+              String.replace(
+                file_path,
+                module_name,
+                String.replace(module_name, ".", "/")
+              )
+
+            Logger.debug(fn -> "Writing file '#{normalized_file_path}'" end)
+            {:ok, file} = File.open(normalized_file_path, [:write])
+            IO.binwrite(file, file_content)
+            File.close(file)
+            Logger.info("Created file '#{normalized_file_path}'")
+          end)
+
+          tests_file_dict = tests_printer_result.file_dict
+
+          Enum.each(tests_file_dict, fn {file_path, file_content} ->
+            normalized_file_path =
+              String.replace(
+                file_path,
+                module_name,
+                String.replace(module_name, ".", "/")
+              )
+
+            Logger.debug(fn -> "Writing file '#{normalized_file_path}'" end)
+            {:ok, file} = File.open(normalized_file_path, [:write])
+            IO.binwrite(file, file_content)
+            File.close(file)
+            Logger.info("Created file '#{normalized_file_path}'")
+          end)
+
+          IO.puts("""
+          Elm types, decoders, encoders and tests
+          written to '#{@output_location}'.
+
+          Go to '#{@output_location}' and run
+
+              $ npm install
+
+          followed by
+
+              $ npm test
+
+          in order to run 'elm-test' test suite
+          on the generated Elm source code.
+          """)
       end
     end
   end

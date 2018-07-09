@@ -30,9 +30,9 @@ defmodule JS2E.Parser.OneOfParser do
   """
 
   require Logger
-  alias JS2E.Parser.{Util, ErrorUtil, ParserResult}
-  alias JS2E.{Types, TypePath}
-  alias JS2E.Types.OneOfType
+  alias JS2E.{Parser, TypePath, Types}
+  alias Parser.{ParserResult, Util}
+  alias Types.OneOfType
 
   @doc ~S"""
   Returns true if the json subschema represents an oneOf type.

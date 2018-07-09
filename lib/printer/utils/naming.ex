@@ -6,14 +6,29 @@ defmodule JS2E.Printer.Utils.Naming do
 
   alias JS2E.Types.SchemaDefinition
 
+  @spec create_root_name(String.t(), SchemaDefinition.t()) :: String.t()
+  def create_root_name(name, schema_def) do
+    normalized_name = normalize_identifier(name, :upcase)
+
+    if normalized_name == "Hash" do
+      if schema_def.title != nil do
+        upcase_first(schema_def.title)
+      else
+        "Root"
+      end
+    else
+      normalized_name
+    end
+  end
+
   @spec qualify_name(SchemaDefinition.t(), String.t(), String.t()) :: String.t()
-  def qualify_name(schema_def, type_name, module_name) do
+  def qualify_name(schema_def, type_name, _module_name) do
     schema_name = schema_def.title
 
     if String.length(schema_name) > 0 do
-      "#{module_name}.#{schema_name}.#{type_name}"
+      "#{schema_name}.#{type_name}"
     else
-      "#{module_name}.#{type_name}"
+      "#{type_name}"
     end
   end
 
