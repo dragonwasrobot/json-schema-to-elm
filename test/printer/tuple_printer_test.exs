@@ -72,7 +72,10 @@ defmodule JS2ETest.Printer.TuplePrinter do
     expected_tuple_fuzzer = """
     shapePairFuzzer : Fuzzer ShapePair
     shapePairFuzzer =
-        Fuzz.tuple (squareFuzzer, circleFuzzer)
+        Fuzz.tuple
+            (squareFuzzer
+            , circleFuzzer
+            )
 
 
     encodeDecodeShapePairTest : Test

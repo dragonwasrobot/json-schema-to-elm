@@ -57,13 +57,18 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     encodeFancyCircle fancyCircle =
         let
             color =
-                encodeWith encodeColor "color" fancyCircle.zero.color
+                [ ( "color", encodeColor fancyCircle.zero.color ) ]
 
             description =
-                encodeMaybeWith Encode.string "description" fancyCircle.zero.description
+                fancyCircle.zero.description
+                    |> Maybe.map
+                        (\\description ->
+                            [ ( "description", Encode.string description ) ]
+                        )
+                    |> Maybe.withDefault []
 
             radius =
-                encodeWith Encode.float "radius" fancyCircle.circle.radius
+                [ ( "radius", Encode.float fancyCircle.circle.radius ) ]
         in
             object <|
                 color ++ description ++ radius
@@ -82,7 +87,10 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     expected_all_of_fuzzer_program = """
     fancyCircleFuzzer : Fuzzer FancyCircle
     fancyCircleFuzzer =
-        Fuzz.map2 FancyCircle zeroFuzzer circleFuzzer
+        Fuzz.map2
+            FancyCircle
+            zeroFuzzer
+            circleFuzzer
 
 
     encodeDecodeFancyCircleTest : Test

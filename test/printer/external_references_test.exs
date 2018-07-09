@@ -224,7 +224,11 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              circleFuzzer : Fuzzer Circle
              circleFuzzer =
-                 Fuzz.map3 Circle Definitions.pointFuzzer (Fuzz.maybe Definitions.colorFuzzer) Fuzz.float
+                 Fuzz.map3
+                     Circle
+                     Definitions.pointFuzzer
+                     (Fuzz.maybe Definitions.colorFuzzer)
+                     Fuzz.float
 
 
              encodeDecodeCircleTest : Test
@@ -255,7 +259,12 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              colorFuzzer : Fuzzer Color
              colorFuzzer =
-                 Fuzz.oneOf [ Fuzz.constant Red, Fuzz.constant Yellow, Fuzz.constant Green, Fuzz.constant Blue ]
+                 Fuzz.oneOf
+                     [ Fuzz.constant Red
+                     , Fuzz.constant Yellow
+                     , Fuzz.constant Green
+                     , Fuzz.constant Blue
+                     ]
 
 
              encodeDecodeColorTest : Test
@@ -270,7 +279,10 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              pointFuzzer : Fuzzer Point
              pointFuzzer =
-                 Fuzz.map2 Point Fuzz.float Fuzz.float
+                 Fuzz.map2
+                     Point
+                     Fuzz.float
+                     Fuzz.float
 
 
              encodeDecodePointTest : Test

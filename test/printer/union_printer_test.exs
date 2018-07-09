@@ -104,7 +104,10 @@ defmodule JS2ETest.Printer.UnionPrinter do
     expected_union_fuzzer = """
     favoriteNumberFuzzer : Fuzzer FavoriteNumber
     favoriteNumberFuzzer =
-        Fuzz.map [ Fuzz.float, Fuzz.int ]
+        Fuzz.map
+            [ Fuzz.float
+            , Fuzz.int
+            ]
 
 
     encodeDecodeFavoriteNumberTest : Test

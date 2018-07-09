@@ -2,8 +2,13 @@
 <%= encoder_name %> <%= argument_name %> =
     let<%= for property <- properties do %>
         <%= property.name %> =<%= if property.required == true do %>
-            encodeWith <%= property.encoder_name %> "<%= property.name %>" <%= argument_name %>.<%= property.parent_name %>.<%= property.name %><% else %>
-            encodeMaybeWith <%= property.encoder_name %> "<%= property.name %>" <%= argument_name %>.<%= property.parent_name %>.<%= property.name %><% end %>
+            [ ( "<%= property.name %>", <%= property.encoder_name %> <%= argument_name %>.<%= property.parent_name %>.<%= property.name %> ) ]<% else %>
+            <%= argument_name %>.<%= property.parent_name %>.<%= property.name %>
+                |> Maybe.map
+                    (\<%= property.name %> ->
+                        [ ( "<%= property.name %>", <%= property.encoder_name %> <%= property.name %> ) ]
+                    )
+                |> Maybe.withDefault []<% end %>
 <% end %><%#
 %>    in
         object <|

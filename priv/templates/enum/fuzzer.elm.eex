@@ -1,6 +1,8 @@
 <%= fuzzer_name %> : Fuzzer <%= type_name %>
 <%= fuzzer_name %> =
-    Fuzz.oneOf [ <%= Enum.join(fuzzers, ", ") %> ]
+    Fuzz.oneOf
+        [ <%= Enum.join(fuzzers, "\n        , ") %>
+        ]
 
 
 encodeDecode<%= type_name %>Test : Test

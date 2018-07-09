@@ -1,7 +1,7 @@
 # JSON schema to Elm
 
-Generates Elm types, JSON decoders and JSON encoders from JSON schema
-specifications.
+Generates Elm types, JSON decoders, JSON encoders, and Fuzz tests from JSON
+schema specifications.
 
 ## Installation
 
@@ -372,7 +372,10 @@ encodeDecodeColorTest =
 
 pointFuzzer : Fuzzer Point
 pointFuzzer =
-    Fuzz.map2 Point Fuzz.float Fuzz.float
+    Fuzz.map2
+        Point
+        Fuzz.float
+        Fuzz.float
 
 
 encodeDecodePointTest : Test
@@ -386,7 +389,7 @@ encodeDecodePointTest =
 
 ```
 
-Finally, `js2e` also generated package files, `package.json` and
+Finally, `js2e` also generates package config files, `package.json` and
 `elm-package.json` making it easy to test that the generated Elm code is
 behaving as expected. Thus, if we supply the following directory structure to
 `js2e` in the above case:

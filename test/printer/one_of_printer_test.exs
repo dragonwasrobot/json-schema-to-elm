@@ -69,7 +69,10 @@ defmodule JS2ETest.Printer.OneOfPrinter do
     expected_one_of_fuzzer_program = """
     shapeFuzzer : Fuzzer Shape
     shapeFuzzer =
-        Fuzz.oneOf [ squareFuzzer, circleFuzzer ]
+        Fuzz.oneOf
+            [ squareFuzzer
+            , circleFuzzer
+            ]
 
 
     encodeDecodeShapeTest : Test

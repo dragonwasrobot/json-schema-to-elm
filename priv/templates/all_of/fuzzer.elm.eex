@@ -1,6 +1,8 @@
 <%= fuzzer_name %> : Fuzzer <%= type_name %>
 <%= fuzzer_name %> =
-    Fuzz.map<%= length(fuzzers) %> <%= type_name %> <%= Enum.join(fuzzers, " ") %>
+    Fuzz.map<%= length(fuzzers) %>
+        <%= type_name %>
+        <%= Enum.join(fuzzers, "\n        ") %>
 
 
 encodeDecode<%= type_name %>Test : Test

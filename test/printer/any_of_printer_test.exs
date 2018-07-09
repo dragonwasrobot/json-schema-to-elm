@@ -102,7 +102,10 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     expected_any_of_fuzzer_program = """
     fancyCircleFuzzer : Fuzzer FancyCircle
     fancyCircleFuzzer =
-        Fuzz.map2 FancyCircle (Fuzz.maybe zeroFuzzer) (Fuzz.maybe circleFuzzer)
+        Fuzz.map2
+            FancyCircle
+            (Fuzz.maybe zeroFuzzer)
+            (Fuzz.maybe circleFuzzer)
 
 
     encodeDecodeFancyCircleTest : Test

@@ -172,7 +172,12 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_fuzzer_program = """
     colorFuzzer : Fuzzer Color
     colorFuzzer =
-        Fuzz.oneOf [ Fuzz.constant None, Fuzz.constant Green, Fuzz.constant Yellow, Fuzz.constant Red ]
+        Fuzz.oneOf
+            [ Fuzz.constant None
+            , Fuzz.constant Green
+            , Fuzz.constant Yellow
+            , Fuzz.constant Red
+            ]
 
 
     encodeDecodeColorTest : Test

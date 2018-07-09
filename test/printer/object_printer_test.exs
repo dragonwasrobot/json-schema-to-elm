@@ -83,7 +83,11 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     expected_object_fuzzer = """
     circleFuzzer : Fuzzer Circle
     circleFuzzer =
-        Fuzz.map3 Circle colorFuzzer Fuzz.float (Fuzz.maybe Fuzz.string)
+        Fuzz.map3
+            Circle
+            colorFuzzer
+            Fuzz.float
+            (Fuzz.maybe Fuzz.string)
 
 
     encodeDecodeCircleTest : Test
