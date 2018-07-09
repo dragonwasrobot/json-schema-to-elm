@@ -39,7 +39,18 @@ defmodule JS2E.Printer do
     UnionType
   }
 
+  @output_location Application.get_env(:js2e, :output_location)
   @templates_location Application.get_env(:js2e, :templates_location)
+
+  @package_location Path.join(
+                      @templates_location,
+                      "elm_package/package.json.eex"
+                    )
+  EEx.function_from_file(
+    :defp,
+    :package_template,
+    @package_location
+  )
 
   @elm_package_location Path.join(
                           @templates_location,
@@ -54,7 +65,8 @@ defmodule JS2E.Printer do
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name \\ "") do
     init_file_dict = %{
-      "./js2e_output/elm-package.json" => elm_package_template()
+      "./#{@output_location}/package.json" => package_template(),
+      "./#{@output_location}/elm-package.json" => elm_package_template()
     }
 
     schema_dict
@@ -141,7 +153,8 @@ defmodule JS2E.Printer do
           SchemaResult.t()
   def print_schemas_tests(schema_dict, module_name \\ "") do
     init_file_dict = %{
-      "./js2e_output/tests/elm-package.json" => elm_package_test_template()
+      "./#{@output_location}/tests/elm-package.json" =>
+        elm_package_test_template()
     }
 
     schema_dict
@@ -367,15 +380,15 @@ defmodule JS2E.Printer do
   defp create_file_path(title, module_name, is_test \\ false) do
     if is_test do
       if module_name != "" do
-        "./js2e_output/tests/#{module_name}/#{title}Tests.elm"
+        "./#{@output_location}/tests/#{module_name}/#{title}Tests.elm"
       else
-        "./js2e_output/tests/#{title}Tests.elm"
+        "./#{@output_location}/tests/#{title}Tests.elm"
       end
     else
       if module_name != "" do
-        "./js2e_output/#{module_name}/#{title}.elm"
+        "./#{@output_location}/#{module_name}/#{title}.elm"
       else
-        "./js2e_output/#{title}.elm"
+        "./#{@output_location}/#{title}.elm"
       end
     end
   end

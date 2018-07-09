@@ -22,6 +22,8 @@ defmodule JS2E do
   alias Parser.{ParserError, ParserWarning}
   alias Printer.PrinterError
 
+  @output_location Application.get_env(:js2e, :output_location)
+
   @spec main([String.t()]) :: :ok
   def main(args) do
     {options, paths, errors} =
@@ -98,12 +100,12 @@ defmodule JS2E do
         "Data"
       end
 
-    "js2e_output"
+    @output_location
     |> Path.join(module_name)
     |> String.replace(".", "/")
     |> File.mkdir_p!()
 
-    "js2e_output/tests"
+    "#{@output_location}/tests"
     |> Path.join(module_name)
     |> String.replace(".", "/")
     |> File.mkdir_p!()
@@ -172,6 +174,22 @@ defmodule JS2E do
             File.close(file)
             Logger.info("Created file '#{normalized_file_path}'")
           end)
+
+          IO.puts("""
+          Elm types, decoders, encoders and tests
+          written to '#{@output_location}'.
+
+          Go to '#{@output_location}' and run
+
+              $ npm install
+
+          followed by
+
+              $ npm test
+
+          in order to run 'elm-test' test suite
+          on the generated Elm source code.
+          """)
       end
     end
   end
