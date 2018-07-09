@@ -32,10 +32,27 @@ folder which contains an example of a pair of JSON schemas and their
 corresponding Elm output. Likewise, representations of each of the different
 JSON schema types are described in the `lib/types` folder.
 
-The tool aims to produce `elm-make`-like errors if something is missing,
-mispelled or cannot be resolved in the supplied JSON schema file(s). If you
-experience errors that look more like stack traces, feel free to open an issue
-so it can be fixed.
+The tool aims to produce `elm-make`-like errors in case something is missing,
+misspelled or cannot be resolved in the supplied JSON schema file(s), e.g.
+
+```
+--- UNKNOWN NODE TYPE -------------------------------------- all_of_example.json
+
+The value of "type" at '#/allOf/0/properties/description' did not match a known node type
+
+    "type": "strink"
+            ^^^^^^^^
+
+Was expecting one of the following types
+
+    ["null", "boolean", "object", "array", "number", "integer", "string"]
+
+Hint: See the specification section 6.25. "Validation keywords - type"
+<http://json-schema.org/latest/json-schema-validation.html#rfc.section.6.25>
+```
+
+If you experience an error that looks more like a stack trace than the above,
+feel free to open an issue so it can be fixed.
 
 ## Example
 
