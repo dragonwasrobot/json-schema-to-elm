@@ -26,7 +26,7 @@ Run `./js2e` for usage instructions.
 > have to pass it the enclosing directory of the relevant JSON schema files,
 > in order for it to be able to resolve the references correctly.
 
-A proper description of which properties are mandatory are how the generator
+A proper description of which properties are mandatory and how the generator
 works is still in progress, but feel free to take a look at the `examples`
 folder which contains an example of a pair of JSON schemas and their
 corresponding Elm output. Likewise, representations of each of the different
@@ -120,21 +120,25 @@ type alias Point =
 
 colorDecoder : String -> Decoder Color
 colorDecoder color =
-    case color of
-        "red" ->
-            succeed Red
+    Decode.string
+        |> andThen
+            (\color ->
+                case color of
+                    "red" ->
+                        succeed Red
 
-        "yellow" ->
-            succeed Yellow
+                    "yellow" ->
+                        succeed Yellow
 
-        "green" ->
-            succeed Green
+                    "green" ->
+                        succeed Green
 
-        "blue" ->
-            succeed Blue
+                    "blue" ->
+                        succeed Blue
 
-        _ ->
-            fail <| "Unknown color type: " ++ color
+                    _ ->
+                        fail <| "Unknown color type: " ++ color
+            )
 
 
 pointDecoder : Decoder Point
@@ -236,12 +240,12 @@ import Json.Encode as Encode
         , object
         , list
         )
-import Data.Definitions
+import Data.Definitions as Definitions
 
 
 type alias Circle =
-    { center : Data.Definitions.Point
-    , color : Maybe Data.Definitions.Color
+    { center : Definitions.Point
+    , color : Maybe Definitions.Color
     , radius : Float
     }
 
@@ -249,8 +253,8 @@ type alias Circle =
 circleDecoder : Decoder Circle
 circleDecoder =
     decode Circle
-        |> required "center" Data.Definitions.pointDecoder
-        |> optional "color" (Decode.string |> andThen Data.Definitions.colorDecoder |> maybe) Nothing
+        |> required "center" Definitions.pointDecoder
+        |> optional "color" (nullable Definitions.colorDecoder) Nothing
         |> required "radius" Decode.float
 
 
@@ -258,12 +262,12 @@ encodeCircle : Circle -> Value
 encodeCircle circle =
     let
         center =
-            [ ( "center", Data.Definitions.encodePoint circle.center ) ]
+            [ ( "center", Definitions.encodePoint circle.center ) ]
 
         color =
             case circle.color of
                 Just color ->
-                    [ ( "color", Data.Definitions.encodeColor color ) ]
+                    [ ( "color", Definitions.encodeColor color ) ]
 
                 Nothing ->
                     []
@@ -276,6 +280,126 @@ encodeCircle circle =
                 ++ color
                 ++ radius
 ```
+
+Furthermore, `js2e` also generates test files for the generated decoders and
+encoders, which fuzzes instances of a given Elm type and tests that encoding it
+as JSON and decoding it back into Elm returns the original instance of that
+generated Elm type. In the above case, the following test files,
+`tests/Data/CircleTests.elm` and `tests/Data/DefinitionsTests.elm`, are
+generated:
+
+``` elm
+module Data.CircleTests exposing (..)
+
+-- Tests: Schema for a circle shape
+
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer)
+import Test exposing (..)
+import Json.Decode as Decode
+import Data.Circle exposing (..)
+import Data.DefinitionsTests as Definitions
+
+
+circleFuzzer : Fuzzer Circle
+circleFuzzer =
+    Fuzz.map3
+        Circle
+        Definitions.pointFuzzer
+        (Fuzz.maybe Definitions.colorFuzzer)
+        Fuzz.float
+
+
+encodeDecodeCircleTest : Test
+encodeDecodeCircleTest =
+    fuzz circleFuzzer "can encode and decode Circle object" <|
+        \circle ->
+            circle
+                |> encodeCircle
+                |> Decode.decodeValue circleDecoder
+                |> Expect.equal (Ok circle)
+```
+and
+
+``` elm
+module Data.DefinitionsTests exposing (..)
+
+-- Tests: Schema for common types
+
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer)
+import Test exposing (..)
+import Json.Decode as Decode
+import Data.Definitions exposing (..)
+
+
+colorFuzzer : Fuzzer Color
+colorFuzzer =
+    Fuzz.oneOf
+        [ Fuzz.constant Red
+        , Fuzz.constant Yellow
+        , Fuzz.constant Green
+        , Fuzz.constant Blue
+        ]
+
+
+encodeDecodeColorTest : Test
+encodeDecodeColorTest =
+    fuzz colorFuzzer "can encode and decode Color object" <|
+        \color ->
+            color
+                |> encodeColor
+                |> Decode.decodeValue colorDecoder
+                |> Expect.equal (Ok color)
+
+
+pointFuzzer : Fuzzer Point
+pointFuzzer =
+    Fuzz.map2 Point Fuzz.float Fuzz.float
+
+
+encodeDecodePointTest : Test
+encodeDecodePointTest =
+    fuzz pointFuzzer "can encode and decode Point object" <|
+        \point ->
+            point
+                |> encodePoint
+                |> Decode.decodeValue pointDecoder
+                |> Expect.equal (Ok point)
+
+```
+
+Finally, `js2e` also generated package files, `package.json` and
+`elm-package.json` making it easy to test that the generated Elm code is
+behaving as expected. Thus, if we supply the following directory structure to
+`js2e` in the above case:
+
+```
+.
+└── js2e_input/
+    ├── definitions.json
+    └── circle.json
+```
+
+the following new directory structure is generated:
+
+```
+.
+└── js2e_output/
+    ├── package.json
+    ├── elm-package.json
+    ├── Data/
+    │   ├── Circle.elm
+    │   └── Definitions.elm
+    └── tests/
+        ├── elm-package.json
+        └── Data/
+            ├── CircleTests.elm
+            └── DefinitionsTests.elm
+```
+
+containing the files described above along with the needed package config files
+to compile and run the tests.
 
 ## Error reporting
 
