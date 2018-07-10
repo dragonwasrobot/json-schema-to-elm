@@ -35,7 +35,7 @@ JSON schema types are described in the `lib/types` folder.
 ## Example
 
 If we supply `js2e` with the following JSON schema file, `definitions.json`:
-``` json
+``` javascript
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Definitions",
@@ -177,7 +177,7 @@ their corresponding JSON decoders and encoders.
 Furthermore, if we instead supply `js2e` with a directory of JSON schema files
 that have references across files, e.g.
 
-``` json
+``` javascript
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "title": "Circle",
