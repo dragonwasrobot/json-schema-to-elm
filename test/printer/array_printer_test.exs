@@ -41,7 +41,9 @@ defmodule JS2ETest.Printer.ArrayPrinter do
     expected_array_encoder_program = """
     encodeColors : List Color -> Value
     encodeColors colors =
-        Encode.list <| List.map encodeColor <| colors
+        colors
+            |> List.map encodeColor
+            |> Encode.list
     """
 
     array_encoder_program = result.printed_schema

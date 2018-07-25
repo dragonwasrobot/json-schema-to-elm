@@ -4,4 +4,4 @@
     %><%= for case <- cases do %>
         <%= case.elm_value %> ->
             <%= case.json_value %>
-<% end %>
+<%# %><% end %>

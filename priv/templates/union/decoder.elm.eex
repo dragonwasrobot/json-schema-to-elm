@@ -1,13 +1,7 @@
 <%= decoder_name %> : Decoder <%= decoder_type %>
 <%= decoder_name %> =
-    oneOf [ <%= for {clause, idx} <- Enum.with_index(clauses) do %><%#
-          %><%= if idx == 0 do %><%#
-          %><%= clause.decoder_name %> |> andThen (<%= clause.wrapper %> << <%= clause.constructor_name %>)<%#
-          %><% else %>
-          , <%= clause.decoder_name %> |> andThen (<%= clause.wrapper %> << <%= clause.constructor_name %>)<%#
-          %><% end %><%#
-          %><% end %><%#
-          %><%= if nullable? do %>
+    oneOf [ <%= Enum.map_join(clauses, "\n          , ", fn clause -> "#{clause.decoder_name} |> andThen (#{clause.wrapper} << #{clause.constructor_name})" end) %><%#
+        %><%= if nullable? do %>
           , null Nothing<%#
-          %><% end %>
+        %><% end %>
           ]

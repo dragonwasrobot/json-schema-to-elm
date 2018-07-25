@@ -17,6 +17,81 @@ defmodule JS2ETest.Printer.ExternalReferences do
       Printer.print_schemas(schema_representations(), module_name())
 
     file_dict = schema_result.file_dict
+    utils_program = file_dict["./js2e_output/Data/Utils.elm"]
+
+    assert utils_program ==
+             """
+             module Data.Utils
+                 exposing
+                     ( encodeNestedOptional
+                     , encodeNestedRequired
+                     , encodeOptional
+                     , encodeRequired
+                     )
+
+             -- Util functions for decoding and encoding JSON objects.
+
+             import Json.Decode as Decode exposing (Decoder)
+             import Json.Encode as Encode exposing (Value)
+
+
+             encodeNestedRequired :
+                 String
+                 -> Maybe a
+                 -> (a -> b)
+                 -> (b -> Value)
+                 -> List ( String, Value )
+                 -> List ( String, Value )
+             encodeNestedRequired key maybeData getValue encode properties =
+                 case maybeData of
+                     Just data ->
+                         properties |> encodeRequired key (getValue data) encode
+
+                     Nothing ->
+                         properties
+
+
+             encodeNestedOptional :
+                 String
+                 -> Maybe a
+                 -> (a -> Maybe b)
+                 -> (b -> Value)
+                 -> List ( String, Value )
+                 -> List ( String, Value )
+             encodeNestedOptional key maybeData getValue encode properties =
+                 case maybeData of
+                     Just data ->
+                         properties |> encodeOptional key (getValue data) encode
+
+                     Nothing ->
+                         properties
+
+
+             encodeRequired :
+                 String
+                 -> a
+                 -> (a -> Value)
+                 -> List ( String, Value )
+                 -> List ( String, Value )
+             encodeRequired key value encode properties =
+                 properties ++ [ ( key, encode value ) ]
+
+
+             encodeOptional :
+                 String
+                 -> Maybe a
+                 -> (a -> Value)
+                 -> List ( String, Value )
+                 -> List ( String, Value )
+             encodeOptional key maybe encode properties =
+                 case maybe of
+                     Just value ->
+                         properties ++ [ ( key, encode value ) ]
+
+                     Nothing ->
+                         properties
+             """
+
     circle_program = file_dict["./js2e_output/Data/Circle.elm"]
 
     assert circle_program ==
@@ -53,6 +128,13 @@ defmodule JS2ETest.Printer.ExternalReferences do
                      , list
                      )
              import Data.Definitions as Definitions
+             import Data.Utils
+                 exposing
+                     ( encodeNestedOptional
+                     , encodeNestedRequired
+                     , encodeOptional
+                     , encodeRequired
+                     )
 
 
              type alias Circle =
@@ -64,7 +146,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              circleDecoder : Decoder Circle
              circleDecoder =
-                 decode Circle
+                 succeed Circle
                      |> required "center" Definitions.pointDecoder
                      |> optional "color" (nullable Definitions.colorDecoder) Nothing
                      |> required "radius" Decode.float
@@ -72,23 +154,11 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              encodeCircle : Circle -> Value
              encodeCircle circle =
-                 let
-                     center =
-                         [ ( "center", Definitions.encodePoint circle.center ) ]
-
-                     color =
-                         case circle.color of
-                             Just color ->
-                                 [ ( "color", Definitions.encodeColor color ) ]
-
-                             Nothing ->
-                                 []
-
-                     radius =
-                         [ ( "radius", Encode.float circle.radius ) ]
-                 in
-                     object <|
-                         center ++ color ++ radius
+                 []
+                     |> encodeRequired "center" circle.center Definitions.encodePoint
+                     |> encodeOptional "color" circle.color Definitions.encodeColor
+                     |> encodeRequired "radius" circle.radius Encode.float
+                     |> Encode.object
              """
 
     definitions_program = file_dict["./js2e_output/Data/Definitions.elm"]
@@ -125,6 +195,13 @@ defmodule JS2ETest.Printer.ExternalReferences do
                      ( Value
                      , object
                      , list
+                     )
+             import Data.Utils
+                 exposing
+                     ( encodeNestedOptional
+                     , encodeNestedRequired
+                     , encodeOptional
+                     , encodeRequired
                      )
 
 
@@ -166,7 +243,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              pointDecoder : Decoder Point
              pointDecoder =
-                 decode Point
+                 succeed Point
                      |> required "x" Decode.float
                      |> required "y" Decode.float
 
@@ -189,15 +266,10 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              encodePoint : Point -> Value
              encodePoint point =
-                 let
-                     x =
-                         [ ( "x", Encode.float point.x ) ]
-
-                     y =
-                         [ ( "y", Encode.float point.y ) ]
-                 in
-                     object <|
-                         x ++ y
+                 []
+                     |> encodeRequired "x" point.x Encode.float
+                     |> encodeRequired "y" point.y Encode.float
+                     |> Encode.object
              """
   end
 

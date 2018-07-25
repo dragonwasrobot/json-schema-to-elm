@@ -31,4 +31,11 @@ import Json.Encode as Encode
         )
 <%= for import_name <- imports do %><%#
 %>import <%= prefix %><%= import_name %> as <%= import_name %>
-<% end %>
+<% end %><%#
+%>import <%= prefix %>Utils
+    exposing
+        ( encodeNestedOptional
+        , encodeNestedRequired
+        , encodeOptional
+        , encodeRequired
+        )

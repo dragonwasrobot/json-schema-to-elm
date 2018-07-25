@@ -49,14 +49,10 @@ defmodule JS2ETest.Printer.TuplePrinter do
     expected_tuple_encoder_program = """
     encodeShapePair : ShapePair -> Value
     encodeShapePair (square, circle) =
-        let
-            encodedsquare =
-                encodeSquare square
-
-            encodedcircle =
-                encodeCircle circle
-        in
-            list [encodedsquare, encodedcircle]
+        []
+            |> (::) encodeSquare square
+            |> (::) encodeCircle circle
+            |> Encode.list
     """
 
     tuple_encoder_program = result.printed_schema

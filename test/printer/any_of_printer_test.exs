@@ -37,7 +37,7 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     expected_any_of_decoder_program = """
     fancyCircleDecoder : Decoder FancyCircle
     fancyCircleDecoder =
-        decode FancyCircle
+        succeed FancyCircle
             |> custom (nullable zeroDecoder)
             |> custom (nullable circleDecoder)
     """
@@ -57,38 +57,11 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     expected_any_of_encoder_program = """
     encodeFancyCircle : FancyCircle -> Value
     encodeFancyCircle fancyCircle =
-        let
-            color =
-                fancyCircle.zero
-                    |> Maybe.map
-                        (\\zero ->
-                            [ ( "color", encodeColor zero.color ) ]
-                        )
-                    |> Maybe.withDefault []
-
-            description =
-                fancyCircle.zero
-                    |> Maybe.map
-                        (\\zero ->
-                            zero.description
-                                |> Maybe.map
-                                    (\\description ->
-                                        [ ( "description", Encode.string description ) ]
-                                    )
-                                |> Maybe.withDefault []
-                        )
-                    |> Maybe.withDefault []
-
-            radius =
-                fancyCircle.circle
-                    |> Maybe.map
-                        (\\circle ->
-                            [ ( "radius", Encode.float circle.radius ) ]
-                        )
-                    |> Maybe.withDefault []
-        in
-            object <|
-                color ++ description ++ radius
+        []
+            |> encodeNestedRequired "color" fancyCircle.zero .color encodeColor
+            |> encodeNestedOptional "description" fancyCircle.zero .description Encode.string
+            |> encodeNestedRequired "radius" fancyCircle.circle .radius Encode.float
+            |> Encode.object
     """
 
     assert any_of_encoder_program == expected_any_of_encoder_program
