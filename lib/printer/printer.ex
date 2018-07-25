@@ -62,9 +62,22 @@ defmodule JS2E.Printer do
     @elm_package_location
   )
 
+  @utils_location Path.join(
+                    @templates_location,
+                    "utils/utils.elm.eex"
+                  )
+  EEx.function_from_file(
+    :defp,
+    :utils_template,
+    @utils_location,
+    [:prefix]
+  )
+
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name \\ "") do
     init_file_dict = %{
+      "./#{@output_location}/#{module_name}/Utils.elm" =>
+        utils_template(module_name),
       "./#{@output_location}/package.json" => package_template(),
       "./#{@output_location}/elm-package.json" => elm_package_template()
     }

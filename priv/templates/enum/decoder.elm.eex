@@ -4,10 +4,10 @@
         |> andThen
             (\<%= argument_name %> ->
                 case <%= argument_name %> of<%#
-%><%= for case <- cases do %>
+                %><%= for case <- cases do %>
                     <%= case.raw_value %> ->
                         succeed <%= case.parsed_value %>
-<% end %>
+<%#             %><% end %>
                     _ ->
                         fail <| "Unknown <%= argument_name %> type: " ++ <%= argument_name %>
             )
