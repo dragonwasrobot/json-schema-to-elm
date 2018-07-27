@@ -2,7 +2,8 @@ defmodule JS2ETest.Printer.ExternalReferences do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
 
   alias Types.{
     EnumType,

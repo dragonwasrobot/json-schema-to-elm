@@ -2,7 +2,8 @@ defmodule JS2ETest.Printer.TuplePrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.TuplePrinter
   alias Types.{ObjectType, SchemaDefinition, TupleType, TypeReference}
 

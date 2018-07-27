@@ -4,7 +4,7 @@ defmodule JS2E.Printer.Utils.Naming do
   identifiers in the Elm output.
   """
 
-  alias JS2E.Types.SchemaDefinition
+  alias JsonSchema.Types.SchemaDefinition
 
   @spec create_root_name(String.t(), SchemaDefinition.t()) :: String.t()
   def create_root_name(name, schema_def) do

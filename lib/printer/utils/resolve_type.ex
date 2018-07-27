@@ -4,7 +4,8 @@ defmodule JS2E.Printer.Utils.ResolveType do
   the `resolve_type` function.
   """
 
-  alias JS2E.{Printer, TypePath, Types}
+  alias JS2E.Printer
+  alias JsonSchema.{TypePath, Types}
   alias Printer.{ErrorUtil, PrinterError}
   alias Types.{PrimitiveType, SchemaDefinition, TypeReference}
 

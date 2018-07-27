@@ -4,9 +4,10 @@ defmodule JS2E.Printer do
   of elm decoders.
   """
 
-  require Elixir.{EEx}
+  require Elixir.EEx
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
 
   alias Printer.{
     AllOfPrinter,

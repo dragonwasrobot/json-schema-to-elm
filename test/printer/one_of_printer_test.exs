@@ -2,7 +2,8 @@ defmodule JS2ETest.Printer.OneOfPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.OneOfPrinter
   alias Types.{ObjectType, OneOfType, SchemaDefinition, TypeReference}
 

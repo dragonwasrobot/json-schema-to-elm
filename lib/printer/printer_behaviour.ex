@@ -4,8 +4,8 @@ defmodule JS2E.Printer.PrinterBehaviour do
   """
 
   alias JS2E.Printer.PrinterResult
-  alias JS2E.Types
-  alias JS2E.Types.SchemaDefinition
+  alias JsonSchema.Types
+  alias Types.SchemaDefinition
 
   @callback print_type(
               Types.typeDefinition(),

@@ -5,7 +5,8 @@ defmodule JS2E.Printer.Utils.ElmTypes do
   """
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.{ErrorUtil, PrinterError, Utils}
   alias Types.{PrimitiveType, SchemaDefinition}
   alias Utils.Naming

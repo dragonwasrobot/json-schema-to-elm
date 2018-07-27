@@ -5,7 +5,8 @@ defmodule JS2E.Printer.ArrayPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.{PrinterError, PrinterResult, Utils}
 
   alias Types.{ArrayType, PrimitiveType, SchemaDefinition}

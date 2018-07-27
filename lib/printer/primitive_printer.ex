@@ -6,8 +6,8 @@ defmodule JS2E.Printer.PrimitivePrinter do
 
   require Logger
   alias JS2E.Printer.PrinterResult
-  alias JS2E.Types
-  alias JS2E.Types.{PrimitiveType, SchemaDefinition}
+  alias JsonSchema.Types
+  alias Types.{PrimitiveType, SchemaDefinition}
 
   @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
