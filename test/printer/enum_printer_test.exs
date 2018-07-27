@@ -2,7 +2,8 @@ defmodule JS2ETest.Printer.EnumPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.EnumPrinter
   alias Types.{EnumType, SchemaDefinition}
 

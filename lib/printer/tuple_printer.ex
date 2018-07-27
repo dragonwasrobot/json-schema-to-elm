@@ -5,7 +5,8 @@ defmodule JS2E.Printer.TuplePrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.{Printer, TypePath, Types}
+  alias JS2E.Printer
+  alias JsonSchema.{TypePath, Types}
   alias Printer.{PrinterError, PrinterResult, Utils}
 
   alias Utils.{

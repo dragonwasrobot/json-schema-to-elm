@@ -5,7 +5,8 @@ defmodule JS2E.Printer.TypeReferencePrinter do
   """
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.PrinterResult
   alias Types.{SchemaDefinition, TypeReference}
 

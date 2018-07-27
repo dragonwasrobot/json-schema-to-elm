@@ -2,7 +2,8 @@ defmodule JS2ETest.Printer.UnionPrinter do
   use ExUnit.Case
 
   require Logger
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.UnionPrinter
   alias Types.{SchemaDefinition, UnionType}
 

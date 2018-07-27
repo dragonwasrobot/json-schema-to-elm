@@ -18,8 +18,8 @@ defmodule JS2E do
   """
 
   require Logger
-  alias JS2E.{Parser, Printer}
-  alias Parser.{ParserError, ParserWarning}
+  alias JS2E.Printer
+  alias JsonSchema.Parser.{ParserError, ParserWarning}
   alias Printer.PrinterError
 
   @output_location Application.get_env(:js2e, :output_location)
@@ -116,7 +116,7 @@ defmodule JS2E do
   @spec generate([String.t()], String.t()) :: :ok
   def generate(schema_paths, module_name) do
     Logger.info("Parsing JSON schema files!")
-    parser_result = Parser.parse_schema_files(schema_paths)
+    parser_result = JsonSchema.parse_schema_files(schema_paths)
 
     pretty_parser_warnings(parser_result.warnings)
 

@@ -4,7 +4,7 @@ defmodule JS2E.Printer.PrinterError do
   as Elm code.
   """
 
-  alias JS2E.Types
+  alias JsonSchema.Types
 
   @type t :: %__MODULE__{
           identifier: Types.typeIdentifier(),

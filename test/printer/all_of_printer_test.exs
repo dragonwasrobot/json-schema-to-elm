@@ -3,7 +3,7 @@ defmodule JS2ETest.Printer.AllOfPrinter do
   require Logger
   alias JS2E.Printer.AllOfPrinter
 
-  alias JS2E.Types.{
+  alias JsonSchema.Types.{
     AllOfType,
     EnumType,
     ObjectType,

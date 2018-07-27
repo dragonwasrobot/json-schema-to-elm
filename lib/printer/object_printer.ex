@@ -18,8 +18,8 @@ defmodule JS2E.Printer.ObjectPrinter do
     ResolveType
   }
 
-  alias JS2E.{TypePath, Types}
-  alias JS2E.Types.{ObjectType, SchemaDefinition}
+  alias JsonSchema.{TypePath, Types}
+  alias Types.{ObjectType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 

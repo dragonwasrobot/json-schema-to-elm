@@ -5,7 +5,8 @@ defmodule JS2E.Printer.UnionPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JS2E.{Printer, Types}
+  alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
   alias Types.{SchemaDefinition, UnionType}
   alias Utils.{CommonOperations, Indentation, Naming}
