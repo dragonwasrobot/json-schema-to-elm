@@ -5,8 +5,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JsonSchema.Types
-  alias JS2E.{Printer, TypePath}
+  alias JS2E.Printer
+  alias JsonSchema.{TypePath, Types}
   alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
 
   alias Types.{

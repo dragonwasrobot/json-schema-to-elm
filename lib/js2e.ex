@@ -100,7 +100,7 @@ defmodule JS2E do
         "Data"
       end
 
-    @output_location
+    "#{@output_location}/src"
     |> Path.join(module_name)
     |> String.replace(".", "/")
     |> File.mkdir_p!()

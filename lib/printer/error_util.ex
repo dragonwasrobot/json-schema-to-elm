@@ -59,15 +59,6 @@ defmodule JS2E.Printer.ErrorUtil do
     PrinterError.new(file_name, :name_collision, error_msg)
   end
 
-  @spec print_identifier(Types.typeIdentifier()) :: String.t()
-  defp print_identifier(identifier) do
-    if TypePath.type_path?(identifier) do
-      TypePath.to_string(identifier)
-    else
-      to_string(identifier)
-    end
-  end
-
   @spec sanitize_value(any) :: String.t()
   defp sanitize_value(raw_value) do
     cond do

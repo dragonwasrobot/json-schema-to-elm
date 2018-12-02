@@ -5,11 +5,11 @@
     "description": "Schema for a circle shape",
     "type": "object",
     "properties": {
-        "center": {
-            "$ref": "http://example.com/definitions.json#point"
-        },
         "radius": {
             "type": "number"
+        },
+        "center": {
+            "$ref": "http://example.com/definitions.json#point"
         },
         "color": {
             "$ref": "http://example.com/definitions.json#color"
