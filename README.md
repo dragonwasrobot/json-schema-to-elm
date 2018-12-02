@@ -67,36 +67,49 @@ If we supply `js2e` with the following JSON schema file, `definitions.json`:
 it produces the following Elm file, `Data/Definitions.elm`:
 
 ``` elm
-module Data.Definitions exposing (..)
+module Data.Definitions exposing
+    ( Color(..)
+    , Point
+    , colorDecoder
+    , encodeColor
+    , encodePoint
+    , pointDecoder
+    )
 
 -- Schema for common types
 
+import Data.Utils
+    exposing
+        ( encodeNestedOptional
+        , encodeNestedRequired
+        , encodeOptional
+        , encodeRequired
+        )
 import Json.Decode as Decode
     exposing
-        ( succeed
+        ( Decoder
+        , andThen
+        , at
         , fail
-        , map
-        , maybe
         , field
         , index
-        , at
-        , andThen
-        , oneOf
+        , map
+        , maybe
         , nullable
-        , Decoder
+        , oneOf
+        , succeed
         )
 import Json.Decode.Pipeline
     exposing
-        ( decode
-        , required
+        ( custom
         , optional
-        , custom
+        , required
         )
 import Json.Encode as Encode
     exposing
         ( Value
-        , object
         , list
+        , object
         )
 
 
@@ -113,8 +126,8 @@ type alias Point =
     }
 
 
-colorDecoder : String -> Decoder Color
-colorDecoder color =
+colorDecoder : Decoder Color
+colorDecoder =
     Decode.string
         |> andThen
             (\color ->
@@ -138,7 +151,7 @@ colorDecoder color =
 
 pointDecoder : Decoder Point
 pointDecoder =
-    decode Point
+    succeed Point
         |> required "x" Decode.float
         |> required "y" Decode.float
 
@@ -161,14 +174,10 @@ encodeColor color =
 
 encodePoint : Point -> Value
 encodePoint point =
-    let
-        x =
-            [ ( "x", Encode.float point.x ) ]
-
-        y =
-            [ ( "y", Encode.float point.y ) ]
-    in
-        object <| x ++ y
+    []
+        |> encodeRequired "x" point.x Encode.float
+        |> encodeRequired "y" point.y Encode.float
+        |> Encode.object
 ```
 
 which contains an Elm type for the `color` and `point` definitions along with
@@ -204,38 +213,48 @@ definitions (types, encoders and decoders) from the other Elm module,
 `Data/Definitions.elm`.
 
 ``` elm
-module Data.Circle exposing (..)
+module Data.Circle exposing
+    ( Circle
+    , circleDecoder
+    , encodeCircle
+    )
 
 -- Schema for a circle shape
 
+import Data.Definitions as Definitions
+import Data.Utils
+    exposing
+        ( encodeNestedOptional
+        , encodeNestedRequired
+        , encodeOptional
+        , encodeRequired
+        )
 import Json.Decode as Decode
     exposing
-        ( succeed
+        ( Decoder
+        , andThen
+        , at
         , fail
-        , map
-        , maybe
         , field
         , index
-        , at
-        , andThen
-        , oneOf
+        , map
+        , maybe
         , nullable
-        , Decoder
+        , oneOf
+        , succeed
         )
 import Json.Decode.Pipeline
     exposing
-        ( decode
-        , required
+        ( custom
         , optional
-        , custom
+        , required
         )
 import Json.Encode as Encode
     exposing
         ( Value
-        , object
         , list
+        , object
         )
-import Data.Definitions as Definitions
 
 
 type alias Circle =
@@ -247,7 +266,7 @@ type alias Circle =
 
 circleDecoder : Decoder Circle
 circleDecoder =
-    decode Circle
+    succeed Circle
         |> required "center" Definitions.pointDecoder
         |> optional "color" (nullable Definitions.colorDecoder) Nothing
         |> required "radius" Decode.float
@@ -255,45 +274,36 @@ circleDecoder =
 
 encodeCircle : Circle -> Value
 encodeCircle circle =
-    let
-        center =
-            [ ( "center", Definitions.encodePoint circle.center ) ]
-
-        color =
-            case circle.color of
-                Just color ->
-                    [ ( "color", Definitions.encodeColor color ) ]
-
-                Nothing ->
-                    []
-
-        radius =
-            [ ( "radius", Encode.float circle.radius ) ]
-    in
-        object <|
-            center
-                ++ color
-                ++ radius
+    []
+        |> encodeRequired "center" circle.center Definitions.encodePoint
+        |> encodeOptional "color" circle.color Definitions.encodeColor
+        |> encodeRequired "radius" circle.radius Encode.float
+        |> Encode.object
 ```
 
 Furthermore, `js2e` also generates test files for the generated decoders and
-encoders, which fuzzes instances of a given Elm type and tests that encoding it
-as JSON and decoding it back into Elm returns the original instance of that
-generated Elm type. In the above case, the following test files,
+encoders to make the generated code immediately testable. The generated test
+files fuzzes instances of a given Elm type and tests that encoding it as JSON
+and decoding it back into Elm returns the original instance of that generated
+Elm type. In the above case, the following test files,
 `tests/Data/CircleTests.elm` and `tests/Data/DefinitionsTests.elm`, are
 generated:
 
 ``` elm
-module Data.CircleTests exposing (..)
+module Data.CircleTests exposing
+    ( circleFuzzer
+    , encodeDecodeCircleTest
+    )
+
 
 -- Tests: Schema for a circle shape
 
-import Expect exposing (Expectation)
-import Fuzz exposing (Fuzzer)
-import Test exposing (..)
-import Json.Decode as Decode
 import Data.Circle exposing (..)
 import Data.DefinitionsTests as Definitions
+import Expect exposing (Expectation)
+import Fuzz exposing (Fuzzer)
+import Json.Decode as Decode
+import Test exposing (..)
 
 
 circleFuzzer : Fuzzer Circle
@@ -317,15 +327,20 @@ encodeDecodeCircleTest =
 and
 
 ``` elm
-module Data.DefinitionsTests exposing (..)
+module Data.DefinitionsTests exposing
+    ( colorFuzzer
+    , encodeDecodeColorTest
+    , encodeDecodePointTest
+    , pointFuzzer
+    )
 
 -- Tests: Schema for common types
 
+import Data.Definitions exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
-import Test exposing (..)
 import Json.Decode as Decode
-import Data.Definitions exposing (..)
+import Test exposing (..)
 
 
 colorFuzzer : Fuzzer Color
@@ -364,13 +379,18 @@ encodeDecodePointTest =
                 |> encodePoint
                 |> Decode.decodeValue pointDecoder
                 |> Expect.equal (Ok point)
-
 ```
 
 Finally, `js2e` also generates package config files, `package.json` and
-`elm-package.json` making it easy to test that the generated Elm code is
-behaving as expected. Thus, if we supply the following directory structure to
-`js2e` in the above case:
+`elm.json`, and a `.tool-versions` file, making it easy to test that the
+generated Elm code is behaving as expected. Note that the `.tool-versions` file
+is not a file required by `elm` nor `elm-test` but instead a file used by the
+`asdf` version manager, https://github.com/asdf-vm/asdf, to install and run the
+correct compiler versions of `node` and `elm` specified in the `.tool-versions`
+file for a given project.
+
+Thus, if we supply the following directory structure to `js2e` in the above
+case:
 
 ```
 .
@@ -384,13 +404,14 @@ the following new directory structure is generated:
 ```
 .
 └── js2e_output/
+    ├── .tool-versions
     ├── package.json
-    ├── elm-package.json
-    ├── Data/
-    │   ├── Circle.elm
-    │   └── Definitions.elm
+    ├── elm.json
+    ├── tests/
+    │   └── Data/
+    │       ├── Circle.elm
+    │       └── Definitions.elm
     └── tests/
-        ├── elm-package.json
         └── Data/
             ├── CircleTests.elm
             └── DefinitionsTests.elm
@@ -444,6 +465,9 @@ the error.
 ## Contributing
 
 If you feel like something is missing/wrong or if I've misinterpreted the JSON
-schema spec, feel free to open an issue so we can discuss a solution.
+schema spec, feel free to open an issue so we can discuss a solution. Note that
+the JSON schema parser has been moved to the new project,
+https://github.com/dragonwasrobot/json_schema, so this repo only implements the
+Elm code generators.
 
 Please consult `CONTRIBUTING.md` first before opening an issue.

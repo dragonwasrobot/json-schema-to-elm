@@ -30,8 +30,7 @@ defmodule JS2E.Printer.Utils.ElmDecoders do
           determine_primitive_type_decoder(resolved_type.type)
 
         _ ->
-          type_name =
-            resolved_type.name |> Naming.normalize_identifier(:downcase)
+          type_name = resolved_type.name |> Naming.normalize_identifier(:downcase)
 
           if type_name == "#" do
             if resolved_schema.title != nil do

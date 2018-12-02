@@ -190,8 +190,7 @@ defmodule JS2E.Printer.EnumPrinter do
     end
   end
 
-  @spec create_elm_value(String.t(), String.t()) ::
-          {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec create_elm_value(String.t(), String.t()) :: {:ok, String.t()} | {:error, PrinterError.t()}
   defp create_elm_value(value, type_name) do
     case type_name do
       "string" ->

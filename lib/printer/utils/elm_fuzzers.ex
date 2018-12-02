@@ -32,8 +32,7 @@ defmodule JS2E.Printer.Utils.ElmFuzzers do
         _ ->
           resolved_type_name = resolved_type.name
 
-          downcased_type_name =
-            Naming.normalize_identifier(resolved_type_name, :downcase)
+          downcased_type_name = Naming.normalize_identifier(resolved_type_name, :downcase)
 
           {:ok, "#{downcased_type_name}Fuzzer"}
       end

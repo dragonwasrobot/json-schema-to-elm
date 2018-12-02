@@ -14,11 +14,10 @@ defmodule JS2ETest.Printer.ExternalReferences do
   }
 
   test "prints external references in generated code" do
-    schema_result =
-      Printer.print_schemas(schema_representations(), module_name())
+    schema_result = Printer.print_schemas(schema_representations(), module_name())
 
     file_dict = schema_result.file_dict
-    utils_program = file_dict["./js2e_output/Data/Utils.elm"]
+    utils_program = file_dict["./js2e_output/src/Data/Utils.elm"]
 
     assert utils_program ==
              """
@@ -93,7 +92,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
                          properties
              """
 
-    circle_program = file_dict["./js2e_output/Data/Circle.elm"]
+    circle_program = file_dict["./js2e_output/src/Data/Circle.elm"]
 
     assert circle_program ==
              """
@@ -103,30 +102,29 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              import Json.Decode as Decode
                  exposing
-                     ( succeed
+                     ( Decoder
+                     , andThen
+                     , at
                      , fail
-                     , map
-                     , maybe
                      , field
                      , index
-                     , at
-                     , andThen
-                     , oneOf
+                     , map
+                     , maybe
                      , nullable
-                     , Decoder
+                     , oneOf
+                     , succeed
                      )
              import Json.Decode.Pipeline
                  exposing
-                     ( decode
-                     , required
+                     ( custom
                      , optional
-                     , custom
+                     , required
                      )
              import Json.Encode as Encode
                  exposing
                      ( Value
-                     , object
                      , list
+                     , object
                      )
              import Data.Definitions as Definitions
              import Data.Utils
@@ -162,7 +160,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
                      |> Encode.object
              """
 
-    definitions_program = file_dict["./js2e_output/Data/Definitions.elm"]
+    definitions_program = file_dict["./js2e_output/src/Data/Definitions.elm"]
 
     assert definitions_program ==
              """
@@ -172,30 +170,29 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              import Json.Decode as Decode
                  exposing
-                     ( succeed
+                     ( Decoder
+                     , andThen
+                     , at
                      , fail
-                     , map
-                     , maybe
                      , field
                      , index
-                     , at
-                     , andThen
-                     , oneOf
+                     , map
+                     , maybe
                      , nullable
-                     , Decoder
+                     , oneOf
+                     , succeed
                      )
              import Json.Decode.Pipeline
                  exposing
-                     ( decode
-                     , required
+                     ( custom
                      , optional
-                     , custom
+                     , required
                      )
              import Json.Encode as Encode
                  exposing
                      ( Value
-                     , object
                      , list
+                     , object
                      )
              import Data.Utils
                  exposing
@@ -275,8 +272,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
   end
 
   test "prints external references in generated tests" do
-    schema_tests_result =
-      Printer.print_schemas_tests(schema_representations(), module_name())
+    schema_tests_result = Printer.print_schemas_tests(schema_representations(), module_name())
 
     file_dict = schema_tests_result.file_dict
     circle_tests = file_dict["./js2e_output/tests/Data/CircleTests.elm"]
@@ -314,8 +310,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
                              |> Expect.equal (Ok circle)
              """
 
-    definitions_tests =
-      file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
+    definitions_tests = file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
 
     assert definitions_tests ==
              """

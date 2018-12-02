@@ -4,30 +4,29 @@ module <%= prefix %><%= title %> exposing (..)
 
 import Json.Decode as Decode
     exposing
-        ( succeed
+        ( Decoder
+        , andThen
+        , at
         , fail
-        , map
-        , maybe
         , field
         , index
-        , at
-        , andThen
-        , oneOf
+        , map
+        , maybe
         , nullable
-        , Decoder
+        , oneOf
+        , succeed
         )
 import Json.Decode.Pipeline
     exposing
-        ( decode
-        , required
+        ( custom
         , optional
-        , custom
+        , required
         )
 import Json.Encode as Encode
     exposing
         ( Value
-        , object
         , list
+        , object
         )
 <%= for import_name <- imports do %><%#
 %>import <%= prefix %><%= import_name %> as <%= import_name %>

@@ -5,8 +5,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   """
 
   require Elixir.{EEx, Logger}
-  alias JsonSchema.Types
-  alias JS2E.{Printer, TypePath}
+  alias JS2E.Printer
+  alias JsonSchema.{TypePath, Types}
   alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
 
   alias Types.{
@@ -57,9 +57,7 @@ defmodule JS2E.Printer.AllOfPrinter do
 
     {type_fields, errors} =
       types
-      |> Enum.map(
-        &create_type_field(&1, path, schema_def, schema_dict, module_name)
-      )
+      |> Enum.map(&create_type_field(&1, path, schema_def, schema_dict, module_name))
       |> CommonOperations.split_ok_and_errors()
 
     type_name
@@ -124,9 +122,7 @@ defmodule JS2E.Printer.AllOfPrinter do
       ) do
     {decoder_clauses, errors} =
       type_paths
-      |> Enum.map(
-        &create_decoder_property(&1, path, schema_def, schema_dict, module_name)
-      )
+      |> Enum.map(&create_decoder_property(&1, path, schema_def, schema_dict, module_name))
       |> CommonOperations.split_ok_and_errors()
 
     normalized_name = Naming.normalize_identifier(name, :downcase)
@@ -196,8 +192,7 @@ defmodule JS2E.Printer.AllOfPrinter do
     {:ok, %{property_name: property_name, decoder_name: decoder_name}}
   end
 
-  @spec create_decoder_enum_clause(String.t(), String.t(), String.t()) ::
-          {:ok, map}
+  @spec create_decoder_enum_clause(String.t(), String.t(), String.t()) :: {:ok, map}
   defp create_decoder_enum_clause(
          property_name,
          property_type_decoder,
@@ -335,8 +330,7 @@ defmodule JS2E.Printer.AllOfPrinter do
          _schema_dict,
          _module_name
        ) do
-    error_msg =
-      "allOf printer expected ObjectType but found #{type_def.__struct__}"
+    error_msg = "allOf printer expected ObjectType but found #{type_def.__struct__}"
 
     ErrorUtil.unexpected_type(type_def.path, error_msg)
   end

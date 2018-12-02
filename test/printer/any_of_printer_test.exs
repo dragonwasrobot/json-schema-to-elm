@@ -140,12 +140,11 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
         type: "string",
         values: ["red", "yellow", "green"]
       },
-      "#/definitions/fancyCircle/anyOf/0/properties/description" =>
-        %PrimitiveType{
-          name: "description",
-          path: path() ++ ["anyOf", "0", "properties", "description"],
-          type: "string"
-        },
+      "#/definitions/fancyCircle/anyOf/0/properties/description" => %PrimitiveType{
+        name: "description",
+        path: path() ++ ["anyOf", "0", "properties", "description"],
+        type: "string"
+      },
       "#/definitions/fancyCircle/anyOf/1" => %TypeReference{
         name: "1",
         path: ["#", "definitions", "circle"]

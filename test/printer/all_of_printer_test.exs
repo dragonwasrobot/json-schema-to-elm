@@ -140,12 +140,11 @@ defmodule JS2ETest.Printer.AllOfPrinter do
         type: "string",
         values: ["red", "yellow", "green"]
       },
-      "#/definitions/fancyCircle/allOf/0/properties/description" =>
-        %PrimitiveType{
-          name: "description",
-          path: path() ++ ["allOf", "0", "properties", "description"],
-          type: "string"
-        },
+      "#/definitions/fancyCircle/allOf/0/properties/description" => %PrimitiveType{
+        name: "description",
+        path: path() ++ ["allOf", "0", "properties", "description"],
+        type: "string"
+      },
       "#/definitions/fancyCircle/allOf/1" => %TypeReference{
         name: "1",
         path: ["#", "definitions", "circle"]

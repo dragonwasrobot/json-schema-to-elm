@@ -45,7 +45,7 @@ defmodule JS2E.Printer do
 
   @package_location Path.join(
                       @templates_location,
-                      "elm_package/package.json.eex"
+                      "project/package.json.eex"
                     )
   EEx.function_from_file(
     :defp,
@@ -53,14 +53,24 @@ defmodule JS2E.Printer do
     @package_location
   )
 
-  @elm_package_location Path.join(
-                          @templates_location,
-                          "elm_package/elm_package.json.eex"
-                        )
+  @elm_json_location Path.join(
+                       @templates_location,
+                       "project/elm.json.eex"
+                     )
   EEx.function_from_file(
     :defp,
-    :elm_package_template,
-    @elm_package_location
+    :elm_json_template,
+    @elm_json_location
+  )
+
+  @tool_versions_location Path.join(
+                            @templates_location,
+                            "project/tool_versions.eex"
+                          )
+  EEx.function_from_file(
+    :defp,
+    :tool_versions_template,
+    @tool_versions_location
   )
 
   @utils_location Path.join(
@@ -77,15 +87,14 @@ defmodule JS2E.Printer do
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name \\ "") do
     init_file_dict = %{
-      "./#{@output_location}/#{module_name}/Utils.elm" =>
-        utils_template(module_name),
+      "./#{@output_location}/src/#{module_name}/Utils.elm" => utils_template(module_name),
       "./#{@output_location}/package.json" => package_template(),
-      "./#{@output_location}/elm-package.json" => elm_package_template()
+      "./#{@output_location}/elm.json" => elm_json_template(),
+      "./#{@output_location}/.tool-versions" => tool_versions_template()
     }
 
     schema_dict
-    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
-                                                        acc ->
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def}, acc ->
       file_path = create_file_path(schema_def.title, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
@@ -153,27 +162,10 @@ defmodule JS2E.Printer do
     |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
   end
 
-  @elm_package_test_location Path.join(
-                               @templates_location,
-                               "elm_package/elm_package_test.json.eex"
-                             )
-  EEx.function_from_file(
-    :defp,
-    :elm_package_test_template,
-    @elm_package_test_location
-  )
-
-  @spec print_schemas_tests(Types.schemaDictionary(), String.t()) ::
-          SchemaResult.t()
+  @spec print_schemas_tests(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas_tests(schema_dict, module_name \\ "") do
-    init_file_dict = %{
-      "./#{@output_location}/tests/elm-package.json" =>
-        elm_package_test_template()
-    }
-
     schema_dict
-    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
-                                                        acc ->
+    |> Enum.reduce(SchemaResult.new(%{}), fn {_id, schema_def}, acc ->
       file_path = create_file_path(schema_def.title, module_name, true)
       result = print_schema_tests(schema_def, schema_dict, module_name)
 
@@ -237,10 +229,7 @@ defmodule JS2E.Printer do
   end
 
   @type process_fun ::
-          (Types.typeDefinition(),
-           SchemaDefinition.t(),
-           Types.schemaDictionary(),
-           String.t() ->
+          (Types.typeDefinition(), SchemaDefinition.t(), Types.schemaDictionary(), String.t() ->
              PrinterResult.t())
 
   @spec merge_results(
@@ -400,9 +389,9 @@ defmodule JS2E.Printer do
       end
     else
       if module_name != "" do
-        "./#{@output_location}/#{module_name}/#{title}.elm"
+        "./#{@output_location}/src/#{module_name}/#{title}.elm"
       else
-        "./#{@output_location}/#{title}.elm"
+        "./#{@output_location}/src/#{title}.elm"
       end
     end
   end

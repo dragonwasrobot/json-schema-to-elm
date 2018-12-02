@@ -1,13 +1,14 @@
 defmodule JS2E.Mixfile do
   use Mix.Project
 
-  @version "2.6.0"
+  @version "2.7.0"
+  @elixir_version "~> 1.7"
 
   def project do
     [
       app: :js2e,
       version: @version,
-      elixir: "~> 1.7",
+      elixir: @elixir_version,
       aliases: aliases(),
       deps: deps(),
       description: description(),
@@ -26,17 +27,20 @@ defmodule JS2E.Mixfile do
   end
 
   defp aliases do
-    [build: ["deps.get", "compile", "escript.build"]]
+    [
+      build: ["deps.get", "compile", "escript.build"],
+      check: ["credo --strict --ignore=RedundantBlankLines"]
+    ]
   end
 
   defp deps do
     [
-      {:credo, "~> 0.9.3", only: [:dev, :test]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
+      {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19-rc", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.9.1", only: :test},
-      {:json_schema, "~> 0.1.0"},
-      {:poison, "~> 3.1"}
+      {:excoveralls, "~> 0.10", only: :test, runtime: false},
+      # {:json_schema, path: "../json_schema/"},
+      {:json_schema, "~> 0.1.0"}
     ]
   end
 

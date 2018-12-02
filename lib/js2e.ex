@@ -26,8 +26,7 @@ defmodule JS2E do
 
   @spec main([String.t()]) :: :ok
   def main(args) do
-    {options, paths, errors} =
-      OptionParser.parse(args, switches: [module_name: :string])
+    {options, paths, errors} = OptionParser.parse(args, switches: [module_name: :string])
 
     if Enum.empty?(paths) == true do
       IO.puts(@moduledoc)
@@ -42,9 +41,7 @@ defmodule JS2E do
     files = resolve_all_paths(paths)
 
     if Enum.empty?(files) == true do
-      print_error(
-        "Error: Could not find any " <> "JSON files in path: #{inspect(paths)}"
-      )
+      print_error("Error: Could not find any " <> "JSON files in path: #{inspect(paths)}")
 
       exit(:no_files)
     end
@@ -100,7 +97,7 @@ defmodule JS2E do
         "Data"
       end
 
-    @output_location
+    "#{@output_location}/src"
     |> Path.join(module_name)
     |> String.replace(".", "/")
     |> File.mkdir_p!()
@@ -125,11 +122,9 @@ defmodule JS2E do
     else
       Logger.info("Converting to Elm code!")
 
-      printer_result =
-        Printer.print_schemas(parser_result.schema_dict, module_name)
+      printer_result = Printer.print_schemas(parser_result.schema_dict, module_name)
 
-      tests_printer_result =
-        Printer.print_schemas_tests(parser_result.schema_dict, module_name)
+      tests_printer_result = Printer.print_schemas_tests(parser_result.schema_dict, module_name)
 
       cond do
         length(printer_result.errors) > 0 ->
@@ -215,8 +210,7 @@ defmodule JS2E do
               "-",
               max(
                 0,
-                74 - String.length(pretty_warning_type) -
-                  String.length(file_path)
+                74 - String.length(pretty_warning_type) - String.length(file_path)
               )
             )
 
@@ -311,8 +305,7 @@ defmodule JS2E do
   end
 
   defp warning_header do
-    header =
-      String.duplicate("^", 35) <> " WARNINGS " <> String.duplicate("^", 35)
+    header = String.duplicate("^", 35) <> " WARNINGS " <> String.duplicate("^", 35)
 
     IO.puts(IO.ANSI.format([:yellow, header]))
   end
