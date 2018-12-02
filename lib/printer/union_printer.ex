@@ -54,8 +54,7 @@ defmodule JS2E.Printer.UnionPrinter do
     |> Enum.map(&to_type_clause(&1, name))
   end
 
-  @spec to_type_clause(String.t(), String.t()) ::
-          {:ok, map} | {:error, PrinterError.t()}
+  @spec to_type_clause(String.t(), String.t()) :: {:ok, map} | {:error, PrinterError.t()}
   defp to_type_clause(type_id, name) do
     type_name = Naming.normalize_identifier(name, :upcase)
 
@@ -223,8 +222,7 @@ defmodule JS2E.Printer.UnionPrinter do
     |> Enum.map(&create_encoder_clause(&1, name))
   end
 
-  @spec create_encoder_clause(String.t(), String.t()) ::
-          {:ok, map} | {:error, PrinterError.t()}
+  @spec create_encoder_clause(String.t(), String.t()) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_encoder_clause(type_id, name) do
     type_id_result =
       case type_id do
@@ -246,8 +244,7 @@ defmodule JS2E.Printer.UnionPrinter do
 
     case type_id_result do
       {:ok, {constructor_suffix, encoder_name, argument_name}} ->
-        constructor_name =
-          Naming.normalize_identifier(name, :upcase) <> constructor_suffix
+        constructor_name = Naming.normalize_identifier(name, :upcase) <> constructor_suffix
 
         {:ok,
          %{
@@ -307,8 +304,7 @@ defmodule JS2E.Printer.UnionPrinter do
     |> PrinterResult.new(errors)
   end
 
-  @spec primitive_type_to_fuzzer(String.t()) ::
-          {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec primitive_type_to_fuzzer(String.t()) :: {:ok, String.t()} | {:error, PrinterError.t()}
   defp primitive_type_to_fuzzer(type) do
     case type do
       "boolean" ->

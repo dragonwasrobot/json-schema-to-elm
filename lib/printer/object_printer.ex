@@ -257,8 +257,7 @@ defmodule JS2E.Printer.ObjectPrinter do
            ) do
       is_required = property_name in required
 
-      decoder_clause =
-        create_decoder_clause(property_name, decoder_name, is_required)
+      decoder_clause = create_decoder_clause(property_name, decoder_name, is_required)
 
       {:ok, decoder_clause}
     else
@@ -395,8 +394,7 @@ defmodule JS2E.Printer.ObjectPrinter do
            ) do
       is_required = property_name in required
 
-      {:ok,
-       %{name: property_name, encoder_name: encoder_name, required: is_required}}
+      {:ok, %{name: property_name, encoder_name: encoder_name, required: is_required}}
     else
       {:error, error} ->
         {:error, error}

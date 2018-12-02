@@ -14,8 +14,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
   }
 
   test "prints external references in generated code" do
-    schema_result =
-      Printer.print_schemas(schema_representations(), module_name())
+    schema_result = Printer.print_schemas(schema_representations(), module_name())
 
     file_dict = schema_result.file_dict
     utils_program = file_dict["./js2e_output/src/Data/Utils.elm"]
@@ -273,8 +272,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
   end
 
   test "prints external references in generated tests" do
-    schema_tests_result =
-      Printer.print_schemas_tests(schema_representations(), module_name())
+    schema_tests_result = Printer.print_schemas_tests(schema_representations(), module_name())
 
     file_dict = schema_tests_result.file_dict
     circle_tests = file_dict["./js2e_output/tests/Data/CircleTests.elm"]
@@ -312,8 +310,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
                              |> Expect.equal (Ok circle)
              """
 
-    definitions_tests =
-      file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
+    definitions_tests = file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
 
     assert definitions_tests ==
              """

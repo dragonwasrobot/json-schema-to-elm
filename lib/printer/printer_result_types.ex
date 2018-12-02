@@ -70,8 +70,7 @@ defmodule JS2E.Printer.PrinterResult do
           errors: errors2
         }
       ) do
-    merged_schema =
-      String.trim(printed_schema1) <> "\n\n\n" <> String.trim(printed_schema2)
+    merged_schema = String.trim(printed_schema1) <> "\n\n\n" <> String.trim(printed_schema2)
 
     merged_errors = Enum.uniq(errors1 ++ errors2)
 

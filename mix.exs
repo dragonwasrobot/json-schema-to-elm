@@ -70,7 +70,8 @@ defmodule JS2E.Mixfile do
   end
 
   defp preferred_cli_env do
-    [coveralls: :test,
+    [
+      coveralls: :test,
       "coveralls.detail": :test,
       "coveralls.post": :test,
       "coveralls.html": :test
