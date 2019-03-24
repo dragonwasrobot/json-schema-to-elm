@@ -6,10 +6,10 @@ defmodule JS2E.Printer.OneOfPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.{TypePath, Types}
+  alias JsonSchema.{Resolver, Types}
   alias Printer.{PrinterError, PrinterResult, Utils}
   alias Types.{OneOfType, SchemaDefinition}
-  alias Utils.{CommonOperations, ElmFuzzers, Indentation, Naming, ResolveType}
+  alias Utils.{CommonOperations, ElmFuzzers, Indentation, Naming}
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -47,9 +47,9 @@ defmodule JS2E.Printer.OneOfPrinter do
   end
 
   @spec create_type_clauses(
-          [TypePath.t()],
+          [URI.t()],
           String.t(),
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: [{:ok, map} | {:error, PrinterError.t()}]
@@ -59,14 +59,14 @@ defmodule JS2E.Printer.OneOfPrinter do
   end
 
   @spec create_type_clause(
-          TypePath.t(),
+          URI.t(),
           String.t(),
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_type_clause(type_clause_id, name, parent, schema_def, schema_dict) do
-    case ResolveType.resolve_type(
+    case Resolver.resolve_type(
            type_clause_id,
            parent,
            schema_def,
@@ -126,9 +126,9 @@ defmodule JS2E.Printer.OneOfPrinter do
   end
 
   @spec create_decoder_clauses(
-          [TypePath.t()],
+          [URI.t()],
           String.t(),
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
@@ -144,9 +144,9 @@ defmodule JS2E.Printer.OneOfPrinter do
   end
 
   @spec create_decoder_clause(
-          TypePath.t(),
+          URI.t(),
           String.t(),
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
@@ -157,7 +157,7 @@ defmodule JS2E.Printer.OneOfPrinter do
          schema_def,
          schema_dict
        ) do
-    case ResolveType.resolve_type(
+    case Resolver.resolve_type(
            type_clause_id,
            parent,
            schema_def,
@@ -219,7 +219,7 @@ defmodule JS2E.Printer.OneOfPrinter do
   @spec create_encoder_cases(
           [String.t()],
           String.t(),
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: [{:ok, map} | {:error, PrinterError.t()}]
@@ -231,12 +231,12 @@ defmodule JS2E.Printer.OneOfPrinter do
   @spec create_encoder_clause(
           String.t(),
           String.t(),
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) :: {:ok, map} | {:error, PrinterError.t()}
   defp create_encoder_clause(type_path, name, parent, schema_def, schema_dict) do
-    case ResolveType.resolve_type(type_path, parent, schema_def, schema_dict) do
+    case Resolver.resolve_type(type_path, parent, schema_def, schema_dict) do
       {:ok, {clause_type, _resolved_schema_def}} ->
         type_name = Naming.normalize_identifier(name, :upcase)
         argument_name = Naming.normalize_identifier(clause_type.name, :downcase)
@@ -311,8 +311,8 @@ defmodule JS2E.Printer.OneOfPrinter do
   end
 
   @spec create_fuzzer_properties(
-          [TypePath.t()],
-          TypePath.t(),
+          [URI.t()],
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -337,8 +337,8 @@ defmodule JS2E.Printer.OneOfPrinter do
   end
 
   @spec create_fuzzer_property(
-          TypePath.t(),
-          TypePath.t(),
+          URI.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -351,7 +351,7 @@ defmodule JS2E.Printer.OneOfPrinter do
          module_name
        ) do
     with {:ok, {resolved_type, resolved_schema}} <-
-           ResolveType.resolve_type(
+           Resolver.resolve_type(
              type,
              parent,
              schema_def,

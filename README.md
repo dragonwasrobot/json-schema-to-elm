@@ -37,18 +37,18 @@ JSON schema types are described in the `lib/types` folder.
 If we supply `js2e` with the following JSON schema file, `definitions.json`:
 ``` javascript
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Definitions",
-    "id": "http://example.com/definitions.json",
+    "$id": "http://example.com/definitions.json",
     "description": "Schema for common types",
     "definitions": {
         "color": {
-            "id": "#color",
+            "$id": "#color",
             "type": "string",
             "enum": [ "red", "yellow", "green", "blue" ]
         },
         "point": {
-            "id": "#point",
+            "$id": "#point",
             "type": "object",
             "properties": {
                 "x": {
@@ -189,8 +189,8 @@ that have references across files, e.g.
 ``` javascript
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "http://example.com/circle.json",
     "title": "Circle",
-    "id": "http://example.com/circle.json",
     "description": "Schema for a circle shape",
     "type": "object",
     "properties": {

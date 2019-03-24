@@ -60,21 +60,13 @@ defmodule JS2E.Printer.PrinterResult do
 
   """
   @spec merge(t, t) :: t
-  def merge(
-        %__MODULE__{
-          printed_schema: printed_schema1,
-          errors: errors1
-        },
-        %__MODULE__{
-          printed_schema: printed_schema2,
-          errors: errors2
-        }
-      ) do
-    merged_schema = String.trim(printed_schema1) <> "\n\n\n" <> String.trim(printed_schema2)
+  def merge(result1, result2) do
+    merged_schema =
+      String.trim(result1.printed_schema) <> "\n\n\n" <> String.trim(result2.printed_schema)
 
-    merged_errors = Enum.uniq(errors1 ++ errors2)
+    merged_errors = Enum.uniq(result1.errors ++ result2.errors)
 
-    %__MODULE__{printed_schema: merged_schema, errors: merged_errors}
+    new(merged_schema, merged_errors)
   end
 end
 
@@ -115,12 +107,9 @@ defmodule JS2E.Printer.SchemaResult do
 
   """
   @spec merge(t, t) :: t
-  def merge(%__MODULE__{file_dict: file_dict1, errors: errors1}, %__MODULE__{
-        file_dict: file_dict2,
-        errors: errors2
-      }) do
-    merged_file_dict = Map.merge(file_dict1, file_dict2)
-    merged_errors = errors1 ++ errors2
+  def merge(result1, result2) do
+    merged_file_dict = Map.merge(result1.file_dict, result2.file_dict)
+    merged_errors = result1.errors ++ result2.errors
 
     %__MODULE__{file_dict: merged_file_dict, errors: merged_errors}
   end

@@ -97,15 +97,15 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
   end
 
   def module_name, do: "Data"
-  defp path, do: ["#", "definitions", "fancyCircle"]
+  defp path, do: "#/definitions/fancyCircle"
 
   def any_of_type do
     %AnyOfType{
       name: "fancyCircle",
-      path: path(),
+      path: URI.parse(path()),
       types: [
-        path() ++ ["anyOf", "0"],
-        path() ++ ["anyOf", "1"]
+        URI.parse(Path.join(path(), "anyOf/0")),
+        URI.parse(Path.join(path(), "anyOf/1"))
       ]
     }
   end
@@ -123,43 +123,43 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     %{
       "#/definitions/fancyCircle/anyOf/0" => %ObjectType{
         name: "0",
-        path: path() ++ ["anyOf", "0"],
+        path: URI.parse(Path.join(path(), "anyOf/0")),
         required: ["color"],
         properties: %{
-          "color" => path() ++ ["anyOf", "0", "properties", "color"],
-          "description" => path() ++ ["anyOf", "0", "properties", "description"]
+          "color" => URI.parse(Path.join(path(), "anyOf/0/properties/color")),
+          "description" => URI.parse(Path.join(path(), "anyOf/0/properties/description"))
         }
       },
       "#/definitions/fancyCircle/anyOf/0/properties/color" => %TypeReference{
         name: "color",
-        path: ["#", "definitions", "color"]
+        path: URI.parse("#/definitions/color")
       },
       "#/definitions/color" => %EnumType{
         name: "color",
-        path: ["#", "definitions", "color"],
+        path: URI.parse("#/definitions/color"),
         type: "string",
         values: ["red", "yellow", "green"]
       },
       "#/definitions/fancyCircle/anyOf/0/properties/description" => %PrimitiveType{
         name: "description",
-        path: path() ++ ["anyOf", "0", "properties", "description"],
+        path: URI.parse(Path.join(path(), "anyOf/0/properties/description")),
         type: "string"
       },
       "#/definitions/fancyCircle/anyOf/1" => %TypeReference{
         name: "1",
-        path: ["#", "definitions", "circle"]
+        path: URI.parse("#/definitions/circle")
       },
       "#/definitions/circle" => %ObjectType{
         name: "circle",
-        path: ["#", "definitions", "circle"],
+        path: URI.parse("#/definitions/circle"),
         required: ["radius"],
         properties: %{
-          "radius" => ["#", "definitions", "circle", "properties", "radius"]
+          "radius" => URI.parse("#/definitions/circle/properties/radius")
         }
       },
       "#/definitions/circle/properties/radius" => %PrimitiveType{
         name: "radius",
-        path: ["#", "definitions", "circle", "properties", "radius"],
+        path: URI.parse("#/definitions/circle/properties/radius"),
         type: "number"
       }
     }

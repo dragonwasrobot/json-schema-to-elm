@@ -1,7 +1,7 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://example.com/circle.json",
     "title": "Circle",
-    "id": "http://example.com/circle.json",
     "description": "Schema for a circle shape",
     "type": "object",
     "properties": {

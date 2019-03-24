@@ -6,7 +6,7 @@ defmodule JS2E.Printer.AllOfPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.{TypePath, Types}
+  alias JsonSchema.{Resolver, Types}
   alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
 
   alias Types.{
@@ -25,8 +25,7 @@ defmodule JS2E.Printer.AllOfPrinter do
     ElmFuzzers,
     ElmTypes,
     Indentation,
-    Naming,
-    ResolveType
+    Naming
   }
 
   @templates_location Application.get_env(:js2e, :templates_location)
@@ -68,8 +67,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   @type elm_type_field :: %{name: String.t(), type: String.t()}
 
   @spec create_type_field(
-          TypePath.t(),
-          TypePath.t(),
+          URI.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -83,7 +82,7 @@ defmodule JS2E.Printer.AllOfPrinter do
        ) do
     field_type_result =
       type_path
-      |> ResolveType.resolve_type(parent, schema_def, schema_dict)
+      |> Resolver.resolve_type(parent, schema_def, schema_dict)
       |> ElmTypes.create_type_name(schema_def, module_name)
 
     case field_type_result do
@@ -135,8 +134,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   end
 
   @spec create_decoder_property(
-          TypePath.t(),
-          TypePath.t(),
+          URI.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -149,7 +148,7 @@ defmodule JS2E.Printer.AllOfPrinter do
          module_name
        ) do
     with {:ok, {property_type, resolved_schema_def}} <-
-           ResolveType.resolve_type(type_path, parent, schema_def, schema_dict),
+           Resolver.resolve_type(type_path, parent, schema_def, schema_dict),
          {:ok, decoder_name} <-
            ElmDecoders.create_decoder_name(
              {:ok, {property_type, resolved_schema_def}},
@@ -254,8 +253,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   end
 
   @spec create_encoder_properties(
-          [TypePath.t()],
-          TypePath.t(),
+          [URI.t()],
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -268,7 +267,7 @@ defmodule JS2E.Printer.AllOfPrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(&ResolveType.resolve_type(&1, parent, schema_def, schema_dict))
+    |> Enum.map(&Resolver.resolve_type(&1, parent, schema_def, schema_dict))
     |> Enum.map(&to_encoder_property(&1, schema_def, module_name))
     |> Enum.concat()
   end
@@ -299,7 +298,7 @@ defmodule JS2E.Printer.AllOfPrinter do
     type_def.properties
     |> Enum.map(fn {child_name, child_path} ->
       with {:ok, {child_type_def, child_schema_def}} <-
-             ResolveType.resolve_type(
+             Resolver.resolve_type(
                child_path,
                type_def.path,
                schema_def,
@@ -388,8 +387,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   end
 
   @spec create_fuzzers(
-          [TypePath.t()],
-          TypePath.t(),
+          [URI.t()],
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -414,8 +413,8 @@ defmodule JS2E.Printer.AllOfPrinter do
   end
 
   @spec create_fuzzer(
-          TypePath.t(),
-          TypePath.t(),
+          URI.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -428,7 +427,7 @@ defmodule JS2E.Printer.AllOfPrinter do
          module_name
        ) do
     with {:ok, {resolved_type, resolved_schema}} <-
-           ResolveType.resolve_type(
+           Resolver.resolve_type(
              type_path,
              parent,
              schema_def,

@@ -95,10 +95,10 @@ defmodule JS2ETest.Printer.TuplePrinter do
   defp tuple_type,
     do: %TupleType{
       name: "shapePair",
-      path: ["#", "shapePair"],
+      path: URI.parse("#/shapePair"),
       items: [
-        ["#", "shapePair", "0"],
-        ["#", "shapePair", "1"]
+        URI.parse("#/shapePair/0"),
+        URI.parse("#/shapePair/1")
       ]
     }
 
@@ -114,19 +114,19 @@ defmodule JS2ETest.Printer.TuplePrinter do
     do: %{
       "#/shapePair/0" => %TypeReference{
         name: "0",
-        path: ["#", "definitions", "square"]
+        path: URI.parse("#/definitions/square")
       },
       "#/shapePair/1" => %TypeReference{
         name: "1",
-        path: ["#", "definitions", "circle"]
+        path: URI.parse("#/definitions/circle")
       },
       "#/definitions/square" => %ObjectType{
         name: "square",
-        path: ["#"],
+        path: URI.parse("#"),
         required: ["color", "size"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
+          "color" => URI.parse("#/properties/color"),
+          "title" => URI.parse("#/properties/size")
         }
       },
       "#/definitions/circle" => %ObjectType{
@@ -134,8 +134,8 @@ defmodule JS2ETest.Printer.TuplePrinter do
         path: ["#"],
         required: ["color", "radius"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
+          "color" => URI.parse("#/properties/color"),
+          "radius" => URI.parse("#/properties/radius")
         }
       }
     }

@@ -14,11 +14,11 @@ defmodule JS2E.Printer.ObjectPrinter do
     ElmFuzzers,
     ElmTypes,
     Indentation,
-    Naming,
-    ResolveType
+    Naming
   }
 
-  alias JsonSchema.{TypePath, Types}
+  alias JsonSchema.{Parser, Resolver, Types}
+  alias Parser.Util, as: ParserUtil
   alias Types.{ObjectType, SchemaDefinition}
 
   @templates_location Application.get_env(:js2e, :templates_location)
@@ -73,7 +73,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_type_fields(
           Types.propertyDictionary(),
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -102,7 +102,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_type_field(
           {String.t(), Types.typeIdentifier()},
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -117,11 +117,11 @@ defmodule JS2E.Printer.ObjectPrinter do
          schema_dict,
          module_name
        ) do
-    properties_path = TypePath.add_child(parent, property_name)
+    properties_path = ParserUtil.add_fragment_child(parent, property_name)
 
     field_type_result =
       property_path
-      |> ResolveType.resolve_type(properties_path, schema_def, schema_dict)
+      |> Resolver.resolve_type(properties_path, schema_def, schema_dict)
       |> ElmTypes.create_type_name(schema_def, module_name)
       |> check_if_maybe(property_name, required)
 
@@ -198,7 +198,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_decoder_properties(
           Types.propertyDictionary(),
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -227,7 +227,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_decoder_property(
           {String.t(), String.t()},
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -240,10 +240,10 @@ defmodule JS2E.Printer.ObjectPrinter do
          schema_dict,
          module_name
        ) do
-    properties_path = TypePath.add_child(parent, property_name)
+    properties_path = ParserUtil.add_fragment_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           ResolveType.resolve_type(
+           Resolver.resolve_type(
              property_path,
              properties_path,
              schema_def,
@@ -335,7 +335,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_encoder_properties(
           Types.propertyDictionary(),
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -364,7 +364,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_encoder_property(
           {String.t(), Types.typeIdentifier()},
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -377,10 +377,10 @@ defmodule JS2E.Printer.ObjectPrinter do
          schema_dict,
          module_name
        ) do
-    properties_path = TypePath.add_child(parent, property_name)
+    properties_path = ParserUtil.add_fragment_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           ResolveType.resolve_type(
+           Resolver.resolve_type(
              property_path,
              properties_path,
              schema_def,
@@ -462,7 +462,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_fuzzer_properties(
           Types.propertyDictionary(),
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -491,7 +491,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   @spec create_fuzzer_property(
           {String.t(), Types.typeIdentifier()},
           [String.t()],
-          TypePath.t(),
+          URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
@@ -504,10 +504,10 @@ defmodule JS2E.Printer.ObjectPrinter do
          schema_dict,
          module_name
        ) do
-    properties_path = TypePath.add_child(parent, property_name)
+    properties_path = ParserUtil.add_fragment_child(parent, property_name)
 
     with {:ok, {resolved_type, resolved_schema}} <-
-           ResolveType.resolve_type(
+           Resolver.resolve_type(
              property_path,
              properties_path,
              schema_def,

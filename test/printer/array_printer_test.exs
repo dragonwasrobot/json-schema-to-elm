@@ -83,8 +83,8 @@ defmodule JS2ETest.Printer.ArrayPrinter do
   defp array_type,
     do: %ArrayType{
       name: "colors",
-      path: ["#"],
-      items: ["#", "items"]
+      path: URI.parse("#"),
+      items: URI.parse("#/items")
     }
 
   defp schema_def,
@@ -99,7 +99,7 @@ defmodule JS2ETest.Printer.ArrayPrinter do
     do: %{
       "#/items" => %EnumType{
         name: "color",
-        path: ["#", "definitions", "color"],
+        path: URI.parse("#/definitions/color"),
         type: "string",
         values: ["none", "green", "yellow", "red"]
       }

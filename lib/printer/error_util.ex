@@ -3,16 +3,16 @@ defmodule JS2E.Printer.ErrorUtil do
   Contains helper functions for reporting printer errors.
   """
 
-  alias JsonSchema.{TypePath, Types}
   alias JS2E.Printer
+  alias JsonSchema.Types
   alias Printer.PrinterError
 
   @spec unresolved_reference(
           Types.typeIdentifier(),
-          TypePath.t()
+          URI.t()
         ) :: PrinterError.t()
   def unresolved_reference(identifier, parent) do
-    printed_path = TypePath.to_string(parent)
+    printed_path = to_string(parent)
     stringified_value = sanitize_value(identifier)
 
     error_msg = """
@@ -22,8 +22,10 @@ defmodule JS2E.Printer.ErrorUtil do
         "$ref": #{stringified_value}
                 #{error_markings(stringified_value)}
 
+    Be aware that the newest version of JSON schema uses "$id" rather than "id"
+    when specifying the id of a JSON schema or subschema.
 
-    Hint: See the specification section 9. "Base URI and dereferencing"
+    Hint: See the specification section 8. "Base URI and Dereferencing"
     <http://json-schema.org/latest/json-schema-core.html#rfc.section.9>
     """
 
@@ -66,10 +68,7 @@ defmodule JS2E.Printer.ErrorUtil do
         URI.to_string(raw_value)
 
       is_map(raw_value) ->
-        Poison.encode!(raw_value)
-
-      TypePath.type_path?(raw_value) ->
-        TypePath.to_string(raw_value)
+        "#{inspect(raw_value)}"
 
       true ->
         inspect(raw_value)

@@ -1,8 +1,8 @@
 defmodule JS2E.Mixfile do
   use Mix.Project
 
-  @version "2.7.0"
-  @elixir_version "~> 1.7"
+  @version "2.8.0"
+  @elixir_version "~> 1.8"
 
   def project do
     [
@@ -35,12 +35,12 @@ defmodule JS2E.Mixfile do
 
   defp deps do
     [
-      {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.0.4", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.19-rc", only: :dev, runtime: false},
       {:excoveralls, "~> 0.10", only: :test, runtime: false},
       # {:json_schema, path: "../json_schema/"},
-      {:json_schema, "~> 0.1.0"}
+      {:json_schema, "~> 0.2"}
     ]
   end
 

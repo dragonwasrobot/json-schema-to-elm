@@ -377,41 +377,41 @@ defmodule JS2ETest.Printer.ExternalReferences do
         types: %{
           "#/definitions/color" => %EnumType{
             name: "color",
-            path: ["#", "definitions", "color"],
+            path: URI.parse("#/definitions/color"),
             type: "string",
             values: ["red", "yellow", "green", "blue"]
           },
           "#/definitions/point" => %ObjectType{
             name: "point",
-            path: ["#", "definitions", "point"],
+            path: URI.parse("#/definitions/point"),
             properties: %{
-              "x" => ["#", "definitions", "point", "x"],
-              "y" => ["#", "definitions", "point", "y"]
+              "x" => URI.parse("#/definitions/point/x"),
+              "y" => URI.parse("#/definitions/point/y")
             },
             required: ["x", "y"]
           },
           "#/definitions/point/x" => %PrimitiveType{
             name: "x",
-            path: ["#", "definitions", "point", "x"],
+            path: URI.parse("#/definitions/point/x"),
             type: "number"
           },
           "#/definitions/point/y" => %PrimitiveType{
             name: "y",
-            path: ["#", "definitions", "point", "y"],
+            path: URI.parse("#/definitions/point/y"),
             type: "number"
           },
           "http://example.com/definitions.json#color" => %EnumType{
             name: "color",
-            path: ["#", "definitions", "color"],
+            path: URI.parse("#/definitions/color"),
             type: "string",
             values: ["red", "yellow", "green", "blue"]
           },
           "http://example.com/definitions.json#point" => %ObjectType{
             name: "point",
-            path: ["#", "definitions", "point"],
+            path: URI.parse("#/definitions/point"),
             properties: %{
-              "x" => ["#", "definitions", "point", "x"],
-              "y" => ["#", "definitions", "point", "y"]
+              "x" => URI.parse("#/definitions/point/x"),
+              "y" => URI.parse("#/definitions/point/y")
             },
             required: ["x", "y"]
           }
@@ -424,11 +424,11 @@ defmodule JS2ETest.Printer.ExternalReferences do
         types: %{
           "#" => %ObjectType{
             name: "circle",
-            path: ["#"],
+            path: URI.parse("#"),
             properties: %{
-              "center" => ["#", "center"],
-              "color" => ["#", "color"],
-              "radius" => ["#", "radius"]
+              "center" => URI.parse("#/center"),
+              "color" => URI.parse("#/color"),
+              "radius" => URI.parse("#/radius")
             },
             required: ["center", "radius"]
           },
@@ -442,16 +442,16 @@ defmodule JS2ETest.Printer.ExternalReferences do
           },
           "#/radius" => %PrimitiveType{
             name: "radius",
-            path: ["#", "radius"],
+            path: URI.parse("#/radius"),
             type: "number"
           },
           "http://example.com/circle.json#" => %ObjectType{
             name: "circle",
-            path: "#",
+            path: URI.parse("#"),
             properties: %{
-              "center" => ["#", "center"],
-              "color" => ["#", "color"],
-              "radius" => ["#", "radius"]
+              "center" => URI.parse("#/center"),
+              "color" => URI.parse("#/color"),
+              "radius" => URI.parse("#/radius")
             },
             required: ["center", "radius"]
           }

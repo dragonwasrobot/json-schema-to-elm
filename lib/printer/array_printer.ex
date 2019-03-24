@@ -6,7 +6,8 @@ defmodule JS2E.Printer.ArrayPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.Types
+  alias JsonSchema.{Parser, Resolver, Types}
+  alias Parser.ParserError
   alias Printer.{PrinterError, PrinterResult, Utils}
 
   alias Types.{ArrayType, PrimitiveType, SchemaDefinition}
@@ -16,8 +17,7 @@ defmodule JS2E.Printer.ArrayPrinter do
     ElmEncoders,
     ElmFuzzers,
     ElmTypes,
-    Naming,
-    ResolveType
+    Naming
   }
 
   @templates_location Application.get_env(:js2e, :templates_location)
@@ -63,15 +63,18 @@ defmodule JS2E.Printer.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           ResolveType.resolve_type(items_path, path, schema_def, schema_dict),
+           Resolver.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_decoder_name} <- determine_decoder_name(items_type) do
       "#{Naming.normalize_identifier(name, :downcase)}Decoder"
       |> decoder_template(items_type_name, items_decoder_name)
       |> PrinterResult.new()
     else
-      {:error, error} ->
-        PrinterResult.new("", [error])
+      {:error, %ParserError{identifier: id, error_type: atom, message: str}} ->
+        PrinterResult.new("", [PrinterError.new(id, atom, str)])
+
+      {:error, printer_error} ->
+        PrinterResult.new("", [printer_error])
     end
   end
 
@@ -135,15 +138,18 @@ defmodule JS2E.Printer.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           ResolveType.resolve_type(items_path, path, schema_def, schema_dict),
+           Resolver.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_encoder_name} <- determine_encoder_name(items_type) do
       "encode#{Naming.normalize_identifier(items_type_name, :upcase)}s"
       |> encoder_template(name, items_type_name, items_encoder_name)
       |> PrinterResult.new()
     else
-      {:error, error} ->
-        PrinterResult.new("", [error])
+      {:error, %ParserError{identifier: id, error_type: atom, message: str}} ->
+        PrinterResult.new("", [PrinterError.new(id, atom, str)])
+
+      {:error, printer_error} ->
+        PrinterResult.new("", [printer_error])
     end
   end
 
@@ -192,7 +198,7 @@ defmodule JS2E.Printer.ArrayPrinter do
         _module_name
       ) do
     with {:ok, {items_type, _resolved_schema_def}} <-
-           ResolveType.resolve_type(items_path, path, schema_def, schema_dict),
+           Resolver.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_fuzzer_name} <- determine_fuzzer_name(items_type) do
       array_name = Naming.normalize_identifier(name, :upcase)
@@ -213,8 +219,11 @@ defmodule JS2E.Printer.ArrayPrinter do
       )
       |> PrinterResult.new()
     else
-      {:error, error} ->
-        PrinterResult.new("", [error])
+      {:error, %ParserError{identifier: id, error_type: atom, message: str}} ->
+        PrinterResult.new("", [PrinterError.new(id, atom, str)])
+
+      {:error, printer_error} ->
+        PrinterResult.new("", [printer_error])
     end
   end
 

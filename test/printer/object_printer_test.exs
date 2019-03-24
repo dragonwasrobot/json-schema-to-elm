@@ -100,18 +100,18 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     do: %{
       "#/properties/color" => %EnumType{
         name: "color",
-        path: ["#", "properties", "color"],
+        path: URI.parse("#/properties/color"),
         type: "string",
         values: ["none", "green", "yellow", "red"]
       },
       "#/properties/title" => %PrimitiveType{
         name: "title",
-        path: ["#", "properties", "title"],
+        path: URI.parse("#/properties/title"),
         type: "string"
       },
       "#/properties/radius" => %PrimitiveType{
         name: "radius",
-        path: ["#", "properties", "radius"],
+        path: URI.parse("#/properties/radius"),
         type: "number"
       }
     }
@@ -127,12 +127,12 @@ defmodule JS2ETest.Printer.ObjectPrinter do
   defp object_type,
     do: %ObjectType{
       name: "circle",
-      path: ["#"],
+      path: URI.parse("#"),
       required: ["color", "radius"],
       properties: %{
-        "color" => ["#", "properties", "color"],
-        "title" => ["#", "properties", "title"],
-        "radius" => ["#", "properties", "radius"]
+        "color" => URI.parse("#/properties/color"),
+        "title" => URI.parse("#/properties/title"),
+        "radius" => URI.parse("#/properties/radius")
       }
     }
 end

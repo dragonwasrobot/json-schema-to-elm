@@ -85,7 +85,7 @@ defmodule JS2E.Printer do
   )
 
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
-  def print_schemas(schema_dict, module_name \\ "") do
+  def print_schemas(schema_dict, module_name) do
     init_file_dict = %{
       "./#{@output_location}/src/#{module_name}/Utils.elm" => utils_template(module_name),
       "./#{@output_location}/package.json" => package_template(),
@@ -158,8 +158,7 @@ defmodule JS2E.Printer do
       |> PrinterResult.merge(decoders_result)
       |> PrinterResult.merge(encoders_result)
 
-    printer_result
-    |> Map.put(:printed_schema, printer_result.printed_schema <> "\n")
+    %{printer_result | printed_schema: printer_result.printed_schema <> "\n"}
   end
 
   @spec print_schemas_tests(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
@@ -381,18 +380,18 @@ defmodule JS2E.Printer do
 
   @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
   defp create_file_path(title, module_name, is_test \\ false) do
-    if is_test do
-      if module_name != "" do
+    cond do
+      is_test == true and module_name != "" ->
         "./#{@output_location}/tests/#{module_name}/#{title}Tests.elm"
-      else
+
+      is_test == true and module_name == nil ->
         "./#{@output_location}/tests/#{title}Tests.elm"
-      end
-    else
-      if module_name != "" do
+
+      module_name != "" ->
         "./#{@output_location}/src/#{module_name}/#{title}.elm"
-      else
+
+      true ->
         "./#{@output_location}/src/#{title}.elm"
-      end
     end
   end
 

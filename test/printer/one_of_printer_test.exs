@@ -96,10 +96,10 @@ defmodule JS2ETest.Printer.OneOfPrinter do
   defp one_of_type,
     do: %OneOfType{
       name: "shape",
-      path: ["#", "definitions", "shape"],
+      path: URI.parse("#/definitions/shape"),
       types: [
-        ["#", "shape", "oneOf", "0"],
-        ["#", "shape", "oneOf", "1"]
+        URI.parse("#/shape/oneOf/0"),
+        URI.parse("#/shape/oneOf/1")
       ]
     }
 
@@ -115,28 +115,28 @@ defmodule JS2ETest.Printer.OneOfPrinter do
     do: %{
       "#/shape/oneOf/0" => %TypeReference{
         name: "square",
-        path: ["#", "definitions", "square"]
+        path: URI.parse("#/definitions/square")
       },
       "#/shape/oneOf/1" => %TypeReference{
         name: "circle",
-        path: ["#", "definitions", "circle"]
+        path: URI.parse("#/definitions/circle")
       },
       "#/definitions/square" => %ObjectType{
         name: "square",
-        path: ["#"],
+        path: URI.parse("#"),
         required: ["color", "size"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "title" => ["#", "properties", "size"]
+          "color" => URI.parse("#/properties/color"),
+          "title" => URI.parse("#/properties/size")
         }
       },
       "#/definitions/circle" => %ObjectType{
         name: "circle",
-        path: ["#"],
+        path: URI.parse("#"),
         required: ["color", "radius"],
         properties: %{
-          "color" => ["#", "properties", "color"],
-          "radius" => ["#", "properties", "radius"]
+          "color" => URI.parse("#/properties/color"),
+          "radius" => URI.parse("#/properties/radius")
         }
       }
     }
