@@ -18,7 +18,7 @@ install:
 
 script:
   - mix test
-  - mix dialyzer --halt-exit-status
+#  - mix dialyzer --halt-exit-status
 
 # Leave only the .plt files in build
 before_cache:
