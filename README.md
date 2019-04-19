@@ -1,5 +1,9 @@
 # JSON schema to Elm
 
+### Status
+
+[![Build Status](https://travis-ci.org/dragonwasrobot/json-schema-to-elm.svg?branch=master)](https://travis-ci.org/dragonwasrobot/json-schema-to-elm)
+
 Generates Elm types, JSON decoders, JSON encoders, and Fuzz tests from JSON
 schema specifications.
 
