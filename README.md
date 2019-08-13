@@ -1,11 +1,15 @@
-# JSON schema to Elm
+# JSON Schema to Elm
 
 ### Status
 
 [![Build Status](https://travis-ci.org/dragonwasrobot/json-schema-to-elm.svg?branch=master)](https://travis-ci.org/dragonwasrobot/json-schema-to-elm)
 
+### Description
+
 Generates Elm types, JSON decoders, JSON encoders, and Fuzz tests from JSON
 schema specifications.
+
+**Only supports - a subset of - JSON Schema draft v7.**
 
 ## Installation
 
