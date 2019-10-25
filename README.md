@@ -21,7 +21,7 @@ or similar.
   https://github.com/dragonwasrobot/json-schema-to-elm/releases, or
 - clone this repository:
   `git clone git@github.com:dragonwasrobot/json-schema-to-elm.git`, then
-- build an executable: `MIX_ENV=prod mix build` (Windows: `set "MIX_ENV=prod" && mix build`), and
+- build an executable: `MIX_ENV=prod mix build` (Windows: `set "MIX_ENV=prod"; mix build`), and
 - rune the executable, `./js2e` (Windows: `escript ,\js2e`), that has now been created in your current working
   directory.
 
