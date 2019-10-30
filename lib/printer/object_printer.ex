@@ -122,12 +122,16 @@ defmodule JS2E.Printer.ObjectPrinter do
     field_type_result =
       property_path
       |> Resolver.resolve_type(properties_path, schema_def, schema_dict)
-      |> ElmTypes.create_type_name(schema_def, module_name)
+      |> ElmTypes.create_type_name(parent, schema_def, schema_dict, module_name)
       |> check_if_maybe(property_name, required)
 
     case field_type_result do
       {:ok, field_type} ->
-        {:ok, %{name: property_name, type: field_type}}
+        {:ok,
+         %{
+           name: Naming.normalize_identifier(property_name, :downcase),
+           type: field_type
+         }}
 
       {:error, error} ->
         {:error, error}
@@ -257,7 +261,8 @@ defmodule JS2E.Printer.ObjectPrinter do
            ) do
       is_required = property_name in required
 
-      decoder_clause = create_decoder_clause(property_name, decoder_name, is_required)
+      decoder_clause =
+        create_decoder_clause(property_name, decoder_name, is_required)
 
       {:ok, decoder_clause}
     else
@@ -271,13 +276,13 @@ defmodule JS2E.Printer.ObjectPrinter do
     if is_required do
       %{
         option: "required",
-        property_name: property_name,
+        property_name: Naming.normalize_identifier(property_name, :downcase),
         decoder: decoder_name
       }
     else
       %{
         option: "optional",
-        property_name: property_name,
+        property_name: Naming.normalize_identifier(property_name, :downcase),
         decoder: "(nullable #{decoder_name}) Nothing"
       }
     end
@@ -394,7 +399,12 @@ defmodule JS2E.Printer.ObjectPrinter do
            ) do
       is_required = property_name in required
 
-      {:ok, %{name: property_name, encoder_name: encoder_name, required: is_required}}
+      {:ok,
+       %{
+         name: Naming.normalize_identifier(property_name, :downcase),
+         encoder_name: encoder_name,
+         required: is_required
+       }}
     else
       {:error, error} ->
         {:error, error}

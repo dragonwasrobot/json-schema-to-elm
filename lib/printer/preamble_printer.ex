@@ -6,8 +6,9 @@ defmodule JS2E.Printer.PreamblePrinter do
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
   alias JsonSchema.Types
-  alias Printer.PrinterResult
+  alias Printer.{PrinterResult, Utils}
   alias Types.{SchemaDefinition, TypeReference}
+  alias Utils.Naming
 
   @templates_location Application.get_env(:js2e, :templates_location)
 
@@ -39,10 +40,11 @@ defmodule JS2E.Printer.PreamblePrinter do
         module_name
       ) do
     imports = create_imports(schema_def, schema_dict)
+    file_name = Naming.normalize_identifier(title, :upcase)
 
     module_name
     |> create_prefix()
-    |> preamble_template(title, description, imports)
+    |> preamble_template(file_name, description, imports)
     |> PrinterResult.new()
   end
 
@@ -79,10 +81,11 @@ defmodule JS2E.Printer.PreamblePrinter do
         module_name
       ) do
     imports = create_imports(schema_def, schema_dict)
+    file_name = Naming.normalize_identifier(title, :upcase)
 
     module_name
     |> create_prefix()
-    |> tests_preamble_template(title, description, imports)
+    |> tests_preamble_template(file_name, description, imports)
     |> PrinterResult.new()
   end
 

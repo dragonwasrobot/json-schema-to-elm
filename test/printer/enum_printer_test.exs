@@ -218,6 +218,7 @@ defmodule JS2ETest.Printer.EnumPrinter do
     do: %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
+      file_path: "test.json",
       title: "Test",
       types: %{}
     }

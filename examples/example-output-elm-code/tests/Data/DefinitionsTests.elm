@@ -1,17 +1,12 @@
-module Data.DefinitionsTests exposing
-    ( colorFuzzer
-    , encodeDecodeColorTest
-    , encodeDecodePointTest
-    , pointFuzzer
-    )
+module Data.DefinitionsTests exposing (..)
 
 -- Tests: Schema for common types
 
-import Data.Definitions exposing (..)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
-import Json.Decode as Decode
 import Test exposing (..)
+import Json.Decode as Decode
+import Data.Definitions exposing (..)
 
 
 colorFuzzer : Fuzzer Color

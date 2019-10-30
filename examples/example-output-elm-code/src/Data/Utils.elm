@@ -1,9 +1,10 @@
-module Data.Utils exposing
-    ( encodeNestedOptional
-    , encodeNestedRequired
-    , encodeOptional
-    , encodeRequired
-    )
+module Data.Utils
+    exposing
+        ( encodeNestedOptional
+        , encodeNestedRequired
+        , encodeOptional
+        , encodeRequired
+        )
 
 -- Util functions for decoding and encoding JSON objects.
 

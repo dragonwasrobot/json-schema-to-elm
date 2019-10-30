@@ -1,19 +1,7 @@
-module Data.Circle exposing
-    ( Circle
-    , circleDecoder
-    , encodeCircle
-    )
+module Data.Circle exposing (..)
 
 -- Schema for a circle shape
 
-import Data.Definitions as Definitions
-import Data.Utils
-    exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
-        )
 import Json.Decode as Decode
     exposing
         ( Decoder
@@ -39,6 +27,14 @@ import Json.Encode as Encode
         ( Value
         , list
         , object
+        )
+import Data.Definitions as Definitions
+import Data.Utils
+    exposing
+        ( encodeNestedOptional
+        , encodeNestedRequired
+        , encodeOptional
+        , encodeRequired
         )
 
 

@@ -1,9 +1,9 @@
 language: elixir
 
 elixir:
-  - '1.8.1'
+  - '1.9.0'
 otp_release:
-  - '21.3'
+  - '22.0'
 
 cache:
   directories:
@@ -18,7 +18,7 @@ install:
 
 script:
   - mix test
-#  - mix dialyzer --halt-exit-status
+  - mix dialyzer
 
 # Leave only the .plt files in build
 before_cache:

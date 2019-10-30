@@ -1,16 +1,13 @@
-module Data.CircleTests exposing
-    ( circleFuzzer
-    , encodeDecodeCircleTest
-    )
+module Data.CircleTests exposing (..)
 
 -- Tests: Schema for a circle shape
 
-import Data.Circle exposing (..)
-import Data.DefinitionsTests as Definitions
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
-import Json.Decode as Decode
 import Test exposing (..)
+import Json.Decode as Decode
+import Data.Circle exposing (..)
+import Data.DefinitionsTests as Definitions
 
 
 circleFuzzer : Fuzzer Circle

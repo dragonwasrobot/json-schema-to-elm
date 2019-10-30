@@ -5,7 +5,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
   alias JS2E.Printer
   alias JsonSchema.Types
   alias Printer.ObjectPrinter
-  alias Types.{EnumType, ObjectType, PrimitiveType, SchemaDefinition}
+  alias Types.{ArrayType, EnumType, ObjectType, PrimitiveType, SchemaDefinition}
 
   test "print object type" do
     result =
@@ -16,6 +16,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     type alias Circle =
         { color : Color
         , radius : Float
+        , tags : List String
         , title : Maybe String
         }
     """
@@ -36,6 +37,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
         succeed Circle
             |> required "color" colorDecoder
             |> required "radius" Decode.float
+            |> required "tags" tagsDecoder
             |> optional "title" (nullable Decode.string) Nothing
     """
 
@@ -55,6 +57,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
         []
             |> encodeRequired "color" circle.color encodeColor
             |> encodeRequired "radius" circle.radius Encode.float
+            |> encodeRequired "tags" circle.tags encodeTags
             |> encodeOptional "title" circle.title Encode.string
             |> Encode.object
     """
@@ -72,10 +75,11 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     expected_object_fuzzer = """
     circleFuzzer : Fuzzer Circle
     circleFuzzer =
-        Fuzz.map3
+        Fuzz.map4
             Circle
             colorFuzzer
             Fuzz.float
+            tagsFuzzer
             (Fuzz.maybe Fuzz.string)
 
 
@@ -113,6 +117,16 @@ defmodule JS2ETest.Printer.ObjectPrinter do
         name: "radius",
         path: URI.parse("#/properties/radius"),
         type: "number"
+      },
+      "#/properties/tags" => %ArrayType{
+        name: "tags",
+        path: URI.parse("#/properties/tags"),
+        items: URI.parse("#/properties/tags/items")
+      },
+      "#/properties/tags/items" => %PrimitiveType{
+        name: "items",
+        path: URI.parse("#/properties/radius/items"),
+        type: "string"
       }
     }
 
@@ -120,6 +134,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     do: %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
+      file_path: "test.json",
       title: "Test",
       types: type_dict()
     }
@@ -128,11 +143,13 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     do: %ObjectType{
       name: "circle",
       path: URI.parse("#"),
-      required: ["color", "radius"],
+      required: ["color", "radius", "tags"],
       properties: %{
         "color" => URI.parse("#/properties/color"),
         "title" => URI.parse("#/properties/title"),
-        "radius" => URI.parse("#/properties/radius")
-      }
+        "radius" => URI.parse("#/properties/radius"),
+        "tags" => URI.parse("#/properties/tags")
+      },
+      pattern_properties: %{}
     }
 end

@@ -6,22 +6,27 @@ defmodule JS2E.Printer.Utils.ElmTypes do
 
   require Logger
   alias JS2E.Printer
-  alias JsonSchema.Types
+  alias JsonSchema.{Resolver, Types}
   alias Printer.{ErrorUtil, PrinterError, Utils}
-  alias Types.{PrimitiveType, SchemaDefinition}
+  alias Types.{ArrayType, PrimitiveType, SchemaDefinition}
   alias Utils.Naming
 
   @spec create_type_name(
           {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
           | {:error, PrinterError.t()},
+          URI.t(),
           SchemaDefinition.t(),
+          Types.schemaDictionary(),
           String.t()
         ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  def create_type_name({:error, error}, _schema, _name), do: {:error, error}
+  def create_type_name({:error, error}, _parent, _schema, _schema_dict, _name),
+    do: {:error, error}
 
   def create_type_name(
         {:ok, {resolved_type, resolved_schema}},
+        parent,
         context_schema,
+        schema_dict,
         module_name
       ) do
     type_name =
@@ -29,9 +34,34 @@ defmodule JS2E.Printer.Utils.ElmTypes do
         %PrimitiveType{} ->
           determine_primitive_type_name(resolved_type.type)
 
+        %ArrayType{} ->
+          case Resolver.resolve_type(
+                 resolved_type.items,
+                 parent,
+                 context_schema,
+                 schema_dict
+               ) do
+            {:ok, {items_type, _items_schema}} ->
+              case items_type do
+                %PrimitiveType{} ->
+                  case determine_primitive_type_name(items_type.type) do
+                    {:ok, primitive_type} ->
+                      {:ok, "List #{primitive_type}"}
+
+                    {:error, error} ->
+                      {:error, error}
+                  end
+
+                _ ->
+                  {:ok, "List #{Naming.upcase_first(items_type.name)}"}
+              end
+
+            {:error, error} ->
+              {:error, error}
+          end
+
         _ ->
-          resolved_type_name = resolved_type.name
-          {:ok, Naming.upcase_first(resolved_type_name)}
+          {:ok, Naming.upcase_first(resolved_type.name)}
       end
 
     case type_name do

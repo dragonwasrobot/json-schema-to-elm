@@ -23,7 +23,8 @@ defmodule JS2E.Printer do
     SchemaResult,
     TuplePrinter,
     TypeReferencePrinter,
-    UnionPrinter
+    UnionPrinter,
+    Utils
   }
 
   alias Types.{
@@ -39,6 +40,8 @@ defmodule JS2E.Printer do
     TypeReference,
     UnionType
   }
+
+  alias Utils.Naming
 
   @output_location Application.get_env(:js2e, :output_location)
   @templates_location Application.get_env(:js2e, :templates_location)
@@ -87,14 +90,16 @@ defmodule JS2E.Printer do
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name) do
     init_file_dict = %{
-      "./#{@output_location}/src/#{module_name}/Utils.elm" => utils_template(module_name),
+      "./#{@output_location}/src/#{module_name}/Utils.elm" =>
+        utils_template(module_name),
       "./#{@output_location}/package.json" => package_template(),
       "./#{@output_location}/elm.json" => elm_json_template(),
       "./#{@output_location}/.tool-versions" => tool_versions_template()
     }
 
     schema_dict
-    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def}, acc ->
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
+                                                        acc ->
       file_path = create_file_path(schema_def.title, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
@@ -161,7 +166,8 @@ defmodule JS2E.Printer do
     %{printer_result | printed_schema: printer_result.printed_schema <> "\n"}
   end
 
-  @spec print_schemas_tests(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
+  @spec print_schemas_tests(Types.schemaDictionary(), String.t()) ::
+          SchemaResult.t()
   def print_schemas_tests(schema_dict, module_name \\ "") do
     schema_dict
     |> Enum.reduce(SchemaResult.new(%{}), fn {_id, schema_def}, acc ->
@@ -228,7 +234,10 @@ defmodule JS2E.Printer do
   end
 
   @type process_fun ::
-          (Types.typeDefinition(), SchemaDefinition.t(), Types.schemaDictionary(), String.t() ->
+          (Types.typeDefinition(),
+           SchemaDefinition.t(),
+           Types.schemaDictionary(),
+           String.t() ->
              PrinterResult.t())
 
   @spec merge_results(
@@ -378,20 +387,22 @@ defmodule JS2E.Printer do
     end
   end
 
-  @spec create_file_path(SchemaDefinition.t(), String.t()) :: String.t()
+  @spec create_file_path(String.t(), String.t()) :: String.t()
   defp create_file_path(title, module_name, is_test \\ false) do
+    file_name = Naming.normalize_identifier(title, :upcase)
+
     cond do
       is_test == true and module_name != "" ->
-        "./#{@output_location}/tests/#{module_name}/#{title}Tests.elm"
+        "./#{@output_location}/tests/#{module_name}/#{file_name}Tests.elm"
 
       is_test == true and module_name == nil ->
-        "./#{@output_location}/tests/#{title}Tests.elm"
+        "./#{@output_location}/tests/#{file_name}Tests.elm"
 
       module_name != "" ->
-        "./#{@output_location}/src/#{module_name}/#{title}.elm"
+        "./#{@output_location}/src/#{module_name}/#{file_name}.elm"
 
       true ->
-        "./#{@output_location}/src/#{title}.elm"
+        "./#{@output_location}/src/#{file_name}.elm"
     end
   end
 

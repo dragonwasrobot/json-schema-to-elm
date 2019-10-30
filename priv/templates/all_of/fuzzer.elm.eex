@@ -1,6 +1,6 @@
 <%= fuzzer_name %> : Fuzzer <%= type_name %>
 <%= fuzzer_name %> =
-    Fuzz.map<%= length(fuzzers) %>
+    Fuzz.map<%= if length(fuzzers) < 2 do "" else length(fuzzers) end %>
         <%= type_name %>
         <%= Enum.join(fuzzers, "\n        ") %>
 

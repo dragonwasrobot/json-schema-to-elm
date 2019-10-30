@@ -114,6 +114,7 @@ defmodule JS2ETest.Printer.AllOfPrinter do
     %SchemaDefinition{
       description: "'allOf' example schema",
       id: URI.parse("http://example.com/all_of_example.json"),
+      file_path: "all_of_example.json",
       title: "AllOfExample",
       types: type_dict()
     }
@@ -127,8 +128,10 @@ defmodule JS2ETest.Printer.AllOfPrinter do
         required: ["color"],
         properties: %{
           "color" => URI.parse(Path.join(path(), "allOf/0/properties/color")),
-          "description" => URI.parse(Path.join(path(), "allOf/0/properties/description"))
-        }
+          "description" =>
+            URI.parse(Path.join(path(), "allOf/0/properties/description"))
+        },
+        pattern_properties: %{}
       },
       "#/definitions/fancyCircle/allOf/0/properties/color" => %TypeReference{
         name: "color",
@@ -140,11 +143,12 @@ defmodule JS2ETest.Printer.AllOfPrinter do
         type: "string",
         values: ["red", "yellow", "green"]
       },
-      "#/definitions/fancyCircle/allOf/0/properties/description" => %PrimitiveType{
-        name: "description",
-        path: URI.parse(Path.join(path(), "allOf/0/properties/description")),
-        type: "string"
-      },
+      "#/definitions/fancyCircle/allOf/0/properties/description" =>
+        %PrimitiveType{
+          name: "description",
+          path: URI.parse(Path.join(path(), "allOf/0/properties/description")),
+          type: "string"
+        },
       "#/definitions/fancyCircle/allOf/1" => %TypeReference{
         name: "1",
         path: URI.parse("#/definitions/circle")
@@ -155,7 +159,8 @@ defmodule JS2ETest.Printer.AllOfPrinter do
         required: ["radius"],
         properties: %{
           "radius" => URI.parse("#/definitions/circle/properties/radius")
-        }
+        },
+        pattern_properties: %{}
       },
       "#/definitions/circle/properties/radius" => %PrimitiveType{
         name: "radius",

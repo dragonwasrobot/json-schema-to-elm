@@ -1,21 +1,7 @@
-module Data.Definitions exposing
-    ( Color(..)
-    , Point
-    , colorDecoder
-    , encodeColor
-    , encodePoint
-    , pointDecoder
-    )
+module Data.Definitions exposing (..)
 
 -- Schema for common types
 
-import Data.Utils
-    exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
-        )
 import Json.Decode as Decode
     exposing
         ( Decoder
@@ -41,6 +27,13 @@ import Json.Encode as Encode
         ( Value
         , list
         , object
+        )
+import Data.Utils
+    exposing
+        ( encodeNestedOptional
+        , encodeNestedRequired
+        , encodeOptional
+        , encodeRequired
         )
 
 

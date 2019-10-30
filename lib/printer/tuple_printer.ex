@@ -70,7 +70,9 @@ defmodule JS2E.Printer.TuplePrinter do
         ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
   defp create_type_fields(types, parent, schema_def, schema_dict, module_name) do
     types
-    |> Enum.map(&create_type_field(&1, parent, schema_def, schema_dict, module_name))
+    |> Enum.map(
+      &create_type_field(&1, parent, schema_def, schema_dict, module_name)
+    )
   end
 
   @spec create_type_field(
@@ -89,7 +91,7 @@ defmodule JS2E.Printer.TuplePrinter do
        ) do
     type_path
     |> Resolver.resolve_type(parent, schema_def, schema_dict)
-    |> ElmTypes.create_type_name(schema_def, module_name)
+    |> ElmTypes.create_type_name(parent, schema_def, schema_dict, module_name)
   end
 
   # Decoder
@@ -143,7 +145,9 @@ defmodule JS2E.Printer.TuplePrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(&create_decoder_clause(&1, parent, schema_def, schema_dict, module_name))
+    |> Enum.map(
+      &create_decoder_clause(&1, parent, schema_def, schema_dict, module_name)
+    )
   end
 
   @spec create_decoder_clause(
@@ -200,7 +204,8 @@ defmodule JS2E.Printer.TuplePrinter do
 
   @spec create_decoder_enum_clause(String.t(), String.t()) :: {:ok, map}
   defp create_decoder_enum_clause(property_type_decoder, decoder_name) do
-    {:ok, %{property_decoder: property_type_decoder, decoder_name: decoder_name}}
+    {:ok,
+     %{property_decoder: property_type_decoder, decoder_name: decoder_name}}
   end
 
   @spec create_decoder_normal_clause(String.t()) :: {:ok, map}

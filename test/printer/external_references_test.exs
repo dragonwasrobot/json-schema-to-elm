@@ -14,7 +14,8 @@ defmodule JS2ETest.Printer.ExternalReferences do
   }
 
   test "prints external references in generated code" do
-    schema_result = Printer.print_schemas(schema_representations(), module_name())
+    schema_result =
+      Printer.print_schemas(schema_representations(), module_name())
 
     file_dict = schema_result.file_dict
     utils_program = file_dict["./js2e_output/src/Data/Utils.elm"]
@@ -272,7 +273,8 @@ defmodule JS2ETest.Printer.ExternalReferences do
   end
 
   test "prints external references in generated tests" do
-    schema_tests_result = Printer.print_schemas_tests(schema_representations(), module_name())
+    schema_tests_result =
+      Printer.print_schemas_tests(schema_representations(), module_name())
 
     file_dict = schema_tests_result.file_dict
     circle_tests = file_dict["./js2e_output/tests/Data/CircleTests.elm"]
@@ -310,7 +312,8 @@ defmodule JS2ETest.Printer.ExternalReferences do
                              |> Expect.equal (Ok circle)
              """
 
-    definitions_tests = file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
+    definitions_tests =
+      file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
 
     assert definitions_tests ==
              """
@@ -373,6 +376,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
       definitions_schema_id() => %SchemaDefinition{
         description: "Schema for common types",
         id: URI.parse(definitions_schema_id()),
+        file_path: "definitions.json",
         title: "Definitions",
         types: %{
           "#/definitions/color" => %EnumType{
@@ -388,6 +392,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
               "x" => URI.parse("#/definitions/point/x"),
               "y" => URI.parse("#/definitions/point/y")
             },
+            pattern_properties: %{},
             required: ["x", "y"]
           },
           "#/definitions/point/x" => %PrimitiveType{
@@ -413,12 +418,14 @@ defmodule JS2ETest.Printer.ExternalReferences do
               "x" => URI.parse("#/definitions/point/x"),
               "y" => URI.parse("#/definitions/point/y")
             },
+            pattern_properties: %{},
             required: ["x", "y"]
           }
         }
       },
       circle_schema_id() => %SchemaDefinition{
         id: URI.parse(circle_schema_id()),
+        file_path: "circle.json",
         title: "Circle",
         description: "Schema for a circle shape",
         types: %{
@@ -430,6 +437,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
               "color" => URI.parse("#/color"),
               "radius" => URI.parse("#/radius")
             },
+            pattern_properties: %{},
             required: ["center", "radius"]
           },
           "#/center" => %TypeReference{
@@ -453,6 +461,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
               "color" => URI.parse("#/color"),
               "radius" => URI.parse("#/radius")
             },
+            pattern_properties: %{},
             required: ["center", "radius"]
           }
         }

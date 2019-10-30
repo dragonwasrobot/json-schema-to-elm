@@ -43,8 +43,7 @@ defmodule JS2ETest.Printer.ArrayPrinter do
     encodeColors : List Color -> Value
     encodeColors colors =
         colors
-            |> List.map encodeColor
-            |> Encode.list
+            |> Encode.list encodeColor
     """
 
     array_encoder_program = result.printed_schema
@@ -91,6 +90,7 @@ defmodule JS2ETest.Printer.ArrayPrinter do
     do: %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
+      file_path: "test.json",
       title: "Test",
       types: type_dict()
     }

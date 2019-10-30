@@ -106,6 +106,7 @@ defmodule JS2ETest.Printer.TuplePrinter do
     do: %SchemaDefinition{
       description: "Test schema",
       id: URI.parse("http://example.com/test.json"),
+      file_path: "test.json",
       title: "Test",
       types: type_dict()
     }
@@ -127,7 +128,8 @@ defmodule JS2ETest.Printer.TuplePrinter do
         properties: %{
           "color" => URI.parse("#/properties/color"),
           "title" => URI.parse("#/properties/size")
-        }
+        },
+        pattern_properties: %{}
       },
       "#/definitions/circle" => %ObjectType{
         name: "circle",
@@ -136,7 +138,8 @@ defmodule JS2ETest.Printer.TuplePrinter do
         properties: %{
           "color" => URI.parse("#/properties/color"),
           "radius" => URI.parse("#/properties/radius")
-        }
+        },
+        pattern_properties: %{}
       }
     }
 end
