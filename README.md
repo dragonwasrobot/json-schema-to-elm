@@ -467,7 +467,7 @@ Hint: See the specification section 9. "Base URI and dereferencing"
 
 If you encounter an error while using `js2e` that does not mimic the above
 Elm-like style, but instead looks like an Elixir stacktrace, please report this
-as a bug by opening an issue and includin a JSON schema example that recreates
+as a bug by opening an issue and including a JSON schema example that recreates
 the error.
 
 ## Contributing
