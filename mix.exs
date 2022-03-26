@@ -1,8 +1,8 @@
-defmodule JS2E.Mixfile do
+defmodule JS2E.MixProject do
   use Mix.Project
 
   @version "2.8.1"
-  @elixir_version "~> 1.9"
+  @elixir_version "~> 1.12"
 
   def project do
     [
@@ -23,7 +23,7 @@ defmodule JS2E.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [extra_applications: [:logger, :eex]]
   end
 
   defp aliases do
@@ -35,12 +35,13 @@ defmodule JS2E.Mixfile do
 
   defp deps do
     [
-      {:credo, "~> 1.6.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.6.1", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.1.0", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.19-rc", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.10", only: :test, runtime: false},
-      # {:json_schema, path: "../json_schema/"}
-      {:json_schema, "~> 0.3"}
+      {:ex_doc, "~> 0.28.3", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.14.4", only: :test, runtime: false},
+      {:json_schema, path: "../json_schema/"},
+      # TODO: Change to this once next version is ready {:json_schema, "~> 0.4.0"},
+      {:typed_struct, "~> 0.3.0"}
     ]
   end
 

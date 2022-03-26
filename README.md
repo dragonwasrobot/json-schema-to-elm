@@ -43,7 +43,7 @@ JSON schema types are described in the `lib/types` folder.
 ## Example
 
 If we supply `js2e` with the following JSON schema file, `definitions.json`:
-``` javascript
+``` json
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "Definitions",
@@ -86,39 +86,16 @@ module Data.Definitions exposing
 
 -- Schema for common types
 
-import Data.Utils
-    exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
-        )
-import Json.Decode as Decode
-    exposing
-        ( Decoder
-        , andThen
-        , at
-        , fail
-        , field
-        , index
-        , map
-        , maybe
-        , nullable
-        , oneOf
-        , succeed
-        )
+import Data.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
     exposing
         ( custom
         , optional
         , required
         )
-import Json.Encode as Encode
-    exposing
-        ( Value
-        , list
-        , object
-        )
+import Json.Encode as Encode exposing (Value)
 
 
 type Color
@@ -136,55 +113,61 @@ type alias Point =
 
 colorDecoder : Decoder Color
 colorDecoder =
-    Decode.string
-        |> andThen
-            (\color ->
-                case color of
-                    "red" ->
-                        succeed Red
+    Decode.string |> Decode.andThen (parseColor >> Decode.fromResult)
 
-                    "yellow" ->
-                        succeed Yellow
 
-                    "green" ->
-                        succeed Green
+parseColor : String -> Result String Color
+parseColor color =
+    case color of
+        "red" ->
+            Ok Red
 
-                    "blue" ->
-                        succeed Blue
+        "yellow" ->
+            Ok Yellow
 
-                    _ ->
-                        fail <| "Unknown color type: " ++ color
-            )
+        "green" ->
+            Ok Green
+
+        "blue" ->
+            Ok Blue
+
+        _ ->
+            Err <| "Unknown color type: " ++ color
 
 
 pointDecoder : Decoder Point
 pointDecoder =
-    succeed Point
+    Decode.succeed Point
         |> required "x" Decode.float
         |> required "y" Decode.float
 
 
 encodeColor : Color -> Value
 encodeColor color =
+    color |> colorToString |> Encode.string
+
+
+colorToString : Color -> String
+colorToString color =
     case color of
         Red ->
-            Encode.string "red"
+            "red"
 
         Yellow ->
-            Encode.string "yellow"
+            "yellow"
 
         Green ->
-            Encode.string "green"
+            "green"
 
         Blue ->
-            Encode.string "blue"
+            "blue"
 
 
 encodePoint : Point -> Value
 encodePoint point =
     []
-        |> encodeRequired "x" point.x Encode.float
-        |> encodeRequired "y" point.y Encode.float
+        |> Encode.required "x" point.x Encode.float
+        |> Encode.required "y" point.y Encode.float
         |> Encode.object
 ```
 
@@ -194,9 +177,9 @@ their corresponding JSON decoders and encoders.
 Furthermore, if we instead supply `js2e` with a directory of JSON schema files
 that have references across files, e.g.
 
-``` javascript
+``` json
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "$id": "http://example.com/circle.json",
     "title": "Circle",
     "description": "Schema for a circle shape",
@@ -230,39 +213,16 @@ module Data.Circle exposing
 -- Schema for a circle shape
 
 import Data.Definitions as Definitions
-import Data.Utils
-    exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
-        )
-import Json.Decode as Decode
-    exposing
-        ( Decoder
-        , andThen
-        , at
-        , fail
-        , field
-        , index
-        , map
-        , maybe
-        , nullable
-        , oneOf
-        , succeed
-        )
+import Data.Encode as Encode
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
     exposing
         ( custom
         , optional
         , required
         )
-import Json.Encode as Encode
-    exposing
-        ( Value
-        , list
-        , object
-        )
+import Json.Encode as Encode exposing (Value)
 
 
 type alias Circle =
@@ -276,16 +236,16 @@ circleDecoder : Decoder Circle
 circleDecoder =
     succeed Circle
         |> required "center" Definitions.pointDecoder
-        |> optional "color" (nullable Definitions.colorDecoder) Nothing
+        |> optional "color" (Decode.nullable Definitions.colorDecoder) Nothing
         |> required "radius" Decode.float
 
 
 encodeCircle : Circle -> Value
 encodeCircle circle =
     []
-        |> encodeRequired "center" circle.center Definitions.encodePoint
-        |> encodeOptional "color" circle.color Definitions.encodeColor
-        |> encodeRequired "radius" circle.radius Encode.float
+        |> Encode.required "center" circle.center Definitions.encodePoint
+        |> Encode.optional "color" circle.color Definitions.encodeColor
+        |> Encode.required "radius" circle.radius Encode.float
         |> Encode.object
 ```
 
@@ -353,12 +313,9 @@ import Test exposing (..)
 
 colorFuzzer : Fuzzer Color
 colorFuzzer =
-    Fuzz.oneOf
-        [ Fuzz.constant Red
-        , Fuzz.constant Yellow
-        , Fuzz.constant Green
-        , Fuzz.constant Blue
-        ]
+    [ Red, Yellow, Green, Blue ]
+        |> List.map Fuzz.constant
+        |> Fuzz.oneOf
 
 
 encodeDecodeColorTest : Test
@@ -415,8 +372,9 @@ the following new directory structure is generated:
     ├── .tool-versions
     ├── package.json
     ├── elm.json
-    ├── tests/
+    ├── src/
     │   └── Data/
+    │       ├── Encode.elm
     │       ├── Circle.elm
     │       └── Definitions.elm
     └── tests/

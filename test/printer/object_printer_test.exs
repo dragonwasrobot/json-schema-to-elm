@@ -34,11 +34,11 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     expected_object_decoder_program = """
     circleDecoder : Decoder Circle
     circleDecoder =
-        succeed Circle
+        Decode.succeed Circle
             |> required "color" colorDecoder
             |> required "radius" Decode.float
             |> required "tags" tagsDecoder
-            |> optional "title" (nullable Decode.string) Nothing
+            |> optional "title" (Decode.nullable Decode.string) Nothing
     """
 
     object_decoder_program = result.printed_schema
@@ -55,10 +55,10 @@ defmodule JS2ETest.Printer.ObjectPrinter do
     encodeCircle : Circle -> Value
     encodeCircle circle =
         []
-            |> encodeRequired "color" circle.color encodeColor
-            |> encodeRequired "radius" circle.radius Encode.float
-            |> encodeRequired "tags" circle.tags encodeTags
-            |> encodeOptional "title" circle.title Encode.string
+            |> Encode.required "color" circle.color encodeColor
+            |> Encode.required "radius" circle.radius Encode.float
+            |> Encode.required "tags" circle.tags encodeTags
+            |> Encode.optional "title" circle.title Encode.string
             |> Encode.object
     """
 

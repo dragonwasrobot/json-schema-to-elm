@@ -2,39 +2,16 @@ module <%= prefix %><%= title %> exposing (..)
 
 -- <%= description %>
 
-import Json.Decode as Decode
-    exposing
-        ( Decoder
-        , andThen
-        , at
-        , fail
-        , field
-        , index
-        , map
-        , maybe
-        , nullable
-        , oneOf
-        , succeed
-        )
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
     exposing
         ( custom
         , optional
         , required
         )
-import Json.Encode as Encode
-    exposing
-        ( Value
-        , list
-        , object
-        )
+import Json.Encode as Encode exposing (Value)
+import <%= prefix %>Encode as Encode
 <%= for import_name <- imports do %><%#
 %>import <%= prefix %><%= import_name %> as <%= import_name %>
-<% end %><%#
-%>import <%= prefix %>Utils
-    exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
-        )
+<% end %>

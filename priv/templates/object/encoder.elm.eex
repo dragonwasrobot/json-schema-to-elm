@@ -3,9 +3,9 @@
     []<%#
     %><%= for property <- properties do %>
         <%= if property.required == true do %><%#
-        %>|> encodeRequired "<%= property.name %>" <%= argument_name %>.<%= property.name %> <%= property.encoder_name %><%#
+        %>|> Encode.required "<%= property.name %>" <%= argument_name %>.<%= property.name %> <%= property.encoder_name %><%#
       %><% else %><%#
-        %>|> encodeOptional "<%= property.name %>" <%= argument_name %>.<%= property.name %> <%= property.encoder_name %><%#
+        %>|> Encode.optional "<%= property.name %>" <%= argument_name %>.<%= property.name %> <%= property.encoder_name %><%#
       %><% end %><%#
     %><% end %>
         |> Encode.object

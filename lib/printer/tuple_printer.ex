@@ -27,7 +27,7 @@ defmodule JS2E.Printer.TuplePrinter do
     UnionType
   }
 
-  @templates_location Application.get_env(:js2e, :templates_location)
+  @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 

@@ -2,39 +2,16 @@ module Data.Definitions exposing (..)
 
 -- Schema for common types
 
-import Json.Decode as Decode
-    exposing
-        ( Decoder
-        , andThen
-        , at
-        , fail
-        , field
-        , index
-        , map
-        , maybe
-        , nullable
-        , oneOf
-        , succeed
-        )
+import Json.Decode as Decode exposing (Decoder)
+import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
     exposing
         ( custom
         , optional
         , required
         )
-import Json.Encode as Encode
-    exposing
-        ( Value
-        , list
-        , object
-        )
-import Data.Utils
-    exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
-        )
+import Json.Encode as Encode exposing (Value)
+import Data.Encode as Encode
 
 
 type Color
@@ -52,53 +29,59 @@ type alias Point =
 
 colorDecoder : Decoder Color
 colorDecoder =
-    Decode.string
-        |> andThen
-            (\color ->
-                case color of
-                    "red" ->
-                        succeed Red
+    Decode.string |> Decode.andThen (parseColor >> Decode.fromResult)
 
-                    "yellow" ->
-                        succeed Yellow
 
-                    "green" ->
-                        succeed Green
+parseColor : String -> Result String Color
+parseColor color =
+    case color of
+        "red" ->
+            Ok Red
 
-                    "blue" ->
-                        succeed Blue
+        "yellow" ->
+            Ok Yellow
 
-                    _ ->
-                        fail <| "Unknown color type: " ++ color
-            )
+        "green" ->
+            Ok Green
+
+        "blue" ->
+            Ok Blue
+
+        _ ->
+            Err <| "Unknown color type: " ++ color
 
 
 pointDecoder : Decoder Point
 pointDecoder =
-    succeed Point
+    Decode.succeed Point
         |> required "x" Decode.float
         |> required "y" Decode.float
 
 
 encodeColor : Color -> Value
 encodeColor color =
+    color |> colorToString |> Encode.string
+
+
+colorToString : Color -> String
+colorToString color =
     case color of
         Red ->
-            Encode.string "red"
+            "red"
 
         Yellow ->
-            Encode.string "yellow"
+            "yellow"
 
         Green ->
-            Encode.string "green"
+            "green"
 
         Blue ->
-            Encode.string "blue"
+            "blue"
 
 
 encodePoint : Point -> Value
 encodePoint point =
     []
-        |> encodeRequired "x" point.x Encode.float
-        |> encodeRequired "y" point.y Encode.float
+        |> Encode.required "x" point.x Encode.float
+        |> Encode.required "y" point.y Encode.float
         |> Encode.object

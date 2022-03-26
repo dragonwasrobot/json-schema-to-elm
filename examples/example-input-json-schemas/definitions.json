@@ -1,26 +1,26 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://example.com/definitions.json",
-    "title": "Definitions",
-    "description": "Schema for common types",
-    "definitions": {
-        "color": {
-            "$id": "#color",
-            "type": "string",
-            "enum": [ "red", "yellow", "green", "blue" ]
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/definitions.json",
+  "title": "Definitions",
+  "description": "Schema for common types",
+  "definitions": {
+    "color": {
+      "$id": "#color",
+      "type": "string",
+      "enum": [ "red", "yellow", "green", "blue" ]
+    },
+    "point": {
+      "$id": "#point",
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
         },
-        "point": {
-            "$id": "#point",
-            "type": "object",
-            "properties": {
-                "x": {
-                    "type": "number"
-                },
-                "y": {
-                    "type": "number"
-                }
-            },
-            "required": [ "x", "y" ]
+        "y": {
+          "type": "number"
         }
+      },
+      "required": [ "x", "y" ]
     }
+  }
 }

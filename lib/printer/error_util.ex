@@ -1,5 +1,5 @@
 defmodule JS2E.Printer.ErrorUtil do
-  @moduledoc ~S"""
+  @moduledoc """
   Contains helper functions for reporting printer errors.
   """
 
@@ -22,11 +22,11 @@ defmodule JS2E.Printer.ErrorUtil do
         "$ref": #{stringified_value}
                 #{error_markings(stringified_value)}
 
-    Be aware that the newest version of JSON schema uses "$id" rather than "id"
-    when specifying the id of a JSON schema or subschema.
+    Be aware that newer versions of JSON schema uses "$id" rather than "id" when
+    specifying the id of a JSON schema or subschema.
 
     Hint: See the specification section 8. "Base URI and Dereferencing"
-    <http://json-schema.org/latest/json-schema-core.html#rfc.section.9>
+    <https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-01#section-8>
     """
 
     PrinterError.new(parent, :unresolved_reference, error_msg)

@@ -43,8 +43,8 @@ defmodule JS2E.Printer do
 
   alias Utils.Naming
 
-  @output_location Application.get_env(:js2e, :output_location)
-  @templates_location Application.get_env(:js2e, :templates_location)
+  @output_location Application.compile_env(:js2e, :output_location)
+  @templates_location Application.compile_env(:js2e, :templates_location)
 
   @package_location Path.join(
                       @templates_location,
@@ -76,22 +76,22 @@ defmodule JS2E.Printer do
     @tool_versions_location
   )
 
-  @utils_location Path.join(
-                    @templates_location,
-                    "utils/utils.elm.eex"
-                  )
+  @encode_location Path.join(
+                     @templates_location,
+                     "utils/encode.elm.eex"
+                   )
   EEx.function_from_file(
     :defp,
-    :utils_template,
-    @utils_location,
+    :encode_template,
+    @encode_location,
     [:prefix]
   )
 
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name) do
     init_file_dict = %{
-      "./#{@output_location}/src/#{module_name}/Utils.elm" =>
-        utils_template(module_name),
+      "./#{@output_location}/src/#{module_name}/Encode.elm" =>
+        encode_template(module_name),
       "./#{@output_location}/package.json" => package_template(),
       "./#{@output_location}/elm.json" => elm_json_template(),
       "./#{@output_location}/.tool-versions" => tool_versions_template()

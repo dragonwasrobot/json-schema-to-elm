@@ -47,9 +47,9 @@ defmodule JS2ETest.Printer.UnionPrinter do
     expected_union_decoder_program = """
     favoriteNumberDecoder : Decoder FavoriteNumber
     favoriteNumberDecoder =
-        oneOf [ Decode.float |> andThen (succeed << FavoriteNumber_F)
-              , Decode.int |> andThen (succeed << FavoriteNumber_I)
-              ]
+        Decode.oneOf [ Decode.float |> Decode.andThen (Decode.succeed << FavoriteNumber_F)
+                     , Decode.int |> Decode.andThen (Decode.succeed << FavoriteNumber_I)
+                     ]
     """
 
     union_decoder_program = result.printed_schema
@@ -65,10 +65,10 @@ defmodule JS2ETest.Printer.UnionPrinter do
     expected_union_decoder_program = """
     favoriteNumberDecoder : Decoder (Maybe FavoriteNumber)
     favoriteNumberDecoder =
-        oneOf [ Decode.float |> andThen (succeed << Just << FavoriteNumber_F)
-              , Decode.int |> andThen (succeed << Just << FavoriteNumber_I)
-              , null Nothing
-              ]
+        Decode.oneOf [ Decode.float |> Decode.andThen (Decode.succeed << Just << FavoriteNumber_F)
+                     , Decode.int |> Decode.andThen (Decode.succeed << Just << FavoriteNumber_I)
+                     , Decode.null Nothing
+                     ]
     """
 
     union_decoder_program = result.printed_schema

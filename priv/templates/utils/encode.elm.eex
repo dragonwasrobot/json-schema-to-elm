@@ -1,66 +1,65 @@
-module Data.Utils
+module <%= prefix %>.Encode
     exposing
-        ( encodeNestedOptional
-        , encodeNestedRequired
-        , encodeOptional
-        , encodeRequired
+        ( nestedOptional
+        , nestedRequired
+        , optional
+        , required
         )
 
--- Util functions for decoding and encoding JSON objects.
+-- Helper functions for encoding JSON objects.
 
-import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode exposing (Value)
 
 
-encodeNestedRequired :
+nestedRequired :
     String
     -> Maybe a
     -> (a -> b)
     -> (b -> Value)
     -> List ( String, Value )
     -> List ( String, Value )
-encodeNestedRequired key maybeData getValue encode properties =
+nestedRequired key maybeData getValue encode properties =
     case maybeData of
         Just data ->
-            properties |> encodeRequired key (getValue data) encode
+            properties |> required key (getValue data) encode
 
         Nothing ->
             properties
 
 
-encodeNestedOptional :
+nestedOptional :
     String
     -> Maybe a
     -> (a -> Maybe b)
     -> (b -> Value)
     -> List ( String, Value )
     -> List ( String, Value )
-encodeNestedOptional key maybeData getValue encode properties =
+nestedOptional key maybeData getValue encode properties =
     case maybeData of
         Just data ->
-            properties |> encodeOptional key (getValue data) encode
+            properties |> optional key (getValue data) encode
 
         Nothing ->
             properties
 
 
-encodeRequired :
+required :
     String
     -> a
     -> (a -> Value)
     -> List ( String, Value )
     -> List ( String, Value )
-encodeRequired key value encode properties =
+required key value encode properties =
     properties ++ [ ( key, encode value ) ]
 
 
-encodeOptional :
+optional :
     String
     -> Maybe a
     -> (a -> Value)
     -> List ( String, Value )
     -> List ( String, Value )
-encodeOptional key maybe encode properties =
+optional key maybe encode properties =
     case maybe of
         Just value ->
             properties ++ [ ( key, encode value ) ]

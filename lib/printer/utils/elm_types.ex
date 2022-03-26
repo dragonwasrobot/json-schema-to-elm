@@ -1,5 +1,5 @@
 defmodule JS2E.Printer.Utils.ElmTypes do
-  @moduledoc ~S"""
+  @moduledoc """
   Module containing common utility functions for outputting Elm `type`
   and `type alias` definitions.
   """
@@ -77,7 +77,7 @@ defmodule JS2E.Printer.Utils.ElmTypes do
     end
   end
 
-  @doc ~S"""
+  @doc """
   Converts the following primitive types: "string", "integer", "number",
   and "boolean" into their Elm type equivalent. Raises and error otherwise.
 

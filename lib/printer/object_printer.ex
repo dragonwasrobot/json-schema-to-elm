@@ -21,7 +21,7 @@ defmodule JS2E.Printer.ObjectPrinter do
   alias Parser.Util, as: ParserUtil
   alias Types.{ObjectType, SchemaDefinition}
 
-  @templates_location Application.get_env(:js2e, :templates_location)
+  @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 
@@ -283,7 +283,7 @@ defmodule JS2E.Printer.ObjectPrinter do
       %{
         option: "optional",
         property_name: Naming.normalize_identifier(property_name, :downcase),
-        decoder: "(nullable #{decoder_name}) Nothing"
+        decoder: "(Decode.nullable #{decoder_name}) Nothing"
       }
     end
   end

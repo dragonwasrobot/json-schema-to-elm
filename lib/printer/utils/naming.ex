@@ -189,8 +189,7 @@ defmodule JS2E.Printer.Utils.Naming do
   defp kebab_to_camel_case(str) do
     str
     |> String.split("-")
-    |> Enum.map(fn word -> upcase_first(word) end)
-    |> Enum.join()
+    |> Enum.map_join(fn word -> upcase_first(word) end)
   end
 
   # Turns a snake_cased identifier into a camelCased one
@@ -198,8 +197,7 @@ defmodule JS2E.Printer.Utils.Naming do
   defp snake_to_camel_case(str) do
     str
     |> String.split("_")
-    |> Enum.map(fn word -> upcase_first(word) end)
-    |> Enum.join()
+    |> Enum.map_join(fn word -> upcase_first(word) end)
   end
 
   # Turns a space cased identifier into a camelCased one
@@ -207,8 +205,7 @@ defmodule JS2E.Printer.Utils.Naming do
   defp space_to_camel_case(str) do
     str
     |> String.split(" ")
-    |> Enum.map(fn word -> upcase_first(word) end)
-    |> Enum.join()
+    |> Enum.map_join(fn word -> upcase_first(word) end)
   end
 
   @doc ~S"""
@@ -216,8 +213,8 @@ defmodule JS2E.Printer.Utils.Naming do
 
   ## Examples
 
-  iex> upcase_first("foobar")
-  "Foobar"
+      iex> upcase_first("foobar")
+      "Foobar"
 
   """
   @spec upcase_first(String.t()) :: String.t()
@@ -234,8 +231,8 @@ defmodule JS2E.Printer.Utils.Naming do
 
   ## Examples
 
-  iex> downcase_first("Foobar")
-  "foobar"
+      iex> downcase_first("Foobar")
+      "foobar"
 
   """
   @spec downcase_first(String.t()) :: String.t()

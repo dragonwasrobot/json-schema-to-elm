@@ -1,6 +1,8 @@
 # The packaged executable
 js2e
 /js2e_output
+node_modules
+elm-stuff
 
 # The directory Mix will write compiled artifacts to.
 /_build

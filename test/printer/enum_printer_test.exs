@@ -51,25 +51,26 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_decoder_program = """
     colorDecoder : Decoder Color
     colorDecoder =
-        Decode.string
-            |> andThen
-                (\\color ->
-                    case color of
-                        "none" ->
-                            succeed None
+        Decode.string |> Decode.andThen (parseColor >> Decode.fromResult)
 
-                        "green" ->
-                            succeed Green
 
-                        "yellow" ->
-                            succeed Yellow
+    parseColor : String -> Result String Color
+    parseColor color =
+        case color of
+            "none" ->
+                Ok None
 
-                        "red" ->
-                            succeed Red
+            "green" ->
+                Ok Green
 
-                        _ ->
-                            fail <| "Unknown color type: " ++ color
-                )
+            "yellow" ->
+                Ok Yellow
+
+            "red" ->
+                Ok Red
+
+            _ ->
+                Err <| "Unknown color type: " ++ color
     """
 
     enum_decoder_program = result.printed_schema
@@ -85,25 +86,26 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_decoder_program = """
     temperatureDecoder : Decoder Temperature
     temperatureDecoder =
-        Decode.string
-            |> andThen
-                (\\temperature ->
-                    case temperature of
-                        -0.618 ->
-                            succeed FloatNeg0_618
+        Decode.float |> Decode.andThen (parseTemperature >> Decode.fromResult)
 
-                        1.618 ->
-                            succeed Float1_618
 
-                        3.14 ->
-                            succeed Float3_14
+    parseTemperature : Float -> Result String Temperature
+    parseTemperature temperature =
+        case temperature of
+            -0.618 ->
+                Ok FloatNeg0_618
 
-                        7.73 ->
-                            succeed Float7_73
+            1.618 ->
+                Ok Float1_618
 
-                        _ ->
-                            fail <| "Unknown temperature type: " ++ temperature
-                )
+            3.14 ->
+                Ok Float3_14
+
+            7.73 ->
+                Ok Float7_73
+
+            _ ->
+                Err <| "Unknown temperature type: " ++ temperature
     """
 
     enum_decoder_program = result.printed_schema
@@ -119,18 +121,23 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_encoder_program = """
     encodeColor : Color -> Value
     encodeColor color =
+        color |> colorToString |> Encode.string
+
+
+    colorToString : Color -> String
+    colorToString color =
         case color of
             None ->
-                Encode.string "none"
+                "none"
 
             Green ->
-                Encode.string "green"
+                "green"
 
             Yellow ->
-                Encode.string "yellow"
+                "yellow"
 
             Red ->
-                Encode.string "red"
+                "red"
     """
 
     enum_encoder_program = result.printed_schema
@@ -146,18 +153,23 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_encoder_program = """
     encodeTemperature : Temperature -> Value
     encodeTemperature temperature =
+        temperature |> temperatureToFloat |> Encode.float
+
+
+    temperatureToFloat : Temperature -> Float
+    temperatureToFloat temperature =
         case temperature of
             FloatNeg0_618 ->
-                Encode.float -0.618
+                -0.618
 
             Float1_618 ->
-                Encode.float 1.618
+                1.618
 
             Float3_14 ->
-                Encode.float 3.14
+                3.14
 
             Float7_73 ->
-                Encode.float 7.73
+                7.73
     """
 
     enum_encoder_program = result.printed_schema
@@ -173,12 +185,9 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_fuzzer_program = """
     colorFuzzer : Fuzzer Color
     colorFuzzer =
-        Fuzz.oneOf
-            [ Fuzz.constant None
-            , Fuzz.constant Green
-            , Fuzz.constant Yellow
-            , Fuzz.constant Red
-            ]
+        [ None, Green, Yellow, Red ]
+            |> List.map Fuzz.constant
+            |> Fuzz.oneOf
 
 
     encodeDecodeColorTest : Test

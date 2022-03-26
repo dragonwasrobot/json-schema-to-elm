@@ -3,9 +3,9 @@
     []<%#
     %><%= for property <- properties do %>
         <%= if property.required == true do %><%#
-        %>|> encodeNestedRequired "<%= property.name %>" <%= argument_name %>.<%= property.parent_name %> .<%= property.name %> <%= property.encoder_name %><%#
+        %>|> Encode.nestedRequired "<%= property.name %>" <%= argument_name %>.<%= property.parent_name %> .<%= property.name %> <%= property.encoder_name %><%#
       %><% else %><%#
-        %>|> encodeNestedOptional "<%= property.name %>" <%= argument_name %>.<%= property.parent_name %> .<%= property.name %> <%= property.encoder_name %><%#
+        %>|> Encode.nestedOptional "<%= property.name %>" <%= argument_name %>.<%= property.parent_name %> .<%= property.name %> <%= property.encoder_name %><%#
       %><% end %><%#
     %><% end %>
         |> Encode.object

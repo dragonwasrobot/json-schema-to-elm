@@ -10,7 +10,7 @@ defmodule JS2E.Printer.PreamblePrinter do
   alias Types.{SchemaDefinition, TypeReference}
   alias Utils.Naming
 
-  @templates_location Application.get_env(:js2e, :templates_location)
+  @templates_location Application.compile_env(:js2e, :templates_location)
 
   @preamble_location Path.join(
                        @templates_location,

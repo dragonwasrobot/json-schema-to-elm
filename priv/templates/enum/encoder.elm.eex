@@ -1,5 +1,10 @@
 <%= encoder_name %> : <%= argument_type %> -> Value
 <%= encoder_name %> <%= argument_name %> =
+    <%= argument_name %> |> <%= argument_name %>To<%= argument_js_type %> |> Encode.<%= String.downcase(argument_js_type) %>
+
+
+<%= argument_name %>To<%= argument_js_type %> : <%= argument_type %> -> <%= argument_js_type %>
+<%= argument_name %>To<%= argument_js_type %> <%= argument_name %> =
     case <%= argument_name %> of<%#
     %><%= for case <- cases do %>
         <%= case.elm_value %> ->

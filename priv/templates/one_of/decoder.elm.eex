@@ -1,4 +1,4 @@
 <%= decoder_name %> : Decoder <%= decoder_type %>
 <%= decoder_name %> =
-    oneOf [ <%= Enum.join(clause_decoders, "\n          , ") %>
-          ]
+    Decode.oneOf [ <%= Enum.join(clause_decoders, "\n                 , ") %>
+                 ]

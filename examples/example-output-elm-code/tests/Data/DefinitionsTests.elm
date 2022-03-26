@@ -11,12 +11,9 @@ import Data.Definitions exposing (..)
 
 colorFuzzer : Fuzzer Color
 colorFuzzer =
-    Fuzz.oneOf
-        [ Fuzz.constant Red
-        , Fuzz.constant Yellow
-        , Fuzz.constant Green
-        , Fuzz.constant Blue
-        ]
+    [ Red, Yellow, Green, Blue ]
+        |> List.map Fuzz.constant
+        |> Fuzz.oneOf
 
 
 encodeDecodeColorTest : Test

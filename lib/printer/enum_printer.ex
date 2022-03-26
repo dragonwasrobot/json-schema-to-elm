@@ -11,7 +11,7 @@ defmodule JS2E.Printer.EnumPrinter do
   alias Types.{EnumType, SchemaDefinition}
   alias Utils.{CommonOperations, Indentation, Naming}
 
-  @templates_location Application.get_env(:js2e, :templates_location)
+  @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 
@@ -52,6 +52,8 @@ defmodule JS2E.Printer.EnumPrinter do
     :decoder_name,
     :decoder_type,
     :argument_name,
+    :argument_type,
+    :parser_name,
     :cases
   ])
 
@@ -70,15 +72,43 @@ defmodule JS2E.Printer.EnumPrinter do
       ) do
     decoder_name = "#{Naming.normalize_identifier(name, :downcase)}Decoder"
     decoder_type = Naming.upcase_first(name)
+    argument_type = to_elm_type_name(type)
+    parser_name = "parse#{Naming.normalize_identifier(name, :upcase)}"
 
-    {decoder_cases, errors} =
+    {cases, errors} =
       values
       |> create_decoder_cases(type)
       |> CommonOperations.split_ok_and_errors()
 
-    decoder_name
-    |> decoder_template(decoder_type, name, decoder_cases)
+    decoder_template(
+      decoder_name,
+      decoder_type,
+      name,
+      argument_type,
+      parser_name,
+      cases
+    )
     |> PrinterResult.new(errors)
+  end
+
+  @spec to_elm_type_name(String.t()) :: String.t()
+  defp to_elm_type_name(type_name) do
+    case type_name do
+      "boolean" ->
+        "bool"
+
+      "string" ->
+        "string"
+
+      "integer" ->
+        "int"
+
+      "number" ->
+        "float"
+
+      other ->
+        other
+    end
   end
 
   @spec create_decoder_cases([String.t()], String.t()) :: [
@@ -121,6 +151,7 @@ defmodule JS2E.Printer.EnumPrinter do
     :encoder_name,
     :argument_name,
     :argument_type,
+    :argument_js_type,
     :cases
   ])
 
@@ -139,14 +170,20 @@ defmodule JS2E.Printer.EnumPrinter do
       ) do
     argument_type = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{argument_type}"
+    argument_js_type = to_elm_type_name(type) |> String.capitalize()
 
-    {encoder_cases, errors} =
+    {cases, errors} =
       values
       |> create_encoder_cases(type)
       |> CommonOperations.split_ok_and_errors()
 
-    encoder_name
-    |> encoder_template(name, argument_type, encoder_cases)
+    encoder_template(
+      encoder_name,
+      name,
+      argument_type,
+      argument_js_type,
+      cases
+    )
     |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
@@ -171,26 +208,27 @@ defmodule JS2E.Printer.EnumPrinter do
   defp create_encoder_case(value, type_name) do
     case type_name do
       "string" ->
-        {:ok, "Encode.string \"#{value}\""}
+        {:ok, "\"#{value}\""}
 
       "integer" ->
-        {:ok, "Encode.int #{value}"}
+        {:ok, "#{value}"}
 
       "number" ->
-        {:ok, "Encode.float #{value}"}
+        {:ok, "#{value}"}
 
       "boolean" ->
-        {:ok, "Encode.bool #{value}"}
+        {:ok, "#{value}"}
 
       "null" ->
-        {:ok, "Encode.null"}
+        {:ok, ""}
 
       _ ->
         {:error, ErrorUtil.unknown_enum_type(type_name)}
     end
   end
 
-  @spec create_elm_value(String.t(), String.t()) :: {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec create_elm_value(String.t(), String.t()) ::
+          {:ok, String.t()} | {:error, PrinterError.t()}
   defp create_elm_value(value, type_name) do
     case type_name do
       "string" ->
@@ -245,7 +283,7 @@ defmodule JS2E.Printer.EnumPrinter do
 
     fuzzers =
       values
-      |> Enum.map(&"Fuzz.constant #{Naming.normalize_identifier(&1, :upcase)}")
+      |> Enum.map(&"#{Naming.normalize_identifier(&1, :upcase)}")
 
     type_name
     |> fuzzer_template(

@@ -22,7 +22,7 @@ defmodule JS2E do
   alias JsonSchema.Parser.{ParserError, ParserWarning}
   alias Printer.PrinterError
 
-  @output_location Application.get_env(:js2e, :output_location)
+  @output_location Application.compile_env(:js2e, :output_location)
 
   @spec main([String.t()]) :: :ok
   def main(args) do
@@ -194,7 +194,7 @@ defmodule JS2E do
     end
   end
 
-  @spec pretty_parser_warnings([ParserWarning.t()]) :: :ok
+  @spec pretty_parser_warnings([{Path.t(), [ParserWarning.t()]}]) :: :ok
   defp pretty_parser_warnings(warnings) do
     warnings
     |> Enum.each(fn {file_path, warnings} ->
@@ -232,7 +232,7 @@ defmodule JS2E do
     :ok
   end
 
-  @spec pretty_parser_errors([ParserError.t()]) :: :ok
+  @spec pretty_parser_errors([{Path.t(), [ParserError.t()]}]) :: :ok
   defp pretty_parser_errors(errors) do
     errors
     |> Enum.each(fn {file_path, errors} ->

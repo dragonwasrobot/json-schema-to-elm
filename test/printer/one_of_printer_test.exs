@@ -31,9 +31,9 @@ defmodule JS2ETest.Printer.OneOfPrinter do
     expected_one_of_decoder_program = """
     shapeDecoder : Decoder Shape
     shapeDecoder =
-        oneOf [ squareDecoder |> andThen (succeed << ShapeSq)
-              , circleDecoder |> andThen (succeed << ShapeCi)
-              ]
+        Decode.oneOf [ squareDecoder |> Decode.andThen (Decode.succeed << ShapeSq)
+                     , circleDecoder |> Decode.andThen (Decode.succeed << ShapeCi)
+                     ]
     """
 
     one_of_decoder_program = result.printed_schema

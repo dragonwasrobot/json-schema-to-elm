@@ -18,73 +18,73 @@ defmodule JS2ETest.Printer.ExternalReferences do
       Printer.print_schemas(schema_representations(), module_name())
 
     file_dict = schema_result.file_dict
-    utils_program = file_dict["./js2e_output/src/Data/Utils.elm"]
 
-    assert utils_program ==
+    encode_program = file_dict["./js2e_output/src/Data/Encode.elm"]
+
+    assert encode_program ==
              """
-             module Data.Utils
+             module Data.Encode
                  exposing
-                     ( encodeNestedOptional
-                     , encodeNestedRequired
-                     , encodeOptional
-                     , encodeRequired
+                     ( nestedOptional
+                     , nestedRequired
+                     , optional
+                     , required
                      )
 
-             -- Util functions for decoding and encoding JSON objects.
+             -- Helper functions for encoding JSON objects.
 
-             import Json.Decode as Decode exposing (Decoder)
              import Json.Encode as Encode exposing (Value)
 
 
-             encodeNestedRequired :
+             nestedRequired :
                  String
                  -> Maybe a
                  -> (a -> b)
                  -> (b -> Value)
                  -> List ( String, Value )
                  -> List ( String, Value )
-             encodeNestedRequired key maybeData getValue encode properties =
+             nestedRequired key maybeData getValue encode properties =
                  case maybeData of
                      Just data ->
-                         properties |> encodeRequired key (getValue data) encode
+                         properties |> required key (getValue data) encode
 
                      Nothing ->
                          properties
 
 
-             encodeNestedOptional :
+             nestedOptional :
                  String
                  -> Maybe a
                  -> (a -> Maybe b)
                  -> (b -> Value)
                  -> List ( String, Value )
                  -> List ( String, Value )
-             encodeNestedOptional key maybeData getValue encode properties =
+             nestedOptional key maybeData getValue encode properties =
                  case maybeData of
                      Just data ->
-                         properties |> encodeOptional key (getValue data) encode
+                         properties |> optional key (getValue data) encode
 
                      Nothing ->
                          properties
 
 
-             encodeRequired :
+             required :
                  String
                  -> a
                  -> (a -> Value)
                  -> List ( String, Value )
                  -> List ( String, Value )
-             encodeRequired key value encode properties =
+             required key value encode properties =
                  properties ++ [ ( key, encode value ) ]
 
 
-             encodeOptional :
+             optional :
                  String
                  -> Maybe a
                  -> (a -> Value)
                  -> List ( String, Value )
                  -> List ( String, Value )
-             encodeOptional key maybe encode properties =
+             optional key maybe encode properties =
                  case maybe of
                      Just value ->
                          properties ++ [ ( key, encode value ) ]
@@ -101,40 +101,17 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              -- Schema for a circle shape
 
-             import Json.Decode as Decode
-                 exposing
-                     ( Decoder
-                     , andThen
-                     , at
-                     , fail
-                     , field
-                     , index
-                     , map
-                     , maybe
-                     , nullable
-                     , oneOf
-                     , succeed
-                     )
+             import Json.Decode as Decode exposing (Decoder)
+             import Json.Decode.Extra as Decode
              import Json.Decode.Pipeline
                  exposing
                      ( custom
                      , optional
                      , required
                      )
-             import Json.Encode as Encode
-                 exposing
-                     ( Value
-                     , list
-                     , object
-                     )
+             import Json.Encode as Encode exposing (Value)
+             import Data.Encode as Encode
              import Data.Definitions as Definitions
-             import Data.Utils
-                 exposing
-                     ( encodeNestedOptional
-                     , encodeNestedRequired
-                     , encodeOptional
-                     , encodeRequired
-                     )
 
 
              type alias Circle =
@@ -146,18 +123,18 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              circleDecoder : Decoder Circle
              circleDecoder =
-                 succeed Circle
+                 Decode.succeed Circle
                      |> required "center" Definitions.pointDecoder
-                     |> optional "color" (nullable Definitions.colorDecoder) Nothing
+                     |> optional "color" (Decode.nullable Definitions.colorDecoder) Nothing
                      |> required "radius" Decode.float
 
 
              encodeCircle : Circle -> Value
              encodeCircle circle =
                  []
-                     |> encodeRequired "center" circle.center Definitions.encodePoint
-                     |> encodeOptional "color" circle.color Definitions.encodeColor
-                     |> encodeRequired "radius" circle.radius Encode.float
+                     |> Encode.required "center" circle.center Definitions.encodePoint
+                     |> Encode.optional "color" circle.color Definitions.encodeColor
+                     |> Encode.required "radius" circle.radius Encode.float
                      |> Encode.object
              """
 
@@ -169,39 +146,16 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              -- Schema for common types
 
-             import Json.Decode as Decode
-                 exposing
-                     ( Decoder
-                     , andThen
-                     , at
-                     , fail
-                     , field
-                     , index
-                     , map
-                     , maybe
-                     , nullable
-                     , oneOf
-                     , succeed
-                     )
+             import Json.Decode as Decode exposing (Decoder)
+             import Json.Decode.Extra as Decode
              import Json.Decode.Pipeline
                  exposing
                      ( custom
                      , optional
                      , required
                      )
-             import Json.Encode as Encode
-                 exposing
-                     ( Value
-                     , list
-                     , object
-                     )
-             import Data.Utils
-                 exposing
-                     ( encodeNestedOptional
-                     , encodeNestedRequired
-                     , encodeOptional
-                     , encodeRequired
-                     )
+             import Json.Encode as Encode exposing (Value)
+             import Data.Encode as Encode
 
 
              type Color
@@ -219,55 +173,61 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              colorDecoder : Decoder Color
              colorDecoder =
-                 Decode.string
-                     |> andThen
-                         (\\color ->
-                             case color of
-                                 "red" ->
-                                     succeed Red
+                 Decode.string |> Decode.andThen (parseColor >> Decode.fromResult)
 
-                                 "yellow" ->
-                                     succeed Yellow
 
-                                 "green" ->
-                                     succeed Green
+             parseColor : String -> Result String Color
+             parseColor color =
+                 case color of
+                     "red" ->
+                         Ok Red
 
-                                 "blue" ->
-                                     succeed Blue
+                     "yellow" ->
+                         Ok Yellow
 
-                                 _ ->
-                                     fail <| "Unknown color type: " ++ color
-                         )
+                     "green" ->
+                         Ok Green
+
+                     "blue" ->
+                         Ok Blue
+
+                     _ ->
+                         Err <| "Unknown color type: " ++ color
 
 
              pointDecoder : Decoder Point
              pointDecoder =
-                 succeed Point
+                 Decode.succeed Point
                      |> required "x" Decode.float
                      |> required "y" Decode.float
 
 
              encodeColor : Color -> Value
              encodeColor color =
+                 color |> colorToString |> Encode.string
+
+
+             colorToString : Color -> String
+             colorToString color =
                  case color of
                      Red ->
-                         Encode.string "red"
+                         "red"
 
                      Yellow ->
-                         Encode.string "yellow"
+                         "yellow"
 
                      Green ->
-                         Encode.string "green"
+                         "green"
 
                      Blue ->
-                         Encode.string "blue"
+                         "blue"
 
 
              encodePoint : Point -> Value
              encodePoint point =
                  []
-                     |> encodeRequired "x" point.x Encode.float
-                     |> encodeRequired "y" point.y Encode.float
+                     |> Encode.required "x" point.x Encode.float
+                     |> Encode.required "y" point.y Encode.float
                      |> Encode.object
              """
   end
@@ -330,12 +290,9 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              colorFuzzer : Fuzzer Color
              colorFuzzer =
-                 Fuzz.oneOf
-                     [ Fuzz.constant Red
-                     , Fuzz.constant Yellow
-                     , Fuzz.constant Green
-                     , Fuzz.constant Blue
-                     ]
+                 [ Red, Yellow, Green, Blue ]
+                     |> List.map Fuzz.constant
+                     |> Fuzz.oneOf
 
 
              encodeDecodeColorTest : Test

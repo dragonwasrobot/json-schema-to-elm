@@ -11,7 +11,7 @@ defmodule JS2E.Printer.OneOfPrinter do
   alias Types.{OneOfType, SchemaDefinition}
   alias Utils.{CommonOperations, ElmFuzzers, Indentation, Naming}
 
-  @templates_location Application.get_env(:js2e, :templates_location)
+  @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 
@@ -140,7 +140,9 @@ defmodule JS2E.Printer.OneOfPrinter do
          schema_dict
        ) do
     type_clauses
-    |> Enum.map(&create_decoder_clause(&1, name, parent, schema_def, schema_dict))
+    |> Enum.map(
+      &create_decoder_clause(&1, name, parent, schema_def, schema_dict)
+    )
   end
 
   @spec create_decoder_clause(
@@ -170,9 +172,11 @@ defmodule JS2E.Printer.OneOfPrinter do
           |> String.slice(0..1)
           |> String.capitalize()
 
-        success_name = "#{Naming.normalize_identifier(name, :upcase)}#{type_prefix}"
+        success_name =
+          "#{Naming.normalize_identifier(name, :upcase)}#{type_prefix}"
 
-        {:ok, "#{type_clause.name}Decoder |> andThen (succeed << #{success_name})"}
+        {:ok,
+         "#{type_clause.name}Decoder |> Decode.andThen (Decode.succeed << #{success_name})"}
 
       {:error, error} ->
         {:error, error}
@@ -225,7 +229,9 @@ defmodule JS2E.Printer.OneOfPrinter do
         ) :: [{:ok, map} | {:error, PrinterError.t()}]
   defp create_encoder_cases(types, name, parent, schema_def, schema_dict) do
     types
-    |> Enum.map(&create_encoder_clause(&1, name, parent, schema_def, schema_dict))
+    |> Enum.map(
+      &create_encoder_clause(&1, name, parent, schema_def, schema_dict)
+    )
   end
 
   @spec create_encoder_clause(

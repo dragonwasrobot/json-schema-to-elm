@@ -37,9 +37,9 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     expected_any_of_decoder_program = """
     fancyCircleDecoder : Decoder FancyCircle
     fancyCircleDecoder =
-        succeed FancyCircle
-            |> custom (nullable zeroDecoder)
-            |> custom (nullable circleDecoder)
+        Decode.succeed FancyCircle
+            |> custom (Decode.nullable zeroDecoder)
+            |> custom (Decode.nullable circleDecoder)
     """
 
     any_of_decoder_program = result.printed_schema
@@ -58,9 +58,9 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     encodeFancyCircle : FancyCircle -> Value
     encodeFancyCircle fancyCircle =
         []
-            |> encodeNestedRequired "color" fancyCircle.zero .color encodeColor
-            |> encodeNestedOptional "description" fancyCircle.zero .description Encode.string
-            |> encodeNestedRequired "radius" fancyCircle.circle .radius Encode.float
+            |> Encode.nestedRequired "color" fancyCircle.zero .color encodeColor
+            |> Encode.nestedOptional "description" fancyCircle.zero .description Encode.string
+            |> Encode.nestedRequired "radius" fancyCircle.circle .radius Encode.float
             |> Encode.object
     """
 
