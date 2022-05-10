@@ -1,7 +1,7 @@
 defmodule JS2E.MixProject do
   use Mix.Project
 
-  @version "2.8.1"
+  @version "2.9.0"
   @elixir_version "~> 1.12"
 
   def project do
