@@ -1,0 +1,15 @@
+<%= tuple_fuzzer.name %> : Fuzzer <%= tuple_fuzzer.type %>
+<%= tuple_fuzzer.name %> =
+    Fuzz.tuple<%= if length(tuple_fuzzer.field_fuzzers) > 2 do length(tuple_fuzzer.field_fuzzers) end %>
+        (<%= Enum.map_join(tuple_fuzzer.field_fuzzers, "\n        , ", fn f -> f.fuzzer_name end) %>
+        )
+
+
+encodeDecode<%= tuple_fuzzer.type %>Test : Test
+encodeDecode<%= tuple_fuzzer.type %>Test =
+    fuzz <%= tuple_fuzzer.name %> "can encode and decode <%= tuple_fuzzer.type %> tuple" <|
+        \<%= tuple_fuzzer.argument_name %> ->
+            <%= tuple_fuzzer.argument_name %>
+                |> <%= tuple_fuzzer.encoder_name %>
+                |> Decode.decodeValue <%= tuple_fuzzer.decoder_name %>
+                |> Expect.equal (Ok <%= tuple_fuzzer.argument_name %>)

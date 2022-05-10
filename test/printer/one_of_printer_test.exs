@@ -31,8 +31,8 @@ defmodule JS2ETest.Printer.OneOfPrinter do
     expected_one_of_decoder_program = """
     shapeDecoder : Decoder Shape
     shapeDecoder =
-        Decode.oneOf [ squareDecoder |> Decode.andThen (Decode.succeed << ShapeSq)
-                     , circleDecoder |> Decode.andThen (Decode.succeed << ShapeCi)
+        Decode.oneOf [ squareDecoder |> Decode.map ShapeSq
+                     , circleDecoder |> Decode.map ShapeCi
                      ]
     """
 
@@ -78,7 +78,7 @@ defmodule JS2ETest.Printer.OneOfPrinter do
 
     encodeDecodeShapeTest : Test
     encodeDecodeShapeTest =
-        fuzz shapeFuzzer "can encode and decode Shape object" <|
+        fuzz shapeFuzzer "can encode and decode Shape" <|
             \\shape ->
                 shape
                     |> encodeShape

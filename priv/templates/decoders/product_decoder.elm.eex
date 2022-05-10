@@ -1,0 +1,18 @@
+<%= product_decoder.name %> : Decoder <%= product_decoder.type %>
+<%= product_decoder.name %> =<%#
+%><%= case product_decoder.clauses do %>
+<% {:anonymous, clauses} -> %>
+    Decode.map<%= Enum.count(clauses) %> (\<%= Enum.map_join(clauses, " ", fn clause -> clause.property_name end) %> -> (<%= Enum.map_join(clauses, ", ", fn clause -> clause.property_name end) %>))<%#
+      %><%= for {clause, idx} <- Enum.with_index(clauses) do %>
+        (Decode.index <%= idx %> <%= clause.decoder_name %>)<%#
+      %><% end %><%#
+%><% {:named, clauses} -> %>
+    Decode.succeed <%= product_decoder.type %><%#
+    %><%= for clause <- clauses do %>
+        <%= if clause.option == :custom do %><%#
+        %>|> custom <%= clause.decoder_name %><%#
+        %><% else %><%#
+        %>|> <%= clause.option %> "<%= clause.property_name %>" <%= clause.decoder_name %><%#
+        %><% end %><%#
+    %><% end %><%#
+%><% end %>

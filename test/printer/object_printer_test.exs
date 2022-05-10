@@ -111,12 +111,12 @@ defmodule JS2ETest.Printer.ObjectPrinter do
       "#/properties/title" => %PrimitiveType{
         name: "title",
         path: URI.parse("#/properties/title"),
-        type: "string"
+        type: :string
       },
       "#/properties/radius" => %PrimitiveType{
         name: "radius",
         path: URI.parse("#/properties/radius"),
-        type: "number"
+        type: :number
       },
       "#/properties/tags" => %ArrayType{
         name: "tags",
@@ -126,7 +126,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
       "#/properties/tags/items" => %PrimitiveType{
         name: "items",
         path: URI.parse("#/properties/radius/items"),
-        type: "string"
+        type: :string
       }
     }
 

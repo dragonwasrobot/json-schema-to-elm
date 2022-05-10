@@ -1,0 +1,12 @@
+<%= enum_encoder.name %> : <%= enum_encoder.type %> -> Value
+<%= enum_encoder.name %> <%= enum_encoder.argument_name %> =
+    <%= enum_encoder.argument_name %> |> <%= enum_encoder.argument_name %>To<%= enum_encoder.argument_js_type %> |> Encode.<%= String.downcase(enum_encoder.argument_js_type) %>
+
+
+<%= enum_encoder.argument_name %>To<%= enum_encoder.argument_js_type %> : <%= enum_encoder.type %> -> <%= enum_encoder.argument_js_type %>
+<%= enum_encoder.argument_name %>To<%= enum_encoder.argument_js_type %> <%= enum_encoder.argument_name %> =
+    case <%= enum_encoder.argument_name %> of<%#
+    %><%= for clause <- enum_encoder.clauses do %>
+        <%= clause.elm_value %> ->
+            <%= clause.json_value %>
+<%# %><% end %>

@@ -39,8 +39,9 @@ defmodule JS2E.MixProject do
       {:dialyxir, "~> 1.1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.28.3", only: :dev, runtime: false},
       {:excoveralls, "~> 0.14.4", only: :test, runtime: false},
-      {:json_schema, path: "../json_schema/"},
-      # TODO: Change to this once next version is ready {:json_schema, "~> 0.4.0"},
+      {:gradient, github: "esl/gradient", only: [:dev], runtime: false},
+      # for local testing: {:json_schema, path: "../json_schema/"},
+      {:json_schema, "~> 0.4.0"},
       {:typed_struct, "~> 0.3.0"}
     ]
   end
@@ -53,7 +54,7 @@ defmodule JS2E.MixProject do
   end
 
   defp dialyzer do
-    [plt_add_deps: :project]
+    [plt_add_deps: :apps_direct]
   end
 
   defp docs do

@@ -185,14 +185,17 @@ defmodule JS2ETest.Printer.EnumPrinter do
     expected_enum_fuzzer_program = """
     colorFuzzer : Fuzzer Color
     colorFuzzer =
-        [ None, Green, Yellow, Red ]
-            |> List.map Fuzz.constant
-            |> Fuzz.oneOf
+        Fuzz.oneOf
+            [ Fuzz.constant None
+            , Fuzz.constant Green
+            , Fuzz.constant Yellow
+            , Fuzz.constant Red
+            ]
 
 
     encodeDecodeColorTest : Test
     encodeDecodeColorTest =
-        fuzz colorFuzzer "can encode and decode Color object" <|
+        fuzz colorFuzzer "can encode and decode Color" <|
             \\color ->
                 color
                     |> encodeColor
@@ -211,7 +214,7 @@ defmodule JS2ETest.Printer.EnumPrinter do
     do: %EnumType{
       name: "color",
       path: ["#", "definitions", "color"],
-      type: "string",
+      type: :string,
       values: ["none", "green", "yellow", "red"]
     }
 
@@ -219,7 +222,7 @@ defmodule JS2ETest.Printer.EnumPrinter do
     do: %EnumType{
       name: "temperature",
       path: ["#", "definitions", "temperature"],
-      type: "number",
+      type: :number,
       values: [-0.618, 1.618, 3.14, 7.73]
     }
 

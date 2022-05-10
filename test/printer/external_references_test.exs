@@ -14,8 +14,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
   }
 
   test "prints external references in generated code" do
-    schema_result =
-      Printer.print_schemas(schema_representations(), module_name())
+    schema_result = Printer.print_schemas(schema_representations(), module_name())
 
     file_dict = schema_result.file_dict
 
@@ -23,49 +22,11 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
     assert encode_program ==
              """
-             module Data.Encode
-                 exposing
-                     ( nestedOptional
-                     , nestedRequired
-                     , optional
-                     , required
-                     )
+             module Data.Encode exposing (optional, required)
 
              -- Helper functions for encoding JSON objects.
 
              import Json.Encode as Encode exposing (Value)
-
-
-             nestedRequired :
-                 String
-                 -> Maybe a
-                 -> (a -> b)
-                 -> (b -> Value)
-                 -> List ( String, Value )
-                 -> List ( String, Value )
-             nestedRequired key maybeData getValue encode properties =
-                 case maybeData of
-                     Just data ->
-                         properties |> required key (getValue data) encode
-
-                     Nothing ->
-                         properties
-
-
-             nestedOptional :
-                 String
-                 -> Maybe a
-                 -> (a -> Maybe b)
-                 -> (b -> Value)
-                 -> List ( String, Value )
-                 -> List ( String, Value )
-             nestedOptional key maybeData getValue encode properties =
-                 case maybeData of
-                     Just data ->
-                         properties |> optional key (getValue data) encode
-
-                     Nothing ->
-                         properties
 
 
              required :
@@ -233,8 +194,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
   end
 
   test "prints external references in generated tests" do
-    schema_tests_result =
-      Printer.print_schemas_tests(schema_representations(), module_name())
+    schema_tests_result = Printer.print_schemas_tests(schema_representations(), module_name())
 
     file_dict = schema_tests_result.file_dict
     circle_tests = file_dict["./js2e_output/tests/Data/CircleTests.elm"]
@@ -272,8 +232,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
                              |> Expect.equal (Ok circle)
              """
 
-    definitions_tests =
-      file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
+    definitions_tests = file_dict["./js2e_output/tests/Data/DefinitionsTests.elm"]
 
     assert definitions_tests ==
              """
@@ -290,14 +249,17 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              colorFuzzer : Fuzzer Color
              colorFuzzer =
-                 [ Red, Yellow, Green, Blue ]
-                     |> List.map Fuzz.constant
-                     |> Fuzz.oneOf
+                 Fuzz.oneOf
+                     [ Fuzz.constant Red
+                     , Fuzz.constant Yellow
+                     , Fuzz.constant Green
+                     , Fuzz.constant Blue
+                     ]
 
 
              encodeDecodeColorTest : Test
              encodeDecodeColorTest =
-                 fuzz colorFuzzer "can encode and decode Color object" <|
+                 fuzz colorFuzzer "can encode and decode Color" <|
                      \\color ->
                          color
                              |> encodeColor
@@ -339,7 +301,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
           "#/definitions/color" => %EnumType{
             name: "color",
             path: URI.parse("#/definitions/color"),
-            type: "string",
+            type: :string,
             values: ["red", "yellow", "green", "blue"]
           },
           "#/definitions/point" => %ObjectType{
@@ -355,17 +317,17 @@ defmodule JS2ETest.Printer.ExternalReferences do
           "#/definitions/point/x" => %PrimitiveType{
             name: "x",
             path: URI.parse("#/definitions/point/x"),
-            type: "number"
+            type: :number
           },
           "#/definitions/point/y" => %PrimitiveType{
             name: "y",
             path: URI.parse("#/definitions/point/y"),
-            type: "number"
+            type: :number
           },
           "http://example.com/definitions.json#color" => %EnumType{
             name: "color",
             path: URI.parse("#/definitions/color"),
-            type: "string",
+            type: :string,
             values: ["red", "yellow", "green", "blue"]
           },
           "http://example.com/definitions.json#point" => %ObjectType{
@@ -408,7 +370,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
           "#/radius" => %PrimitiveType{
             name: "radius",
             path: URI.parse("#/radius"),
-            type: "number"
+            type: :number
           },
           "http://example.com/circle.json#" => %ObjectType{
             name: "circle",

@@ -1,0 +1,4 @@
+<%= list_encoder.name %> : List <%= list_encoder.type %> -> Value
+<%= list_encoder.name %> <%= list_encoder.argument_name %> =
+    <%= list_encoder.argument_name %>
+        |> Encode.list <%= list_encoder.items_encoder %>

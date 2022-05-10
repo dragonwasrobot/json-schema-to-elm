@@ -1,4 +1,0 @@
-<%= encoder_name %> : List <%= items_type_name %> -> Value
-<%= encoder_name %> <%= argument_name %> =
-    <%= argument_name %>
-        |> Encode.list <%= items_encoder_name %>

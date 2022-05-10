@@ -1,0 +1,15 @@
+<%= product_fuzzer.name %> : Fuzzer <%= product_fuzzer.type %>
+<%= product_fuzzer.name %> =
+    Fuzz.map<%= if length(product_fuzzer.fuzzers) < 2 do "" else length(product_fuzzer.fuzzers) end %>
+        <%= product_fuzzer.type %>
+        <%= Enum.map_join(product_fuzzer.fuzzers, "\n        ", &(&1.fuzzer_name)) %>
+
+
+encodeDecode<%= product_fuzzer.type %>Test : Test
+encodeDecode<%= product_fuzzer.type %>Test =
+    fuzz <%= product_fuzzer.name %> "can encode and decode <%= product_fuzzer.type %> object" <|
+        \<%= product_fuzzer.argument_name %> ->
+            <%= product_fuzzer.argument_name %>
+                |> <%= product_fuzzer.encoder_name %>
+                |> Decode.decodeValue <%= product_fuzzer.decoder_name %>
+                |> Expect.equal (Ok <%= product_fuzzer.argument_name %>)

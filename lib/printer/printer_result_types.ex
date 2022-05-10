@@ -86,10 +86,11 @@ defmodule JS2E.Printer.SchemaResult do
 
   require Logger
   alias JS2E.Printer.PrinterError
-  alias JsonSchema.Types
+
+  @type fileDictionary :: %{required(Path.t()) => String.t()}
 
   @type t :: %__MODULE__{
-          file_dict: Types.fileDictionary(),
+          file_dict: fileDictionary(),
           errors: [{Path.t(), PrinterError.t()}]
         }
 
@@ -104,7 +105,7 @@ defmodule JS2E.Printer.SchemaResult do
   @doc """
   Creates a `SchemaResult`.
   """
-  @spec new(Types.fileDictionary(), [PrinterError.t()]) :: t
+  @spec new(fileDictionary(), [PrinterError.t()]) :: t
   def new(file_dict, errors \\ []) do
     %__MODULE__{file_dict: file_dict, errors: errors}
   end

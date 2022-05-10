@@ -1,0 +1,7 @@
+type <%= sum_type.name %><%#
+%><%= case sum_type.clauses do %>
+  <% {:anonymous, clauses} -> %>
+    = <%= Enum.join(clauses, "\n    | ")%><%#
+%><% {:named, clauses} -> %>
+    = <%= Enum.map_join(clauses, "\n    | ", fn clause -> "#{clause.name} #{clause.type}" end) %><%#
+%><% end %>

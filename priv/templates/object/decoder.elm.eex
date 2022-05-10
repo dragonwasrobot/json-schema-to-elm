@@ -1,6 +1,0 @@
-<%= decoder_name %> : Decoder <%= type_name %>
-<%= decoder_name %> =
-    Decode.succeed <%= type_name %><%#
-       %><%= for clause <- clauses do %>
-        |> <%= clause.option %> "<%= clause.property_name %>" <%= clause.decoder %><%#
-       %><% end %>

@@ -1,0 +1,15 @@
+<%= sum_fuzzer.name %> : Fuzzer <%= sum_fuzzer.type %>
+<%= sum_fuzzer.name %> =
+    Fuzz.oneOf
+        [ <%= Enum.join(sum_fuzzer.clause_fuzzers, "\n        , ") %>
+        ]
+
+
+encodeDecode<%= sum_fuzzer.type %>Test : Test
+encodeDecode<%= sum_fuzzer.type %>Test =
+    fuzz <%= sum_fuzzer.name %> "can encode and decode <%= sum_fuzzer.type %>" <|
+        \<%= sum_fuzzer.argument_name %> ->
+            <%= sum_fuzzer.argument_name %>
+                |> <%= sum_fuzzer.encoder_name %>
+                |> Decode.decodeValue <%= sum_fuzzer.decoder_name %>
+                |> Expect.equal (Ok <%= sum_fuzzer.argument_name %>)

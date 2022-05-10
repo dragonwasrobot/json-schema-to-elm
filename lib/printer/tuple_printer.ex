@@ -1,6 +1,6 @@
 defmodule JS2E.Printer.TuplePrinter do
   @behaviour JS2E.Printer.PrinterBehaviour
-  @moduledoc ~S"""
+  @moduledoc """
   A printer for printing a 'tuple' type decoder.
   """
 
@@ -19,22 +19,15 @@ defmodule JS2E.Printer.TuplePrinter do
     Naming
   }
 
-  alias Types.{
-    EnumType,
-    OneOfType,
-    SchemaDefinition,
-    TupleType,
-    UnionType
-  }
+  alias Types.{SchemaDefinition, TupleType}
 
   @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 
-  @type_location Path.join(@templates_location, "tuple/type.elm.eex")
+  @type_location Path.join(@templates_location, "types/product_type.elm.eex")
   EEx.function_from_file(:defp, :type_template, @type_location, [
-    :type_name,
-    :type_fields
+    :product_type
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -55,9 +48,10 @@ defmodule JS2E.Printer.TuplePrinter do
       |> create_type_fields(path, schema_def, schema_dict, module_name)
       |> CommonOperations.split_ok_and_errors()
 
-    name
-    |> Naming.normalize_identifier(:upcase)
-    |> type_template(type_fields)
+    type_name = name |> Naming.normalize_identifier(:upcase)
+
+    %{name: type_name, fields: {:anonymous, List.flatten(type_fields)}}
+    |> type_template()
     |> PrinterResult.new(errors)
   end
 
@@ -67,12 +61,10 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
+        ) :: [{:ok, [map]} | {:error, PrinterError.t()}]
   defp create_type_fields(types, parent, schema_def, schema_dict, module_name) do
     types
-    |> Enum.map(
-      &create_type_field(&1, parent, schema_def, schema_dict, module_name)
-    )
+    |> Enum.map(&create_type_field(&1, parent, schema_def, schema_dict, module_name))
   end
 
   @spec create_type_field(
@@ -81,7 +73,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+        ) :: {:ok, [map]} | {:error, PrinterError.t()}
   defp create_type_field(
          type_path,
          parent,
@@ -89,18 +81,30 @@ defmodule JS2E.Printer.TuplePrinter do
          schema_dict,
          module_name
        ) do
-    type_path
-    |> Resolver.resolve_type(parent, schema_def, schema_dict)
-    |> ElmTypes.create_type_name(parent, schema_def, schema_dict, module_name)
+    with {:ok, {resolved_type, resolved_schema}} <-
+           Resolver.resolve_type(type_path, parent, schema_def, schema_dict),
+         {:ok, type_names} <-
+           ElmTypes.create_fields(
+             :anonymous,
+             resolved_type,
+             resolved_schema,
+             parent,
+             schema_def,
+             schema_dict,
+             module_name
+           ) do
+      {:ok, type_names}
+    else
+      {:error, error} ->
+        {:error, error}
+    end
   end
 
   # Decoder
 
-  @decoder_location Path.join(@templates_location, "tuple/decoder.elm.eex")
+  @decoder_location Path.join(@templates_location, "decoders/product_decoder.elm.eex")
   EEx.function_from_file(:defp, :decoder_template, @decoder_location, [
-    :decoder_name,
-    :type_name,
-    :clauses
+    :product_decoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -125,8 +129,8 @@ defmodule JS2E.Printer.TuplePrinter do
     decoder_name = "#{normalized_name}Decoder"
     type_name = Naming.upcase_first(normalized_name)
 
-    decoder_name
-    |> decoder_template(type_name, decoder_clauses)
+    %{name: decoder_name, type: type_name, clauses: {:anonymous, List.flatten(decoder_clauses)}}
+    |> decoder_template()
     |> PrinterResult.new(errors)
   end
 
@@ -145,9 +149,7 @@ defmodule JS2E.Printer.TuplePrinter do
          module_name
        ) do
     type_paths
-    |> Enum.map(
-      &create_decoder_clause(&1, parent, schema_def, schema_dict, module_name)
-    )
+    |> Enum.map(&create_decoder_clause(&1, parent, schema_def, schema_dict, module_name))
   end
 
   @spec create_decoder_clause(
@@ -166,60 +168,28 @@ defmodule JS2E.Printer.TuplePrinter do
        ) do
     with {:ok, {property_type, resolved_schema_def}} <-
            Resolver.resolve_type(type_path, parent, schema_def, schema_dict),
-         {:ok, decoder_name} <-
-           ElmDecoders.create_decoder_name(
-             {:ok, {property_type, resolved_schema_def}},
+         {:ok, clauses} <-
+           ElmDecoders.create_clauses(
+             :anonymous,
+             property_type,
+             resolved_schema_def,
+             [],
              schema_def,
+             schema_dict,
              module_name
            ) do
-      case property_type do
-        %EnumType{} ->
-          case ElmDecoders.determine_primitive_type_decoder(property_type.type) do
-            {:ok, property_type_decoder} ->
-              create_decoder_enum_clause(property_type_decoder, decoder_name)
-
-            {:error, error} ->
-              {:error, error}
-          end
-
-        %OneOfType{} ->
-          create_decoder_union_clause(decoder_name)
-
-        %UnionType{} ->
-          create_decoder_union_clause(decoder_name)
-
-        _ ->
-          create_decoder_normal_clause(decoder_name)
-      end
+      {:ok, clauses}
     else
       {:error, error} ->
         {:error, error}
     end
   end
 
-  @spec create_decoder_union_clause(String.t()) :: {:ok, map}
-  defp create_decoder_union_clause(decoder_name) do
-    {:ok, %{decoder_name: decoder_name}}
-  end
-
-  @spec create_decoder_enum_clause(String.t(), String.t()) :: {:ok, map}
-  defp create_decoder_enum_clause(property_type_decoder, decoder_name) do
-    {:ok,
-     %{property_decoder: property_type_decoder, decoder_name: decoder_name}}
-  end
-
-  @spec create_decoder_normal_clause(String.t()) :: {:ok, map}
-  defp create_decoder_normal_clause(decoder_name) do
-    {:ok, %{decoder_name: decoder_name}}
-  end
-
   # Encoder
 
-  @encoder_location Path.join(@templates_location, "tuple/encoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "encoders/tuple_encoder.elm.eex")
   EEx.function_from_file(:defp, :encoder_template, @encoder_location, [
-    :encoder_name,
-    :type_name,
-    :properties
+    :tuple_encoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -243,8 +213,8 @@ defmodule JS2E.Printer.TuplePrinter do
     type_name = Naming.normalize_identifier(name, :upcase)
     encoder_name = "encode#{Naming.normalize_identifier(type_name, :upcase)}"
 
-    encoder_name
-    |> encoder_template(type_name, encoder_properties)
+    %{name: encoder_name, type: type_name, properties: encoder_properties}
+    |> encoder_template()
     |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
   end
@@ -281,33 +251,20 @@ defmodule JS2E.Printer.TuplePrinter do
          schema_def,
          module_name
        ) do
-    encoder_name_result =
-      ElmEncoders.create_encoder_name(
-        {:ok, {resolved_property, resolved_schema}},
-        schema_def,
-        module_name
-      )
-
-    case encoder_name_result do
-      {:ok, encoder_name} ->
-        {:ok, Map.put(resolved_property, :encoder_name, encoder_name)}
-
-      {:error, error} ->
-        {:error, error}
-    end
+    ElmEncoders.create_encoder_property(
+      resolved_property,
+      resolved_schema,
+      resolved_property.name,
+      [],
+      schema_def,
+      module_name
+    )
   end
 
   # Fuzzer
 
-  @fuzzer_location Path.join(@templates_location, "tuple/fuzzer.elm.eex")
-  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
-    :type_name,
-    :argument_name,
-    :fuzzer_name,
-    :decoder_name,
-    :encoder_name,
-    :fuzzers
-  ])
+  @fuzzer_location Path.join(@templates_location, "fuzzers/tuple_fuzzer.elm.eex")
+  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [:tuple_fuzzer])
 
   @impl JS2E.Printer.PrinterBehaviour
   @spec print_fuzzer(
@@ -338,14 +295,15 @@ defmodule JS2E.Printer.TuplePrinter do
       )
       |> CommonOperations.split_ok_and_errors()
 
-    type_name
-    |> fuzzer_template(
-      argument_name,
-      fuzzer_name,
-      decoder_name,
-      encoder_name,
-      fuzzers
-    )
+    %{
+      name: fuzzer_name,
+      type: type_name,
+      argument_name: argument_name,
+      decoder_name: decoder_name,
+      encoder_name: encoder_name,
+      field_fuzzers: List.flatten(fuzzers)
+    }
+    |> fuzzer_template()
     |> PrinterResult.new(errors)
   end
 
@@ -355,7 +313,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
+        ) :: [{:ok, [String.t()]} | {:error, PrinterError.t()}]
   defp create_items_fuzzers(
          items_paths,
          parent,
@@ -381,7 +339,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+        ) :: {:ok, [String.t()]} | {:error, PrinterError.t()}
   defp create_item_fuzzer(
          item_path,
          parent,
@@ -396,13 +354,16 @@ defmodule JS2E.Printer.TuplePrinter do
              schema_def,
              schema_dict
            ),
-         {:ok, fuzzer_name} <-
-           ElmFuzzers.create_fuzzer_name(
-             {:ok, {resolved_type, resolved_schema}},
+         {:ok, fuzzer_names} <-
+           ElmFuzzers.create_fuzzer_names(
+             resolved_type.name,
+             resolved_type,
+             resolved_schema,
              schema_def,
+             schema_dict,
              module_name
            ) do
-      {:ok, fuzzer_name}
+      {:ok, fuzzer_names}
     else
       {:error, error} ->
         {:error, error}

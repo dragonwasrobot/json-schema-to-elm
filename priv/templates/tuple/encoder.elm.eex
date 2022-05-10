@@ -1,7 +1,0 @@
-<%= encoder_name %> : <%= type_name %> -> Value
-<%= encoder_name %> (<%= Enum.map_join(properties, ", ", fn property -> property.name end) %>) =
-    []<%#
-    %><%= for property <- properties do %>
-        |> (::) <%= property.encoder_name %> <%= property.name %><%#
-    %><% end %>
-        |> Encode.list

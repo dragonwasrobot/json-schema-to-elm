@@ -7,19 +7,16 @@ defmodule JS2E.Printer.EnumPrinter do
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
   alias JsonSchema.Types
-  alias Printer.{ErrorUtil, PrinterError, PrinterResult, Utils}
+  alias Printer.{PrinterResult, Utils}
   alias Types.{EnumType, SchemaDefinition}
-  alias Utils.{CommonOperations, Indentation, Naming}
+  alias Utils.{Indentation, Naming}
 
   @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 
-  @type_location Path.join(@templates_location, "enum/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [
-    :type_name,
-    :clauses
-  ])
+  @type_location Path.join(@templates_location, "types/sum_type.elm.eex")
+  EEx.function_from_file(:defp, :type_template, @type_location, [:sum_type])
 
   @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
@@ -34,28 +31,23 @@ defmodule JS2E.Printer.EnumPrinter do
         _schema_dict,
         _module_name
       ) do
-    {clauses, errors} =
+    clauses =
       values
       |> Enum.map(&create_elm_value(&1, type))
-      |> CommonOperations.split_ok_and_errors()
 
-    name
-    |> Naming.normalize_identifier(:upcase)
-    |> type_template(clauses)
-    |> PrinterResult.new(errors)
+    name =
+      name
+      |> Naming.normalize_identifier(:upcase)
+
+    %{name: name, clauses: {:anonymous, clauses}}
+    |> type_template()
+    |> PrinterResult.new()
   end
 
   # Decoder
 
-  @decoder_location Path.join(@templates_location, "enum/decoder.elm.eex")
-  EEx.function_from_file(:defp, :decoder_template, @decoder_location, [
-    :decoder_name,
-    :decoder_type,
-    :argument_name,
-    :argument_type,
-    :parser_name,
-    :cases
-  ])
+  @decoder_location Path.join(@templates_location, "decoders/enum_decoder.elm.eex")
+  EEx.function_from_file(:defp, :decoder_template, @decoder_location, [:enum_decoder])
 
   @impl JS2E.Printer.PrinterBehaviour
   @spec print_decoder(
@@ -75,84 +67,55 @@ defmodule JS2E.Printer.EnumPrinter do
     argument_type = to_elm_type_name(type)
     parser_name = "parse#{Naming.normalize_identifier(name, :upcase)}"
 
-    {cases, errors} =
+    clauses =
       values
-      |> create_decoder_cases(type)
-      |> CommonOperations.split_ok_and_errors()
+      |> create_decoder_clauses(type)
 
-    decoder_template(
-      decoder_name,
-      decoder_type,
-      name,
-      argument_type,
-      parser_name,
-      cases
-    )
-    |> PrinterResult.new(errors)
+    %{
+      name: decoder_name,
+      type: decoder_type,
+      argument_name: name,
+      argument_type: argument_type,
+      parser_name: parser_name,
+      clauses: clauses
+    }
+    |> decoder_template()
+    |> PrinterResult.new()
   end
 
-  @spec to_elm_type_name(String.t()) :: String.t()
+  @spec to_elm_type_name(EnumType.value_type()) :: String.t()
   defp to_elm_type_name(type_name) do
     case type_name do
-      "boolean" ->
-        "bool"
-
-      "string" ->
-        "string"
-
-      "integer" ->
-        "int"
-
-      "number" ->
-        "float"
-
-      other ->
-        other
+      :string -> "string"
+      :integer -> "int"
+      :number -> "float"
     end
   end
 
-  @spec create_decoder_cases([String.t()], String.t()) :: [
-          {:ok, map} | {:error, PrinterError.t()}
-        ]
-  defp create_decoder_cases(values, type_name) do
-    Enum.map(values, fn value ->
-      with {:ok, raw_value} <- create_decoder_case(value, type_name),
-           {:ok, parsed_value} <- create_elm_value(value, type_name) do
-        {:ok, %{raw_value: raw_value, parsed_value: parsed_value}}
-      else
-        {:error, error} ->
-          {:error, error}
-      end
+  @spec create_decoder_clauses([String.t()], String.t()) :: [map]
+  defp create_decoder_clauses(values, type_name) do
+    values
+    |> Enum.map(fn value ->
+      raw_value = create_decoder_case(value, type_name)
+      parsed_value = create_elm_value(value, type_name)
+      %{raw_value: raw_value, parsed_value: parsed_value}
     end)
   end
 
-  @spec create_decoder_case(String.t(), String.t()) ::
-          {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec create_decoder_case(String.t(), EnumType.value_type()) :: String.t()
   defp create_decoder_case(value, type_name) do
     case type_name do
-      "string" ->
-        {:ok, "\"#{value}\""}
-
-      "integer" ->
-        {:ok, value}
-
-      "number" ->
-        {:ok, value}
-
-      _ ->
-        {:error, ErrorUtil.unknown_enum_type(type_name)}
+      :string -> "\"#{value}\""
+      :integer -> value
+      :number -> value
     end
   end
 
   # Encoder
 
-  @encoder_location Path.join(@templates_location, "enum/encoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "encoders/enum_encoder.elm.eex")
   EEx.function_from_file(:defp, :encoder_template, @encoder_location, [
-    :encoder_name,
-    :argument_name,
-    :argument_type,
-    :argument_js_type,
-    :cases
+    :enum_encoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -172,95 +135,61 @@ defmodule JS2E.Printer.EnumPrinter do
     encoder_name = "encode#{argument_type}"
     argument_js_type = to_elm_type_name(type) |> String.capitalize()
 
-    {cases, errors} =
+    clauses =
       values
       |> create_encoder_cases(type)
-      |> CommonOperations.split_ok_and_errors()
 
-    encoder_template(
-      encoder_name,
-      name,
-      argument_type,
-      argument_js_type,
-      cases
-    )
+    %{
+      name: encoder_name,
+      type: argument_type,
+      argument_name: name,
+      argument_js_type: argument_js_type,
+      clauses: clauses
+    }
+    |> encoder_template()
     |> Indentation.trim_newlines()
-    |> PrinterResult.new(errors)
+    |> PrinterResult.new()
   end
 
-  @spec create_encoder_cases([String.t() | number], String.t()) :: [
-          {:ok, map} | {:error, PrinterError.t()}
-        ]
+  @spec create_encoder_cases([String.t() | number], String.t()) :: [map]
   defp create_encoder_cases(values, type_name) do
-    Enum.map(values, fn value ->
-      with {:ok, elm_value} <- create_elm_value(value, type_name),
-           {:ok, json_value} <- create_encoder_case(value, type_name) do
-        {:ok, %{elm_value: elm_value, json_value: json_value}}
-      else
-        {:error, error} ->
-          {:error, error}
-      end
+    values
+    |> Enum.map(fn value ->
+      elm_value = create_elm_value(value, type_name)
+      json_value = create_encoder_case(value, type_name)
+      %{elm_value: elm_value, json_value: json_value}
     end)
   end
 
-  @spec create_encoder_case(String.t() | number, String.t()) ::
-          {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec create_encoder_case(String.t() | number, EnumType.value_type()) :: String.t()
   defp create_encoder_case(value, type_name) do
     case type_name do
-      "string" ->
-        {:ok, "\"#{value}\""}
-
-      "integer" ->
-        {:ok, "#{value}"}
-
-      "number" ->
-        {:ok, "#{value}"}
-
-      "boolean" ->
-        {:ok, "#{value}"}
-
-      "null" ->
-        {:ok, ""}
-
-      _ ->
-        {:error, ErrorUtil.unknown_enum_type(type_name)}
+      :string -> "\"#{value}\""
+      :integer -> "#{value}"
+      :number -> "#{value}"
     end
   end
 
-  @spec create_elm_value(String.t(), String.t()) ::
-          {:ok, String.t()} | {:error, PrinterError.t()}
+  @spec create_elm_value(String.t(), EnumType.value_type()) :: String.t()
   defp create_elm_value(value, type_name) do
     case type_name do
-      "string" ->
-        {:ok, Naming.normalize_identifier(value, :upcase)}
+      :string ->
+        Naming.normalize_identifier(value, :upcase)
 
-      "integer" ->
-        {:ok, "Int#{value}"}
+      :integer ->
+        "Int#{value}"
 
-      "number" ->
-        result =
-          "Float#{value}"
-          |> String.replace(".", "_")
-          |> String.replace("-", "Neg")
-
-        {:ok, result}
-
-      _ ->
-        {:error, ErrorUtil.unknown_enum_type(type_name)}
+      :number ->
+        "Float#{value}"
+        |> String.replace(".", "_")
+        |> String.replace("-", "Neg")
     end
   end
 
   # Fuzzer
 
-  @fuzzer_location Path.join(@templates_location, "enum/fuzzer.elm.eex")
-  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
-    :type_name,
-    :argument_name,
-    :decoder_name,
-    :encoder_name,
-    :fuzzer_name,
-    :fuzzers
-  ])
+  @fuzzer_location Path.join(@templates_location, "fuzzers/sum_fuzzer.elm.eex")
+  EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [:sum_fuzzer])
 
   @impl JS2E.Printer.PrinterBehaviour
   @spec print_fuzzer(
@@ -283,16 +212,19 @@ defmodule JS2E.Printer.EnumPrinter do
 
     fuzzers =
       values
-      |> Enum.map(&"#{Naming.normalize_identifier(&1, :upcase)}")
+      |> Enum.map(fn clause_fuzzer ->
+        "Fuzz.constant #{Naming.normalize_identifier(clause_fuzzer, :upcase)}"
+      end)
 
-    type_name
-    |> fuzzer_template(
-      argument_name,
-      decoder_name,
-      encoder_name,
-      fuzzer_name,
-      fuzzers
-    )
+    %{
+      name: fuzzer_name,
+      type: type_name,
+      argument_name: argument_name,
+      encoder_name: encoder_name,
+      decoder_name: decoder_name,
+      clause_fuzzers: List.flatten(fuzzers)
+    }
+    |> fuzzer_template()
     |> PrinterResult.new()
   end
 end

@@ -1,46 +1,8 @@
-module <%= prefix %>.Encode
-    exposing
-        ( nestedOptional
-        , nestedRequired
-        , optional
-        , required
-        )
+module <%= prefix %>.Encode exposing (optional, required)
 
 -- Helper functions for encoding JSON objects.
 
 import Json.Encode as Encode exposing (Value)
-
-
-nestedRequired :
-    String
-    -> Maybe a
-    -> (a -> b)
-    -> (b -> Value)
-    -> List ( String, Value )
-    -> List ( String, Value )
-nestedRequired key maybeData getValue encode properties =
-    case maybeData of
-        Just data ->
-            properties |> required key (getValue data) encode
-
-        Nothing ->
-            properties
-
-
-nestedOptional :
-    String
-    -> Maybe a
-    -> (a -> Maybe b)
-    -> (b -> Value)
-    -> List ( String, Value )
-    -> List ( String, Value )
-nestedOptional key maybeData getValue encode properties =
-    case maybeData of
-        Just data ->
-            properties |> optional key (getValue data) encode
-
-        Nothing ->
-            properties
 
 
 required :

@@ -1,7 +1,0 @@
-<%= encoder_name %> : <%= type_name %> -> Value
-<%= encoder_name %> <%= argument_name %> =
-    case <%= argument_name %> of<%#
-    %><%= for case <- cases do %>
-        <%= case.constructor %> ->
-            <%= case.encoder %>
-<%# %><% end %>

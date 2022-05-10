@@ -90,16 +90,14 @@ defmodule JS2E.Printer do
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name) do
     init_file_dict = %{
-      "./#{@output_location}/src/#{module_name}/Encode.elm" =>
-        encode_template(module_name),
+      "./#{@output_location}/src/#{module_name}/Encode.elm" => encode_template(module_name),
       "./#{@output_location}/package.json" => package_template(),
       "./#{@output_location}/elm.json" => elm_json_template(),
       "./#{@output_location}/.tool-versions" => tool_versions_template()
     }
 
     schema_dict
-    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def},
-                                                        acc ->
+    |> Enum.reduce(SchemaResult.new(init_file_dict), fn {_id, schema_def}, acc ->
       file_path = create_file_path(schema_def.title, module_name)
       result = print_schema(schema_def, schema_dict, module_name)
 
@@ -234,10 +232,7 @@ defmodule JS2E.Printer do
   end
 
   @type process_fun ::
-          (Types.typeDefinition(),
-           SchemaDefinition.t(),
-           Types.schemaDictionary(),
-           String.t() ->
+          (Types.typeDefinition(), SchemaDefinition.t(), Types.schemaDictionary(), String.t() ->
              PrinterResult.t())
 
   @spec merge_results(

@@ -1,96 +1,211 @@
 defmodule JS2E.Printer.Utils.ElmFuzzers do
-  @moduledoc ~S"""
+  @moduledoc """
   Module containing common utility functions for outputting Elm fuzzers and
   tests.
   """
 
   require Logger
   alias JS2E.Printer
-  alias JsonSchema.Types
-  alias Printer.{ErrorUtil, PrinterError, Utils}
-  alias Types.{PrimitiveType, SchemaDefinition}
-  alias Utils.Naming
+  alias JsonSchema.{Resolver, Types}
+  alias Printer.{PrinterError, Utils}
 
-  @spec create_fuzzer_name(
-          {:ok, {Types.typeDefinition(), SchemaDefinition.t()}}
-          | {:error, PrinterError.t()},
+  alias Types.{
+    AllOfType,
+    ArrayType,
+    ObjectType,
+    PrimitiveType,
+    SchemaDefinition
+  }
+
+  alias Utils.{CommonOperations, Naming}
+
+  @type fuzzer_definition ::
+          {:product, product_fuzzer}
+          | {:tuple, tuple_fuzzer}
+          | {:sum, sum_fuzzer}
+          | {:list, list_fuzzer}
+
+  @type product_fuzzer :: %{
+          name: String.t(),
+          type: String.t(),
+          argument_name: String.t(),
+          decoder_name: String.t(),
+          encoder_name: String.t(),
+          field_fuzzers: [field_fuzzer]
+        }
+
+  @type tuple_fuzzer :: %{
+          name: String.t(),
+          type: String.t(),
+          argument_name: String.t(),
+          decoder_name: String.t(),
+          encoder_name: String.t(),
+          field_fuzzers: [field_fuzzer]
+        }
+
+  @type field_fuzzer :: %{field_name: String.t(), fuzzer_name: String.t()}
+
+  @type sum_fuzzer :: %{
+          name: String.t(),
+          type: String.t(),
+          argument_name: String.t(),
+          decoder_name: String.t(),
+          encoder_name: String.t(),
+          clause_fuzzers: [String.t()]
+        }
+
+  @type list_fuzzer :: %{
+          name: String.t(),
+          array_name: String.t(),
+          items_type: String.t(),
+          items_fuzzer: String.t(),
+          argument_name: String.t(),
+          decoder_name: String.t(),
+          encoder_name: String.t()
+        }
+
+  @spec create_fuzzer_names(
+          String.t(),
+          Types.typeDefinition(),
           SchemaDefinition.t(),
+          SchemaDefinition.t(),
+          Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  def create_fuzzer_name({:error, error}, _schema, _name), do: {:error, error}
-
-  def create_fuzzer_name(
-        {:ok, {resolved_type, resolved_schema}},
+        ) :: {:ok, [field_fuzzer]} | {:error, PrinterError.t()}
+  def create_fuzzer_names(
+        property_name,
+        resolved_type,
+        resolved_schema,
         context_schema,
+        schema_dict,
         module_name
       ) do
-    fuzzer_name_result =
+    if resolved_type.name == :anonymous do
+      {resolved_pairs, errors} =
+        case resolved_type do
+          %AllOfType{} ->
+            resolved_type.types
+            |> Enum.map(fn {_name, path} ->
+              Resolver.resolve_type(
+                path,
+                resolved_type.path,
+                context_schema,
+                schema_dict
+              )
+            end)
+            |> CommonOperations.split_ok_and_errors()
+
+          %ArrayType{} ->
+            {[], []}
+
+          %ObjectType{} ->
+            resolved_type.properties
+            |> Enum.map(fn {_name, path} ->
+              Resolver.resolve_type(
+                path,
+                resolved_type.path,
+                context_schema,
+                schema_dict
+              )
+            end)
+            |> CommonOperations.split_ok_and_errors()
+
+          _ ->
+            # TODO: Other cases?
+            {[], []}
+        end
+
+      if errors != [] do
+        {:error, errors}
+      else
+        fuzzer_names =
+          resolved_pairs
+          |> Enum.map(fn {resolved_type, schema} ->
+            do_create_fuzzer_name(
+              resolved_type.name,
+              resolved_type,
+              schema,
+              context_schema,
+              module_name
+            )
+          end)
+
+        {:ok, fuzzer_names}
+      end
+    else
+      fuzzer_name =
+        do_create_fuzzer_name(
+          property_name,
+          resolved_type,
+          resolved_schema,
+          context_schema,
+          module_name
+        )
+
+      {:ok, [fuzzer_name]}
+    end
+  end
+
+  @spec do_create_fuzzer_name(
+          String.t(),
+          Types.typeDefinition(),
+          SchemaDefinition.t(),
+          SchemaDefinition.t(),
+          String.t()
+        ) :: field_fuzzer
+  defp do_create_fuzzer_name(
+         property_name,
+         resolved_type,
+         resolved_schema,
+         context_schema,
+         module_name
+       ) do
+    fuzzer_name =
       case resolved_type do
         %PrimitiveType{} ->
           determine_primitive_fuzzer_name(resolved_type.type)
 
         _ ->
-          resolved_type_name = resolved_type.name
-
-          downcased_type_name = Naming.normalize_identifier(resolved_type_name, :downcase)
-
-          {:ok, "#{downcased_type_name}Fuzzer"}
+          downcased_type_name = Naming.normalize_identifier(resolved_type.name, :downcase)
+          "#{downcased_type_name}Fuzzer"
       end
 
-    case fuzzer_name_result do
-      {:ok, fuzzer_name} ->
-        if resolved_schema.id != context_schema.id do
-          {:ok, Naming.qualify_name(resolved_schema, fuzzer_name, module_name)}
-        else
-          {:ok, fuzzer_name}
-        end
-
-      {:error, error} ->
-        {:error, error}
+    if resolved_schema.id != context_schema.id do
+      %{
+        field_name: property_name,
+        fuzzer_name: Naming.qualify_name(resolved_schema, fuzzer_name, module_name)
+      }
+    else
+      %{field_name: property_name, fuzzer_name: fuzzer_name}
     end
   end
 
   @doc ~S"""
-  Converts the following primitive types: "string", "integer", "number",
-  and "boolean" into their Elm type equivalent. Raises and error otherwise.
+  Converts a primitive value type into the corresponding Elm fuzzer.
 
   ## Examples
 
-  iex> determine_primitive_fuzzer_name("string")
-  {:ok, "Fuzz.string"}
+      iex> determine_primitive_fuzzer_name(:string)
+      "Fuzz.string"
 
-  iex> determine_primitive_fuzzer_name("integer")
-  {:ok, "Fuzz.int"}
+      iex> determine_primitive_fuzzer_name(:integer)
+      "Fuzz.int"
 
-  iex> determine_primitive_fuzzer_name("number")
-  {:ok, "Fuzz.float"}
+      iex> determine_primitive_fuzzer_name(:number)
+      "Fuzz.float"
 
-  iex> determine_primitive_fuzzer_name("boolean")
-  {:ok, "Fuzz.bool"}
-
-  iex> {:error, error} = determine_primitive_fuzzer_name("array")
-  iex> error.error_type
-  :unknown_primitive_type
+      iex> determine_primitive_fuzzer_name(:boolean)
+      "Fuzz.bool"
 
   """
-  @spec determine_primitive_fuzzer_name(String.t()) ::
-          {:ok, String.t()} | {:error, PrinterError.t()}
-  def determine_primitive_fuzzer_name(type_name) do
-    case type_name do
-      "string" ->
-        {:ok, "Fuzz.string"}
-
-      "integer" ->
-        {:ok, "Fuzz.int"}
-
-      "number" ->
-        {:ok, "Fuzz.float"}
-
-      "boolean" ->
-        {:ok, "Fuzz.bool"}
-
-      _ ->
-        {:error, ErrorUtil.unknown_primitive_type(type_name)}
+  @spec determine_primitive_fuzzer_name(PrimitiveType.value_type()) :: String.t()
+  def determine_primitive_fuzzer_name(value_type) do
+    case value_type do
+      :string -> "Fuzz.string"
+      :number -> "Fuzz.float"
+      :integer -> "Fuzz.int"
+      :boolean -> "Fuzz.bool"
+      :null -> "Fuzzer.unit"
     end
   end
 end

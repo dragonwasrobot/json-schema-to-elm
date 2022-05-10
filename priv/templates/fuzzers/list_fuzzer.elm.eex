@@ -1,0 +1,13 @@
+<%= list_fuzzer.name %> : Fuzzer (List <%= list_fuzzer.items_type %>)
+<%= list_fuzzer.name %> =
+    Fuzz.list <%= list_fuzzer.items_fuzzer %>
+
+
+encodeDecode<%= list_fuzzer.array_name %>Test : Test
+encodeDecode<%= list_fuzzer.array_name %>Test =
+    fuzz <%= list_fuzzer.name %> "can encode and decode <%= list_fuzzer.array_name %>" <|
+        \<%= list_fuzzer.argument_name %> ->
+            <%= list_fuzzer.argument_name %>
+                |> <%= list_fuzzer.encoder_name %>
+                |> Decode.decodeValue <%= list_fuzzer.decoder_name %>
+                |> Expect.equal (Ok <%= list_fuzzer.argument_name %>)

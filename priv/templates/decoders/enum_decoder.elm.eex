@@ -1,0 +1,14 @@
+<%= enum_decoder.name %> : Decoder <%= enum_decoder.type %>
+<%= enum_decoder.name %> =
+    Decode.<%= enum_decoder.argument_type %> |> Decode.andThen (<%= enum_decoder.parser_name %> >> Decode.fromResult)
+
+
+<%= enum_decoder.parser_name %> : <%= String.capitalize(enum_decoder.argument_type) %> -> Result String <%= enum_decoder.type %>
+<%= enum_decoder.parser_name %> <%= enum_decoder.argument_name %> =
+    case <%= enum_decoder.argument_name %> of<%#
+    %><%= for clause <- enum_decoder.clauses do %>
+        <%= clause.raw_value %> ->
+            Ok <%= clause.parsed_value %>
+<%# %><% end %>
+        _ ->
+            Err <| "Unknown <%= enum_decoder.argument_name %> type: " ++ <%= enum_decoder.argument_name %>

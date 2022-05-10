@@ -47,8 +47,8 @@ defmodule JS2ETest.Printer.UnionPrinter do
     expected_union_decoder_program = """
     favoriteNumberDecoder : Decoder FavoriteNumber
     favoriteNumberDecoder =
-        Decode.oneOf [ Decode.float |> Decode.andThen (Decode.succeed << FavoriteNumber_F)
-                     , Decode.int |> Decode.andThen (Decode.succeed << FavoriteNumber_I)
+        Decode.oneOf [ Decode.float |> Decode.map FavoriteNumber_F
+                     , Decode.int |> Decode.map FavoriteNumber_I
                      ]
     """
 
@@ -65,8 +65,8 @@ defmodule JS2ETest.Printer.UnionPrinter do
     expected_union_decoder_program = """
     favoriteNumberDecoder : Decoder (Maybe FavoriteNumber)
     favoriteNumberDecoder =
-        Decode.oneOf [ Decode.float |> Decode.andThen (Decode.succeed << Just << FavoriteNumber_F)
-                     , Decode.int |> Decode.andThen (Decode.succeed << Just << FavoriteNumber_I)
+        Decode.oneOf [ Decode.float |> Decode.map (FavoriteNumber_F >> Just)
+                     , Decode.int |> Decode.map (FavoriteNumber_I >> Just)
                      , Decode.null Nothing
                      ]
     """
@@ -105,15 +105,15 @@ defmodule JS2ETest.Printer.UnionPrinter do
     expected_union_fuzzer = """
     favoriteNumberFuzzer : Fuzzer FavoriteNumber
     favoriteNumberFuzzer =
-        Fuzz.map
-            [ Fuzz.float
-            , Fuzz.int
+        Fuzz.oneOf
+            [ Fuzz.map FavoriteNumber_F Fuzz.float
+            , Fuzz.map FavoriteNumber_I Fuzz.int
             ]
 
 
     encodeDecodeFavoriteNumberTest : Test
     encodeDecodeFavoriteNumberTest =
-        fuzz favoriteNumberFuzzer "can encode and decode FavoriteNumber union" <|
+        fuzz favoriteNumberFuzzer "can encode and decode FavoriteNumber" <|
             \\favoriteNumber ->
                 favoriteNumber
                     |> encodeFavoriteNumber
@@ -141,13 +141,13 @@ defmodule JS2ETest.Printer.UnionPrinter do
     do: %UnionType{
       name: "favoriteNumber",
       path: ["#", "definitions", "favoriteNumber"],
-      types: ["number", "integer"]
+      types: [:number, :integer]
     }
 
   defp union_type_with_null,
     do: %UnionType{
       name: "favoriteNumber",
       path: ["#", "definitions", "favoriteNumber"],
-      types: ["number", "integer", "null"]
+      types: [:number, :integer, :null]
     }
 end

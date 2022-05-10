@@ -3,6 +3,7 @@ js2e
 /js2e_output
 node_modules
 elm-stuff
+package-lock.json
 
 # The directory Mix will write compiled artifacts to.
 /_build

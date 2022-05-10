@@ -32,9 +32,9 @@ defmodule JS2ETest.Printer.TuplePrinter do
     expected_tuple_decoder_program = """
     shapePairDecoder : Decoder ShapePair
     shapePairDecoder =
-        Decode.map2 (,)
-            (index 0 squareDecoder)
-            (index 1 circleDecoder)
+        Decode.map2 (\\square circle -> (square, circle))
+            (Decode.index 0 squareDecoder)
+            (Decode.index 1 circleDecoder)
     """
 
     tuple_decoder_program = result.printed_schema

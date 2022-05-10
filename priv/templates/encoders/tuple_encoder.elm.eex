@@ -1,0 +1,7 @@
+<%= tuple_encoder.name %> : <%= tuple_encoder.type %> -> Value
+<%= tuple_encoder.name %> (<%= Enum.map_join(tuple_encoder.properties, ", ", fn p -> p.name end) %>) =
+    []<%#
+    %><%= for property <- tuple_encoder.properties do %>
+        |> (::) <%= property.encoder_name %> <%= property.name %><%#
+    %><% end %>
+        |> Encode.list

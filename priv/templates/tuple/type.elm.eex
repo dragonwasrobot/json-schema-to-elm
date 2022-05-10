@@ -1,3 +1,0 @@
-type alias <%= type_name %> =
-    ( <%= Enum.join(type_fields, "\n    , ") %>
-    )

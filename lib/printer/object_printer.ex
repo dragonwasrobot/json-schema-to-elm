@@ -21,22 +21,22 @@ defmodule JS2E.Printer.ObjectPrinter do
   alias Parser.Util, as: ParserUtil
   alias Types.{ObjectType, SchemaDefinition}
 
+  @type property_name :: String.t()
+  @type module_name :: String.t()
+
   @templates_location Application.compile_env(:js2e, :templates_location)
 
   # Type
 
-  @type_location Path.join(@templates_location, "object/type.elm.eex")
-  EEx.function_from_file(:defp, :type_template, @type_location, [
-    :type_name,
-    :fields
-  ])
+  @type_location Path.join(@templates_location, "types/product_type.elm.eex")
+  EEx.function_from_file(:defp, :type_template, @type_location, [:product_type])
 
   @impl JS2E.Printer.PrinterBehaviour
   @spec print_type(
           Types.typeDefinition(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
-          String.t()
+          module_name()
         ) :: PrinterResult.t()
   def print_type(
         %ObjectType{
@@ -52,64 +52,38 @@ defmodule JS2E.Printer.ObjectPrinter do
     type_name = Naming.create_root_name(name, schema_def)
 
     fields_result =
-      create_type_fields(
-        properties,
-        required,
-        path,
-        schema_def,
-        schema_dict,
-        module_name
+      properties
+      |> Enum.map(
+        &create_type_fields(
+          &1,
+          required,
+          path,
+          schema_def,
+          schema_dict,
+          module_name
+        )
       )
 
     {fields, errors} =
       fields_result
       |> CommonOperations.split_ok_and_errors()
 
-    type_name
-    |> type_template(fields)
+    %{name: type_name, fields: {:named, List.flatten(fields)}}
+    |> type_template()
     |> PrinterResult.new(errors)
   end
 
   @spec create_type_fields(
-          Types.propertyDictionary(),
-          [String.t()],
+          {property_name(), Types.typeIdentifier()},
+          [property_name()],
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
-          String.t()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_type_fields(
-         properties,
-         required,
-         parent,
-         schema_def,
-         schema_dict,
-         module_name
-       ) do
-    properties
-    |> Enum.map(
-      &create_type_field(
-        &1,
-        required,
-        parent,
-        schema_def,
-        schema_dict,
-        module_name
-      )
-    )
-  end
-
-  @spec create_type_field(
-          {String.t(), Types.typeIdentifier()},
-          [String.t()],
-          URI.t(),
-          SchemaDefinition.t(),
-          Types.schemaDictionary(),
-          String.t()
+          module_name()
         ) ::
-          {:ok, %{name: String.t(), type: String.t()}}
+          {:ok, [ElmTypes.named_field()]}
           | {:error, PrinterError.t()}
-  defp create_type_field(
+  defp create_type_fields(
          {property_name, property_path},
          required,
          parent,
@@ -119,47 +93,48 @@ defmodule JS2E.Printer.ObjectPrinter do
        ) do
     properties_path = ParserUtil.add_fragment_child(parent, property_name)
 
-    field_type_result =
-      property_path
-      |> Resolver.resolve_type(properties_path, schema_def, schema_dict)
-      |> ElmTypes.create_type_name(parent, schema_def, schema_dict, module_name)
-      |> check_if_maybe(property_name, required)
+    with {:ok, {resolved_type, resolved_schema}} <-
+           Resolver.resolve_type(
+             property_path,
+             properties_path,
+             schema_def,
+             schema_dict
+           ),
+         {:ok, fields} <-
+           ElmTypes.create_fields(
+             property_name,
+             resolved_type,
+             resolved_schema,
+             parent,
+             schema_def,
+             schema_dict,
+             module_name
+           ) do
+      named_fields =
+        fields
+        |> Enum.map(&check_optional(&1, required))
 
-    case field_type_result do
-      {:ok, field_type} ->
-        {:ok,
-         %{
-           name: Naming.normalize_identifier(property_name, :downcase),
-           type: field_type
-         }}
-
+      {:ok, named_fields}
+    else
       {:error, error} ->
         {:error, error}
     end
   end
 
-  @spec check_if_maybe(
-          {:ok, String.t()} | {:error, PrinterError.t()},
-          String.t(),
-          [String.t()]
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  defp check_if_maybe({:error, error}, _pn, _rq), do: {:error, error}
-
-  defp check_if_maybe({:ok, field_name}, property_name, required) do
-    if property_name in required do
-      {:ok, field_name}
+  @spec check_optional(ElmTypes.named_field(), [String.t()]) :: ElmTypes.named_field()
+  defp check_optional(field, required) do
+    if field.name in required do
+      %{field | type: field.type}
     else
-      {:ok, "Maybe #{field_name}"}
+      %{field | type: "Maybe #{field.type}"}
     end
   end
 
   # Decoder
 
-  @decoder_location Path.join(@templates_location, "object/decoder.elm.eex")
+  @decoder_location Path.join(@templates_location, "decoders/product_decoder.elm.eex")
   EEx.function_from_file(:defp, :decoder_template, @decoder_location, [
-    :decoder_name,
-    :type_name,
-    :clauses
+    :product_decoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -185,58 +160,52 @@ defmodule JS2E.Printer.ObjectPrinter do
 
     {decoder_clauses, errors} =
       properties
-      |> create_decoder_properties(
-        required,
-        path,
-        schema_def,
-        schema_dict,
-        module_name
-      )
+      |> Enum.map(fn property ->
+        create_decoder_clause(
+          property,
+          required,
+          path,
+          schema_def,
+          schema_dict,
+          module_name
+        )
+      end)
       |> CommonOperations.split_ok_and_errors()
 
-    decoder_name
-    |> decoder_template(type_name, decoder_clauses)
+    decoder_clauses =
+      decoder_clauses
+      |> List.flatten()
+      |> Enum.map(fn clause -> check_optional_decoder(clause) end)
+
+    %{
+      name: decoder_name,
+      type: type_name,
+      clauses: {:named, decoder_clauses}
+    }
+    |> decoder_template()
     |> PrinterResult.new(errors)
   end
 
-  @spec create_decoder_properties(
-          Types.propertyDictionary(),
-          [String.t()],
-          URI.t(),
-          SchemaDefinition.t(),
-          Types.schemaDictionary(),
-          String.t()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_decoder_properties(
-         properties,
-         required,
-         parent,
-         schema_def,
-         schema_dict,
-         module_name
-       ) do
-    properties
-    |> Enum.map(fn property ->
-      create_decoder_property(
-        property,
-        required,
-        parent,
-        schema_def,
-        schema_dict,
-        module_name
-      )
-    end)
+  @spec check_optional_decoder(map) :: map
+  defp check_optional_decoder(clause) do
+    if clause.option == :optional do
+      %{clause | decoder_name: "(Decode.nullable #{clause.decoder_name}) Nothing"}
+    else
+      clause
+    end
   end
 
-  @spec create_decoder_property(
+  @spec create_decoder_clause(
           {String.t(), String.t()},
           [String.t()],
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
-  defp create_decoder_property(
+        ) ::
+          {:ok, [ElmDecoders.named_product_clause()]}
+          | {:error, PrinterError.t()}
+  defp create_decoder_clause(
          {property_name, property_path},
          required,
          parent,
@@ -253,49 +222,28 @@ defmodule JS2E.Printer.ObjectPrinter do
              schema_def,
              schema_dict
            ),
-         {:ok, decoder_name} <-
-           ElmDecoders.create_decoder_name(
-             {:ok, {resolved_type, resolved_schema}},
+         {:ok, clauses} <-
+           ElmDecoders.create_clauses(
+             property_name,
+             resolved_type,
+             resolved_schema,
+             required,
              schema_def,
+             schema_dict,
              module_name
            ) do
-      is_required = property_name in required
-
-      decoder_clause =
-        create_decoder_clause(property_name, decoder_name, is_required)
-
-      {:ok, decoder_clause}
+      {:ok, clauses}
     else
       {:error, error} ->
         {:error, error}
     end
   end
 
-  @spec create_decoder_clause(String.t(), String.t(), boolean) :: map
-  defp create_decoder_clause(property_name, decoder_name, is_required) do
-    if is_required do
-      %{
-        option: "required",
-        property_name: Naming.normalize_identifier(property_name, :downcase),
-        decoder: decoder_name
-      }
-    else
-      %{
-        option: "optional",
-        property_name: Naming.normalize_identifier(property_name, :downcase),
-        decoder: "(Decode.nullable #{decoder_name}) Nothing"
-      }
-    end
-  end
-
   # Encoder
 
-  @encoder_location Path.join(@templates_location, "object/encoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "encoders/product_encoder.elm.eex")
   EEx.function_from_file(:defp, :encoder_template, @encoder_location, [
-    :encoder_name,
-    :type_name,
-    :argument_name,
-    :properties
+    :product_encoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -322,48 +270,27 @@ defmodule JS2E.Printer.ObjectPrinter do
 
     {encoder_properties, errors} =
       properties
-      |> create_encoder_properties(
-        required,
-        path,
-        schema_def,
-        schema_dict,
-        module_name
+      |> Enum.map(
+        &create_encoder_property(
+          &1,
+          required,
+          path,
+          schema_def,
+          schema_dict,
+          module_name
+        )
       )
       |> CommonOperations.split_ok_and_errors()
 
-    encoder_name
-    |> encoder_template(type_name, argument_name, encoder_properties)
+    %{
+      name: encoder_name,
+      type: type_name,
+      argument_name: argument_name,
+      properties: encoder_properties
+    }
+    |> encoder_template()
     |> Indentation.trim_newlines()
     |> PrinterResult.new(errors)
-  end
-
-  @spec create_encoder_properties(
-          Types.propertyDictionary(),
-          [String.t()],
-          URI.t(),
-          SchemaDefinition.t(),
-          Types.schemaDictionary(),
-          String.t()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
-  defp create_encoder_properties(
-         properties,
-         required,
-         parent,
-         schema_def,
-         schema_dict,
-         module_name
-       ) do
-    Enum.map(
-      properties,
-      &create_encoder_property(
-        &1,
-        required,
-        parent,
-        schema_def,
-        schema_dict,
-        module_name
-      )
-    )
   end
 
   @spec create_encoder_property(
@@ -391,20 +318,16 @@ defmodule JS2E.Printer.ObjectPrinter do
              schema_def,
              schema_dict
            ),
-         {:ok, encoder_name} <-
-           ElmEncoders.create_encoder_name(
-             {:ok, {resolved_type, resolved_schema}},
+         {:ok, encoder_property} <-
+           ElmEncoders.create_encoder_property(
+             resolved_type,
+             resolved_schema,
+             property_name,
+             required,
              schema_def,
              module_name
            ) do
-      is_required = property_name in required
-
-      {:ok,
-       %{
-         name: Naming.normalize_identifier(property_name, :downcase),
-         encoder_name: encoder_name,
-         required: is_required
-       }}
+      {:ok, encoder_property}
     else
       {:error, error} ->
         {:error, error}
@@ -413,14 +336,9 @@ defmodule JS2E.Printer.ObjectPrinter do
 
   # Fuzzer
 
-  @fuzzer_location Path.join(@templates_location, "object/fuzzer.elm.eex")
+  @fuzzer_location Path.join(@templates_location, "fuzzers/product_fuzzer.elm.eex")
   EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
-    :type_name,
-    :argument_name,
-    :decoder_name,
-    :encoder_name,
-    :fuzzer_name,
-    :fuzzers
+    :product_fuzzer
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -431,12 +349,7 @@ defmodule JS2E.Printer.ObjectPrinter do
           String.t()
         ) :: PrinterResult.t()
   def print_fuzzer(
-        %ObjectType{
-          name: name,
-          path: path,
-          properties: properties,
-          required: required
-        },
+        %ObjectType{name: name, path: path, properties: properties, required: required},
         schema_def,
         schema_dict,
         module_name
@@ -449,64 +362,39 @@ defmodule JS2E.Printer.ObjectPrinter do
 
     {fuzzers, errors} =
       properties
-      |> create_fuzzer_properties(
-        required,
-        path,
-        schema_def,
-        schema_dict,
-        module_name
+      |> Enum.map(
+        &create_property_fuzzer(
+          &1,
+          required,
+          path,
+          schema_def,
+          schema_dict,
+          module_name
+        )
       )
       |> CommonOperations.split_ok_and_errors()
 
-    type_name
-    |> fuzzer_template(
-      argument_name,
-      decoder_name,
-      encoder_name,
-      fuzzer_name,
-      fuzzers
-    )
+    %{
+      name: fuzzer_name,
+      type: type_name,
+      argument_name: argument_name,
+      decoder_name: decoder_name,
+      encoder_name: encoder_name,
+      fuzzers: List.flatten(fuzzers)
+    }
+    |> fuzzer_template()
     |> PrinterResult.new(errors)
   end
 
-  @spec create_fuzzer_properties(
-          Types.propertyDictionary(),
-          [String.t()],
-          URI.t(),
-          SchemaDefinition.t(),
-          Types.schemaDictionary(),
-          String.t()
-        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
-  defp create_fuzzer_properties(
-         properties,
-         required,
-         parent,
-         schema_def,
-         schema_dict,
-         module_name
-       ) do
-    properties
-    |> Enum.map(
-      &create_fuzzer_property(
-        &1,
-        required,
-        parent,
-        schema_def,
-        schema_dict,
-        module_name
-      )
-    )
-  end
-
-  @spec create_fuzzer_property(
+  @spec create_property_fuzzer(
           {String.t(), Types.typeIdentifier()},
           [String.t()],
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
-  defp create_fuzzer_property(
+        ) :: {:ok, [String.t()]} | {:error, PrinterError.t()}
+  defp create_property_fuzzer(
          {property_name, property_path},
          required,
          parent,
@@ -523,25 +411,33 @@ defmodule JS2E.Printer.ObjectPrinter do
              schema_def,
              schema_dict
            ),
-         {:ok, fuzzer_name} <-
-           ElmFuzzers.create_fuzzer_name(
-             {:ok, {resolved_type, resolved_schema}},
+         {:ok, field_fuzzers} <-
+           ElmFuzzers.create_fuzzer_names(
+             property_name,
+             resolved_type,
+             resolved_schema,
              schema_def,
+             schema_dict,
              module_name
            ) do
-      is_required = property_name in required
+      fuzzers =
+        field_fuzzers
+        |> Enum.map(&check_optional_fuzzer(&1, required))
 
-      fuzzer_name =
-        if is_required do
-          fuzzer_name
-        else
-          "(Fuzz.maybe #{fuzzer_name})"
-        end
-
-      {:ok, fuzzer_name}
+      {:ok, fuzzers}
     else
       {:error, error} ->
         {:error, error}
+    end
+  end
+
+  @spec check_optional_fuzzer(ElmFuzzers.field_fuzzer(), [String.t()]) ::
+          ElmFuzzers.field_fuzzer()
+  defp check_optional_fuzzer(field_fuzzer, required) do
+    if field_fuzzer.field_name in required do
+      field_fuzzer
+    else
+      %{field_fuzzer | fuzzer_name: "(Fuzz.maybe #{field_fuzzer.fuzzer_name})"}
     end
   end
 end

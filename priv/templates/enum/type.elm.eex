@@ -1,2 +1,0 @@
-type <%= type_name %>
-    = <%= Enum.join(clauses, "\n    | ") %>

@@ -1,0 +1,11 @@
+<%= product_encoder.name %> : <%= product_encoder.type %> -> Value
+<%= product_encoder.name %> <%= product_encoder.argument_name %> =
+    []<%#
+    %><%= for property <- product_encoder.properties do %>
+        <%= if property.required == true do %><%#
+        %>|> Encode.required "<%= property.name %>" <%= product_encoder.argument_name %>.<%= property.location %> <%= property.encoder_name %><%#
+      %><% else %><%#
+        %>|> Encode.optional "<%= property.name %>" <%= product_encoder.argument_name %>.<%= property.location %> <%= property.encoder_name %><%#
+      %><% end %><%#
+    %><% end %>
+        |> Encode.object

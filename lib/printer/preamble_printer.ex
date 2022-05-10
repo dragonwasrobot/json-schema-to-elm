@@ -203,8 +203,6 @@ defmodule JS2E.Printer.PreamblePrinter do
 
   @spec has_same_absolute_path?(URI.t(), URI.t()) :: boolean
   defp has_same_absolute_path?(type_uri, schema_uri) do
-    # TODO: Should it be necessary that type_uri and schema_uri both have the
-    # same host?
     type_uri.host == schema_uri.host and type_uri.path == schema_uri.path
   end
 

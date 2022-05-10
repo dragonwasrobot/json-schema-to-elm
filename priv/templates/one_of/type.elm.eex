@@ -1,2 +1,0 @@
-type <%= type_name %>
-    = <%= Enum.map_join(clauses, "\n    | ", fn clause -> "#{clause.name} #{clause.type}" end) %>

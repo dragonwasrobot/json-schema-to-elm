@@ -1,3 +1,0 @@
-type alias <%= type_name %> =
-    { <%= Enum.map_join(fields, "\n    , ", fn field -> "#{field.name} : #{field.type}" end) %>
-    }

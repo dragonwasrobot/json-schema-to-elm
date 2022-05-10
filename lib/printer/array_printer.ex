@@ -42,11 +42,9 @@ defmodule JS2E.Printer.ArrayPrinter do
 
   # Decoder
 
-  @decoder_location Path.join(@templates_location, "array/decoder.elm.eex")
+  @decoder_location Path.join(@templates_location, "decoders/list_decoder.elm.eex")
   EEx.function_from_file(:defp, :decoder_template, @decoder_location, [
-    :decoder_name,
-    :items_type_name,
-    :items_decoder_name
+    :list_decoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -66,8 +64,12 @@ defmodule JS2E.Printer.ArrayPrinter do
            Resolver.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_decoder_name} <- determine_decoder_name(items_type) do
-      "#{Naming.normalize_identifier(name, :downcase)}Decoder"
-      |> decoder_template(items_type_name, items_decoder_name)
+      %{
+        name: "#{Naming.normalize_identifier(name, :downcase)}Decoder",
+        type: items_type_name,
+        item_decoder: items_decoder_name
+      }
+      |> decoder_template()
       |> PrinterResult.new()
     else
       {:error, %ParserError{identifier: id, error_type: atom, message: str}} ->
@@ -104,8 +106,7 @@ defmodule JS2E.Printer.ArrayPrinter do
         ElmDecoders.determine_primitive_type_decoder(items_type.type)
 
       _ ->
-        items_type_name =
-          Naming.normalize_identifier(items_type.name, :downcase)
+        items_type_name = Naming.normalize_identifier(items_type.name, :downcase)
 
         if items_type_name == "hash" do
           {:ok, "rootDecoder"}
@@ -117,12 +118,9 @@ defmodule JS2E.Printer.ArrayPrinter do
 
   # Encoder
 
-  @encoder_location Path.join(@templates_location, "array/encoder.elm.eex")
+  @encoder_location Path.join(@templates_location, "encoders/list_encoder.elm.eex")
   EEx.function_from_file(:defp, :encoder_template, @encoder_location, [
-    :encoder_name,
-    :argument_name,
-    :items_type_name,
-    :items_encoder_name
+    :list_encoder
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -142,8 +140,13 @@ defmodule JS2E.Printer.ArrayPrinter do
            Resolver.resolve_type(items_path, path, schema_def, schema_dict),
          {:ok, items_type_name} <- determine_type_name(items_type),
          {:ok, items_encoder_name} <- determine_encoder_name(items_type) do
-      "encode#{Naming.normalize_identifier(name, :upcase)}"
-      |> encoder_template(name, items_type_name, items_encoder_name)
+      %{
+        name: "encode#{Naming.normalize_identifier(name, :upcase)}",
+        type: items_type_name,
+        argument_name: name,
+        items_encoder: items_encoder_name
+      }
+      |> encoder_template()
       |> PrinterResult.new()
     else
       {:error, %ParserError{identifier: id, error_type: atom, message: str}} ->
@@ -174,15 +177,9 @@ defmodule JS2E.Printer.ArrayPrinter do
 
   # Fuzzer
 
-  @fuzzer_location Path.join(@templates_location, "array/fuzzer.elm.eex")
+  @fuzzer_location Path.join(@templates_location, "fuzzers/list_fuzzer.elm.eex")
   EEx.function_from_file(:defp, :fuzzer_template, @fuzzer_location, [
-    :array_name,
-    :argument_name,
-    :fuzzer_name,
-    :decoder_name,
-    :encoder_name,
-    :items_type_name,
-    :items_fuzzer_name
+    :list_fuzzer
   ])
 
   @impl JS2E.Printer.PrinterBehaviour
@@ -208,15 +205,16 @@ defmodule JS2E.Printer.ArrayPrinter do
       decoder_name = "#{Naming.normalize_identifier(name, :downcase)}Decoder"
       encoder_name = "encode#{Naming.normalize_identifier(name, :upcase)}"
 
-      array_name
-      |> fuzzer_template(
-        argument_name,
-        fuzzer_name,
-        decoder_name,
-        encoder_name,
-        items_type_name,
-        items_fuzzer_name
-      )
+      %{
+        name: fuzzer_name,
+        array_name: array_name,
+        items_type: items_type_name,
+        items_fuzzer: items_fuzzer_name,
+        argument_name: argument_name,
+        decoder_name: decoder_name,
+        encoder_name: encoder_name
+      }
+      |> fuzzer_template()
       |> PrinterResult.new()
     else
       {:error, %ParserError{identifier: id, error_type: atom, message: str}} ->
@@ -235,8 +233,7 @@ defmodule JS2E.Printer.ArrayPrinter do
         ElmFuzzers.determine_primitive_fuzzer_name(items_type.type)
 
       _ ->
-        items_type_name =
-          Naming.normalize_identifier(items_type.name, :downcase)
+        items_type_name = Naming.normalize_identifier(items_type.name, :downcase)
 
         if items_type_name == "hash" do
           {:ok, "rootFuzzer"}

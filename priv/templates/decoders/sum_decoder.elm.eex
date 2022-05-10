@@ -1,0 +1,12 @@
+<%= sum_decoder.name %> : Decoder <%= sum_decoder.type %>
+<%= sum_decoder.name %> =<%#
+%><%= case sum_decoder.clauses do %>
+<% {:anonymous, clauses} -> %>
+    Decode.oneOf [ <%= Enum.map_join(clauses, "\n                 , ", fn clause -> clause.decoder_name end) %><%#
+%><%= if sum_decoder.optional do "\n                 , Decode.null Nothing" end %>
+                 ]<%#
+%><% {:named, clauses} -> %>
+    Decode.oneOf [ <%= Enum.map_join(clauses, "\n                 , ", fn clause -> "#{clause.decoder_name} |> Decode.map #{clause.constructor_name}" end) %><%#
+%><%= if sum_decoder.optional do "\n                 , Decode.null Nothing" end %>
+                 ]<%#
+%><% end %>

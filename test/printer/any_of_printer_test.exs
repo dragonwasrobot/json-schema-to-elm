@@ -21,8 +21,9 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
 
     expected_any_of_type_program = """
     type alias FancyCircle =
-        { zero : Maybe Zero
-        , circle : Maybe Circle
+        { circle : Maybe Circle
+        , color : Maybe Color
+        , description : Maybe String
         }
     """
 
@@ -38,8 +39,9 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     fancyCircleDecoder : Decoder FancyCircle
     fancyCircleDecoder =
         Decode.succeed FancyCircle
-            |> custom (Decode.nullable zeroDecoder)
             |> custom (Decode.nullable circleDecoder)
+            |> optional "color" (Decode.nullable colorDecoder) Nothing
+            |> optional "description" (Decode.nullable Decode.string) Nothing
     """
 
     any_of_decoder_program = result.printed_schema
@@ -58,9 +60,9 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     encodeFancyCircle : FancyCircle -> Value
     encodeFancyCircle fancyCircle =
         []
-            |> Encode.nestedRequired "color" fancyCircle.zero .color encodeColor
-            |> Encode.nestedOptional "description" fancyCircle.zero .description Encode.string
-            |> Encode.nestedRequired "radius" fancyCircle.circle .radius Encode.float
+            |> Encode.optional "color" fancyCircle.color encodeColor
+            |> Encode.optional "description" fancyCircle.description Encode.string
+            |> Encode.optional "radius" fancyCircle.circle.radius Encode.float
             |> Encode.object
     """
 
@@ -75,10 +77,11 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
     expected_any_of_fuzzer_program = """
     fancyCircleFuzzer : Fuzzer FancyCircle
     fancyCircleFuzzer =
-        Fuzz.map2
+        Fuzz.map3
             FancyCircle
-            (Fuzz.maybe zeroFuzzer)
             (Fuzz.maybe circleFuzzer)
+            (Fuzz.maybe colorFuzzer)
+            (Fuzz.maybe Fuzz.string)
 
 
     encodeDecodeFancyCircleTest : Test
@@ -123,13 +126,12 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
   def type_dict do
     %{
       "#/definitions/fancyCircle/anyOf/0" => %ObjectType{
-        name: "0",
+        name: :anonymous,
         path: URI.parse(Path.join(path(), "anyOf/0")),
         required: ["color"],
         properties: %{
           "color" => URI.parse(Path.join(path(), "anyOf/0/properties/color")),
-          "description" =>
-            URI.parse(Path.join(path(), "anyOf/0/properties/description"))
+          "description" => URI.parse(Path.join(path(), "anyOf/0/properties/description"))
         },
         pattern_properties: %{}
       },
@@ -143,12 +145,11 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
         type: "string",
         values: ["red", "yellow", "green"]
       },
-      "#/definitions/fancyCircle/anyOf/0/properties/description" =>
-        %PrimitiveType{
-          name: "description",
-          path: URI.parse(Path.join(path(), "anyOf/0/properties/description")),
-          type: "string"
-        },
+      "#/definitions/fancyCircle/anyOf/0/properties/description" => %PrimitiveType{
+        name: "description",
+        path: URI.parse(Path.join(path(), "anyOf/0/properties/description")),
+        type: :string
+      },
       "#/definitions/fancyCircle/anyOf/1" => %TypeReference{
         name: "1",
         path: URI.parse("#/definitions/circle")
@@ -165,7 +166,7 @@ defmodule JS2ETest.Printer.AnyOfPrinter do
       "#/definitions/circle/properties/radius" => %PrimitiveType{
         name: "radius",
         path: URI.parse("#/definitions/circle/properties/radius"),
-        type: "number"
+        type: :number
       }
     }
   end

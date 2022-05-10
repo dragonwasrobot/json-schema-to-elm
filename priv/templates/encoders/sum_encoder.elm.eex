@@ -1,0 +1,7 @@
+<%= sum_encoder.name %> : <%= sum_encoder.type %> -> Value
+<%= sum_encoder.name %> <%= sum_encoder.argument_name %> =
+    case <%= sum_encoder.argument_name %> of<%#
+    %><%= for case <- sum_encoder.cases do %>
+        <%= case.constructor %> ->
+            <%= case.encoder %>
+<%# %><% end %>

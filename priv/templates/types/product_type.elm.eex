@@ -1,0 +1,9 @@
+type alias <%= product_type.name %> =<%#
+%><%= case product_type.fields do %>
+<% {:anonymous, fields} -> %>
+    ( <%= Enum.map_join(fields, "\n    , ", fn field -> field.type end) %>
+    )<%#
+%><% {:named, fields} -> %>
+    { <%= Enum.map_join(fields, "\n    , ", fn field -> "#{field.name} : #{field.type}" end) %>
+    }<%#
+%><% end %>
