@@ -11,14 +11,17 @@ import Data.Definitions exposing (..)
 
 colorFuzzer : Fuzzer Color
 colorFuzzer =
-    [ Red, Yellow, Green, Blue ]
-        |> List.map Fuzz.constant
-        |> Fuzz.oneOf
+    Fuzz.oneOf
+        [ Fuzz.constant Red
+        , Fuzz.constant Yellow
+        , Fuzz.constant Green
+        , Fuzz.constant Blue
+        ]
 
 
 encodeDecodeColorTest : Test
 encodeDecodeColorTest =
-    fuzz colorFuzzer "can encode and decode Color object" <|
+    fuzz colorFuzzer "can encode and decode Color" <|
         \color ->
             color
                 |> encodeColor

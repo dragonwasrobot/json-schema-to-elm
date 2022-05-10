@@ -2,8 +2,6 @@ module Data.Circle exposing (..)
 
 -- Schema for a circle shape
 
-import Data.Definitions as Definitions
-import Data.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
@@ -13,6 +11,8 @@ import Json.Decode.Pipeline
         , required
         )
 import Json.Encode as Encode exposing (Value)
+import Data.Encode as Encode
+import Data.Definitions as Definitions
 
 
 type alias Circle =
