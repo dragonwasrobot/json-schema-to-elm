@@ -18,11 +18,11 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
     file_dict = schema_result.file_dict
 
-    encode_program = file_dict["./js2e_output/src/Data/Encode.elm"]
+    encode_program = file_dict["./js2e_output/src/Helper/Encode.elm"]
 
     assert encode_program ==
              """
-             module Data.Encode exposing (optional, required)
+             module Helper.Encode exposing (optional, required)
 
              -- Helper functions for encoding JSON objects.
 
@@ -62,6 +62,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              -- Schema for a circle shape
 
+             import Helper.Encode as Encode
              import Json.Decode as Decode exposing (Decoder)
              import Json.Decode.Extra as Decode
              import Json.Decode.Pipeline
@@ -71,7 +72,6 @@ defmodule JS2ETest.Printer.ExternalReferences do
                      , required
                      )
              import Json.Encode as Encode exposing (Value)
-             import Data.Encode as Encode
              import Data.Definitions as Definitions
 
 
@@ -107,6 +107,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
 
              -- Schema for common types
 
+             import Helper.Encode as Encode
              import Json.Decode as Decode exposing (Decoder)
              import Json.Decode.Extra as Decode
              import Json.Decode.Pipeline
@@ -116,7 +117,6 @@ defmodule JS2ETest.Printer.ExternalReferences do
                      , required
                      )
              import Json.Encode as Encode exposing (Value)
-             import Data.Encode as Encode
 
 
              type Color
@@ -219,7 +219,7 @@ defmodule JS2ETest.Printer.ExternalReferences do
                      Circle
                      Definitions.pointFuzzer
                      (Fuzz.maybe Definitions.colorFuzzer)
-                     Fuzz.float
+                     Fuzz.niceFloat
 
 
              encodeDecodeCircleTest : Test
@@ -271,8 +271,8 @@ defmodule JS2ETest.Printer.ExternalReferences do
              pointFuzzer =
                  Fuzz.map2
                      Point
-                     Fuzz.float
-                     Fuzz.float
+                     Fuzz.niceFloat
+                     Fuzz.niceFloat
 
 
              encodeDecodePointTest : Test

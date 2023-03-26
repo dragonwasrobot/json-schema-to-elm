@@ -1,5 +1,5 @@
 defmodule JS2E.Printer.PreamblePrinter do
-  @moduledoc ~S"""
+  @moduledoc """
   A printer for printing a 'preamble' for a module.
   """
 

@@ -102,6 +102,9 @@ defmodule JS2E do
     |> String.replace(".", "/")
     |> File.mkdir_p!()
 
+    "#{@output_location}/src/Helper"
+    |> File.mkdir_p!()
+
     "#{@output_location}/tests"
     |> Path.join(module_name)
     |> String.replace(".", "/")

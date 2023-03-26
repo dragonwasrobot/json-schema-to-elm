@@ -7,7 +7,13 @@
     "color": {
       "$id": "#color",
       "type": "string",
-      "enum": [ "red", "yellow", "green", "blue" ]
+      "enum": [
+        "red",
+        "yellow",
+        "green",
+        "blue"
+      ],
+      "default": "green"
     },
     "point": {
       "$id": "#point",
@@ -20,7 +26,10 @@
           "type": "number"
         }
       },
-      "required": [ "x", "y" ]
+      "required": [
+        "x",
+        "y"
+      ]
     }
   }
 }

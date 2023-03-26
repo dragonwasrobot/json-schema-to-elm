@@ -1,4 +1,4 @@
-module <%= prefix %>.Encode exposing (optional, required)
+module Helper.Encode exposing (optional, required)
 
 -- Helper functions for encoding JSON objects.
 

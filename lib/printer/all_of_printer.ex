@@ -1,12 +1,13 @@
 defmodule JS2E.Printer.AllOfPrinter do
   @behaviour JS2E.Printer.PrinterBehaviour
-  @moduledoc ~S"""
+  @moduledoc """
   A printer for printing an 'all of' type decoder.
   """
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.{Resolver, Types}
+  alias JsonSchema.{Parser, Resolver, Types}
+  alias Parser.ParserError
   alias Printer.{PrinterError, PrinterResult, Utils}
   alias Types.{AllOfType, SchemaDefinition}
 
@@ -70,15 +71,13 @@ defmodule JS2E.Printer.AllOfPrinter do
     |> PrinterResult.new(errors)
   end
 
-  @type elm_type_field :: %{name: String.t(), type: String.t()}
-
   @spec create_type_fields(
           URI.t(),
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [elm_type_field]} | {:error, PrinterError.t()}
+        ) :: {:ok, [ElmTypes.named_clause()]} | {:error, PrinterError.t() | ParserError.t()}
   defp create_type_fields(
          type_path,
          parent,
@@ -177,7 +176,9 @@ defmodule JS2E.Printer.AllOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [ElmDecoders.decoder_type()]} | {:error, PrinterError.t()}
+        ) ::
+          {:ok, [ElmDecoders.named_product_clause()]}
+          | {:error, PrinterError.t() | ParserError.t()}
   defp create_decoder_properties(
          type_path,
          parent,
@@ -266,7 +267,7 @@ defmodule JS2E.Printer.AllOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) :: {:ok, ElmEncoders.product_encoder()} | {:error, PrinterError.t() | ParserError.t()}
   defp create_encoder_property(
          type_path,
          parent,
@@ -274,10 +275,10 @@ defmodule JS2E.Printer.AllOfPrinter do
          schema_dict,
          module_name
        ) do
-    with {:ok, {resolved_type, resolved_schema}} <-
-           Resolver.resolve_type(type_path, parent, schema_def, schema_dict) do
-      to_encoder_property(resolved_type, resolved_schema, schema_dict, module_name)
-    else
+    case Resolver.resolve_type(type_path, parent, schema_def, schema_dict) do
+      {:ok, {resolved_type, resolved_schema}} ->
+        to_encoder_property(resolved_type, resolved_schema, schema_dict, module_name)
+
       {:error, error} ->
         {:error, error}
     end
@@ -391,7 +392,7 @@ defmodule JS2E.Printer.AllOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+        ) :: {:ok, [ElmFuzzers.field_fuzzer()]} | {:error, PrinterError.t()}
   defp create_property_fuzzer(
          type_path,
          parent,

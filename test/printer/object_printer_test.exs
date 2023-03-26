@@ -78,7 +78,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
         Fuzz.map4
             Circle
             colorFuzzer
-            Fuzz.float
+            Fuzz.niceFloat
             tagsFuzzer
             (Fuzz.maybe Fuzz.string)
 
@@ -106,6 +106,7 @@ defmodule JS2ETest.Printer.ObjectPrinter do
         name: "color",
         path: URI.parse("#/properties/color"),
         type: "string",
+        default: "none",
         values: ["none", "green", "yellow", "red"]
       },
       "#/properties/title" => %PrimitiveType{

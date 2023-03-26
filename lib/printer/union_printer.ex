@@ -1,15 +1,15 @@
 defmodule JS2E.Printer.UnionPrinter do
   @behaviour JS2E.Printer.PrinterBehaviour
-  @moduledoc ~S"""
+  @moduledoc """
   A printer for printing an 'object' type decoder.
   """
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
   alias JsonSchema.Types
-  alias Printer.{PrinterError, PrinterResult, Utils}
+  alias Printer.{PrinterResult, Utils}
   alias Types.{SchemaDefinition, UnionType}
-  alias Utils.{Indentation, Naming}
+  alias Utils.{ElmTypes, Indentation, Naming}
 
   @templates_location Application.compile_env(:js2e, :templates_location)
 
@@ -44,16 +44,14 @@ defmodule JS2E.Printer.UnionPrinter do
     |> PrinterResult.new()
   end
 
-  @spec create_type_clauses([UnionType.value_type()], String.t()) :: [
-          {:ok, map} | {:error, PrinterError.t()}
-        ]
+  @spec create_type_clauses([UnionType.value_type()], String.t()) :: [ElmTypes.named_clause()]
   defp create_type_clauses(value_type, name) do
     value_type
     |> Enum.filter(&(&1 != :null))
     |> Enum.map(&to_type_clause(&1, name))
   end
 
-  @spec to_type_clause(UnionType.value_type(), String.t()) :: map
+  @spec to_type_clause(UnionType.value_type(), String.t()) :: ElmTypes.named_clause()
   defp to_type_clause(value_type, name) do
     type_name = Naming.normalize_identifier(name, :upcase)
 
@@ -90,7 +88,7 @@ defmodule JS2E.Printer.UnionPrinter do
     type_name = Naming.upcase_first(normalized_name)
     optional = :null in types
     decoder_type = check_if_maybe(type_name, optional)
-    decoder_clauses = types |> create_clause_decoders(type_name, optional)
+    decoder_clauses = types |> create_decoder_clauses(type_name, optional)
 
     %{
       name: decoder_name,
@@ -111,15 +109,22 @@ defmodule JS2E.Printer.UnionPrinter do
     end
   end
 
-  @spec create_clause_decoders([UnionType.value_type()], String.t(), boolean) :: [map]
-  defp create_clause_decoders(value_type, type_name, optional) do
+  @spec create_decoder_clauses([UnionType.value_type()], String.t(), boolean) :: [
+          decoder_clause()
+        ]
+  defp create_decoder_clauses(value_type, type_name, optional) do
     value_type
     |> Enum.filter(fn type_id -> type_id != :null end)
-    |> Enum.map(&create_clause_decoder(&1, type_name, optional))
+    |> Enum.map(&create_decoder_clause(&1, type_name, optional))
   end
 
-  @spec create_clause_decoder(UnionType.value_type(), String.t(), boolean) :: map
-  defp create_clause_decoder(value_type, type_name, optional) do
+  @type decoder_clause :: %{
+          decoder_name: String.t(),
+          constructor_name: String.t()
+        }
+
+  @spec create_decoder_clause(UnionType.value_type(), String.t(), boolean) :: decoder_clause()
+  defp create_decoder_clause(value_type, type_name, optional) do
     {constructor_suffix, decoder_name} =
       case value_type do
         :boolean -> {"_B", "Decode.bool"}
@@ -176,15 +181,19 @@ defmodule JS2E.Printer.UnionPrinter do
     |> PrinterResult.new()
   end
 
-  @spec create_encoder_cases([UnionType.value_type()], String.t()) :: [map]
+  @spec create_encoder_cases([UnionType.value_type()], String.t()) :: [encoder_case()]
   defp create_encoder_cases(value_types, name) do
     value_types
-    |> Enum.map(&create_encoder_clause(&1, name))
+    |> Enum.map(&create_encoder_case(&1, name))
   end
 
-  @spec create_encoder_clause(UnionType.value_type(), String.t()) ::
-          {:ok, map} | {:error, PrinterError.t()}
-  defp create_encoder_clause(value_type, name) do
+  @type encoder_case :: %{
+          constructor: String.t(),
+          encoder: String.t()
+        }
+
+  @spec create_encoder_case(UnionType.value_type(), String.t()) :: encoder_case()
+  defp create_encoder_case(value_type, name) do
     {constructor_suffix, encoder_name, argument_name} =
       case value_type do
         :boolean -> {"_B", "Encode.bool", "boolValue"}
@@ -241,7 +250,9 @@ defmodule JS2E.Printer.UnionPrinter do
     |> PrinterResult.new()
   end
 
-  @spec to_clause_fuzzer(UnionType.value_type(), String.t()) :: String.t()
+  @type clause_fuzzer :: String.t()
+
+  @spec to_clause_fuzzer(UnionType.value_type(), String.t()) :: clause_fuzzer()
   defp to_clause_fuzzer(value_type, type_name) do
     primitive_fuzzer = primitive_type_to_fuzzer(value_type)
 
@@ -253,12 +264,12 @@ defmodule JS2E.Printer.UnionPrinter do
     end
   end
 
-  @spec primitive_type_to_fuzzer(UnionType.value_type()) :: String.t()
+  @spec primitive_type_to_fuzzer(UnionType.value_type()) :: clause_fuzzer()
   defp primitive_type_to_fuzzer(value_type) do
     case value_type do
       :boolean -> "Fuzz.bool"
       :integer -> "Fuzz.int"
-      :number -> "Fuzz.float"
+      :number -> "Fuzz.niceFloat"
       :string -> "Fuzz.string"
     end
   end

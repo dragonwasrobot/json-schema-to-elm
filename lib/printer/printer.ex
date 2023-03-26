@@ -84,13 +84,13 @@ defmodule JS2E.Printer do
     :defp,
     :encode_template,
     @encode_location,
-    [:prefix]
+    []
   )
 
   @spec print_schemas(Types.schemaDictionary(), String.t()) :: SchemaResult.t()
   def print_schemas(schema_dict, module_name) do
     init_file_dict = %{
-      "./#{@output_location}/src/#{module_name}/Encode.elm" => encode_template(module_name),
+      "./#{@output_location}/src/Helper/Encode.elm" => encode_template(),
       "./#{@output_location}/package.json" => package_template(),
       "./#{@output_location}/elm.json" => elm_json_template(),
       "./#{@output_location}/.tool-versions" => tool_versions_template()

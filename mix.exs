@@ -1,7 +1,7 @@
 defmodule JS2E.MixProject do
   use Mix.Project
 
-  @version "2.9.0"
+  @version "2.9.1"
   @elixir_version "~> 1.14"
 
   def project do
@@ -35,14 +35,14 @@ defmodule JS2E.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 1.7.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.2.0", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.29.0", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.16.0", only: :test, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.29", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.16", only: :test, runtime: false},
       {:gradient, github: "esl/gradient", only: [:dev], runtime: false},
-      # for local testing: {:json_schema, path: "../json_schema/"},
-      {:json_schema, "~> 0.4.0"},
-      {:typed_struct, "~> 0.3.0"}
+      # {:json_schema, path: "../json_schema/"},
+      {:json_schema, "~> 0.5"},
+      {:typed_struct, "~> 0.3"}
     ]
   end
 

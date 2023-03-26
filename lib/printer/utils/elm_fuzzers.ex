@@ -71,7 +71,7 @@ defmodule JS2E.Printer.Utils.ElmFuzzers do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [field_fuzzer]} | {:error, PrinterError.t()}
+        ) :: {:ok, [field_fuzzer()]} | {:error, PrinterError.t()}
   def create_fuzzer_names(
         property_name,
         resolved_type,
@@ -152,7 +152,7 @@ defmodule JS2E.Printer.Utils.ElmFuzzers do
           SchemaDefinition.t(),
           SchemaDefinition.t(),
           String.t()
-        ) :: field_fuzzer
+        ) :: field_fuzzer()
   defp do_create_fuzzer_name(
          property_name,
          resolved_type,
@@ -192,7 +192,7 @@ defmodule JS2E.Printer.Utils.ElmFuzzers do
       "Fuzz.int"
 
       iex> determine_primitive_fuzzer_name(:number)
-      "Fuzz.float"
+      "Fuzz.niceFloat"
 
       iex> determine_primitive_fuzzer_name(:boolean)
       "Fuzz.bool"
@@ -202,7 +202,7 @@ defmodule JS2E.Printer.Utils.ElmFuzzers do
   def determine_primitive_fuzzer_name(value_type) do
     case value_type do
       :string -> "Fuzz.string"
-      :number -> "Fuzz.float"
+      :number -> "Fuzz.niceFloat"
       :integer -> "Fuzz.int"
       :boolean -> "Fuzz.bool"
       :null -> "Fuzzer.unit"

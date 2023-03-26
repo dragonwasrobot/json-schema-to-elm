@@ -1,9 +1,5 @@
 # JSON Schema to Elm
 
-### Status
-
-[![Build Status](https://travis-ci.org/dragonwasrobot/json-schema-to-elm.svg?branch=master)](https://travis-ci.org/dragonwasrobot/json-schema-to-elm)
-
 ### Description
 
 Generates Elm types, JSON decoders, JSON encoders, and Fuzz tests from JSON
@@ -86,7 +82,7 @@ module Data.Definitions exposing
 
 -- Schema for common types
 
-import Data.Encode as Encode
+import Helper.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
@@ -213,7 +209,7 @@ module Data.Circle exposing
 -- Schema for a circle shape
 
 import Data.Definitions as Definitions
-import Data.Encode as Encode
+import Helper.Encode as Encode
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Extra as Decode
 import Json.Decode.Pipeline
@@ -280,7 +276,7 @@ circleFuzzer =
         Circle
         Definitions.pointFuzzer
         (Fuzz.maybe Definitions.colorFuzzer)
-        Fuzz.float
+        Fuzz.niceFloat
 
 
 encodeDecodeCircleTest : Test
@@ -332,8 +328,8 @@ pointFuzzer : Fuzzer Point
 pointFuzzer =
     Fuzz.map2
         Point
-        Fuzz.float
-        Fuzz.float
+        Fuzz.niceFloat
+        Fuzz.niceFloat
 
 
 encodeDecodePointTest : Test
@@ -373,10 +369,11 @@ the following new directory structure is generated:
     ├── package.json
     ├── elm.json
     ├── src/
-    │   └── Data/
-    │       ├── Encode.elm
-    │       ├── Circle.elm
-    │       └── Definitions.elm
+    │   ├── Data/
+    │   │   ├── Circle.elm
+    │   │   └── Definitions.elm
+    │   └── Helper/
+    │       └── Encode.elm
     └── tests/
         └── Data/
             ├── CircleTests.elm

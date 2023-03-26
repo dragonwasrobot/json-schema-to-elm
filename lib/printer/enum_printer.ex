@@ -83,7 +83,7 @@ defmodule JS2E.Printer.EnumPrinter do
     |> PrinterResult.new()
   end
 
-  @spec to_elm_type_name(EnumType.value_type()) :: String.t()
+  @spec to_elm_type_name(EnumType.value_type_name()) :: String.t()
   defp to_elm_type_name(type_name) do
     case type_name do
       :string -> "string"
@@ -92,7 +92,11 @@ defmodule JS2E.Printer.EnumPrinter do
     end
   end
 
-  @spec create_decoder_clauses([String.t()], String.t()) :: [map]
+  @type decoder_clause :: %{raw_value: EnumType.value_type(), parsed_value: String.t()}
+
+  @spec create_decoder_clauses([EnumType.value_type()], EnumType.value_type_name()) :: [
+          decoder_clause()
+        ]
   defp create_decoder_clauses(values, type_name) do
     values
     |> Enum.map(fn value ->
@@ -102,7 +106,8 @@ defmodule JS2E.Printer.EnumPrinter do
     end)
   end
 
-  @spec create_decoder_case(String.t(), EnumType.value_type()) :: String.t()
+  @spec create_decoder_case(EnumType.value_type(), EnumType.value_type_name()) ::
+          EnumType.value_type()
   defp create_decoder_case(value, type_name) do
     case type_name do
       :string -> "\"#{value}\""
@@ -151,7 +156,11 @@ defmodule JS2E.Printer.EnumPrinter do
     |> PrinterResult.new()
   end
 
-  @spec create_encoder_cases([String.t() | number], String.t()) :: [map]
+  @type encoder_case :: %{elm_value: String.t(), json_value: String.t()}
+
+  @spec create_encoder_cases([EnumType.value_type()], EnumType.value_type_name()) :: [
+          encoder_case()
+        ]
   defp create_encoder_cases(values, type_name) do
     values
     |> Enum.map(fn value ->
@@ -161,7 +170,7 @@ defmodule JS2E.Printer.EnumPrinter do
     end)
   end
 
-  @spec create_encoder_case(String.t() | number, EnumType.value_type()) :: String.t()
+  @spec create_encoder_case(EnumType.value_type(), EnumType.value_type_name()) :: String.t()
   defp create_encoder_case(value, type_name) do
     case type_name do
       :string -> "\"#{value}\""
@@ -170,7 +179,7 @@ defmodule JS2E.Printer.EnumPrinter do
     end
   end
 
-  @spec create_elm_value(String.t(), EnumType.value_type()) :: String.t()
+  @spec create_elm_value(EnumType.value_type(), EnumType.value_type_name()) :: String.t()
   defp create_elm_value(value, type_name) do
     case type_name do
       :string ->

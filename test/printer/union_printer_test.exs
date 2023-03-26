@@ -106,7 +106,7 @@ defmodule JS2ETest.Printer.UnionPrinter do
     favoriteNumberFuzzer : Fuzzer FavoriteNumber
     favoriteNumberFuzzer =
         Fuzz.oneOf
-            [ Fuzz.map FavoriteNumber_F Fuzz.float
+            [ Fuzz.map FavoriteNumber_F Fuzz.niceFloat
             , Fuzz.map FavoriteNumber_I Fuzz.int
             ]
 

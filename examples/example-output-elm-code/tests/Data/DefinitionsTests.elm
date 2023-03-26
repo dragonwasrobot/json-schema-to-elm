@@ -33,8 +33,8 @@ pointFuzzer : Fuzzer Point
 pointFuzzer =
     Fuzz.map2
         Point
-        Fuzz.float
-        Fuzz.float
+        Fuzz.niceFloat
+        Fuzz.niceFloat
 
 
 encodeDecodePointTest : Test

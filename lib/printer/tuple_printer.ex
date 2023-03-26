@@ -6,7 +6,8 @@ defmodule JS2E.Printer.TuplePrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.{Resolver, Types}
+  alias JsonSchema.{Parser, Resolver, Types}
+  alias Parser.ParserError
   alias Printer.{PrinterError, PrinterResult, Utils}
 
   alias Utils.{
@@ -61,7 +62,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, [map]} | {:error, PrinterError.t()}]
+        ) :: [{:ok, [ElmTypes.named_field()]} | {:error, PrinterError.t()}]
   defp create_type_fields(types, parent, schema_def, schema_dict, module_name) do
     types
     |> Enum.map(&create_type_field(&1, parent, schema_def, schema_dict, module_name))
@@ -73,7 +74,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [map]} | {:error, PrinterError.t()}
+        ) :: {:ok, [ElmTypes.named_field()]} | {:error, PrinterError.t()}
   defp create_type_field(
          type_path,
          parent,
@@ -140,7 +141,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
+        ) :: [{:ok, ElmDecoders.named_product_clause()} | {:error, PrinterError.t()}]
   defp create_decoder_clauses(
          type_paths,
          parent,
@@ -153,12 +154,14 @@ defmodule JS2E.Printer.TuplePrinter do
   end
 
   @spec create_decoder_clause(
-          URI.t(),
-          URI.t(),
+          Types.typeIdentifier(),
+          Types.typeIdentifier(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) ::
+          {:ok, ElmDecoders.named_product_clause()}
+          | {:error, PrinterError.t() | ParserError.t()}
   defp create_decoder_clause(
          type_path,
          parent,
@@ -225,7 +228,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, Types.typeDefinition()} | {:error, PrinterError.t()}]
+        ) :: [{:ok, ElmEncoders.product_property()} | {:error, PrinterError.t()}]
   defp create_encoder_properties(
          type_paths,
          parent,
@@ -243,7 +246,7 @@ defmodule JS2E.Printer.TuplePrinter do
           | {:error, PrinterError.t()},
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: {:ok, Types.typeDefinition()} | {:error, PrinterError.t()}
+        ) :: {:ok, ElmEncoders.product_property()} | {:error, PrinterError.t()}
   defp to_encoder_property({:error, error}, _sd, _md), do: {:error, error}
 
   defp to_encoder_property(
@@ -313,7 +316,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, [String.t()]} | {:error, PrinterError.t()}]
+        ) :: [{:ok, [ElmFuzzers.field_fuzzer()]} | {:error, PrinterError.t()}]
   defp create_items_fuzzers(
          items_paths,
          parent,
@@ -339,7 +342,7 @@ defmodule JS2E.Printer.TuplePrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [String.t()]} | {:error, PrinterError.t()}
+        ) :: {:ok, [ElmFuzzers.field_fuzzer()]} | {:error, PrinterError.t()}
   defp create_item_fuzzer(
          item_path,
          parent,

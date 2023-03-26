@@ -1,6 +1,6 @@
 defmodule JS2E.Printer.ArrayPrinter do
   @behaviour JS2E.Printer.PrinterBehaviour
-  @moduledoc ~S"""
+  @moduledoc """
   A printer for printing an 'array' type decoder.
   """
 
@@ -85,7 +85,7 @@ defmodule JS2E.Printer.ArrayPrinter do
   defp determine_type_name(items_type) do
     case items_type do
       %PrimitiveType{} ->
-        ElmTypes.determine_primitive_type_name(items_type.type)
+        {:ok, ElmTypes.determine_primitive_type_name(items_type.type)}
 
       _ ->
         items_type_name = Naming.normalize_identifier(items_type.name, :upcase)
@@ -103,7 +103,7 @@ defmodule JS2E.Printer.ArrayPrinter do
   defp determine_decoder_name(items_type) do
     case items_type do
       %PrimitiveType{} ->
-        ElmDecoders.determine_primitive_type_decoder(items_type.type)
+        {:ok, ElmDecoders.determine_primitive_type_decoder(items_type.type)}
 
       _ ->
         items_type_name = Naming.normalize_identifier(items_type.name, :downcase)
@@ -162,7 +162,7 @@ defmodule JS2E.Printer.ArrayPrinter do
   defp determine_encoder_name(items_type) do
     case items_type do
       %PrimitiveType{} ->
-        ElmEncoders.determine_primitive_type_encoder(items_type.type)
+        {:ok, ElmEncoders.determine_primitive_type_encoder(items_type.type)}
 
       _ ->
         items_type_name = Naming.normalize_identifier(items_type.name, :upcase)
@@ -230,7 +230,7 @@ defmodule JS2E.Printer.ArrayPrinter do
   defp determine_fuzzer_name(items_type) do
     case items_type do
       %PrimitiveType{} ->
-        ElmFuzzers.determine_primitive_fuzzer_name(items_type.type)
+        {:ok, ElmFuzzers.determine_primitive_fuzzer_name(items_type.type)}
 
       _ ->
         items_type_name = Naming.normalize_identifier(items_type.name, :downcase)

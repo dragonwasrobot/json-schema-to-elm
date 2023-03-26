@@ -11,20 +11,19 @@ defmodule JS2E.Printer.Utils.ElmTypes do
   alias Types.{ArrayType, ObjectType, PrimitiveType, SchemaDefinition}
   alias Utils.{CommonOperations, Naming}
 
-  @type type_definition :: {:product, product_type} | {:sum, sum_type}
+  @type type_definition :: {:product, product_type()} | {:sum, sum_type()}
 
   @type product_type :: %{
           name: String.t(),
-          fields: {:named, [named_field]} | {:anonymous, [anonymous_field]}
+          fields: {:named, [named_field()]} | {:anonymous, [anonymous_field()]}
         }
   @type anonymous_field :: %{type: String.t()}
   @type named_field :: %{name: String.t(), type: String.t()}
 
   @type sum_type :: %{
           name: String.t(),
-          clauses: {:named, [named_clause]} | {:anonymous, [anonymous_clause]}
+          clauses: {:named, [named_clause()]} | {:anonymous, [String.t()]}
         }
-  @type anonymous_clause :: %{type: String.t()}
   @type named_clause :: %{name: String.t(), type: String.t()}
 
   @spec create_fields(
@@ -75,7 +74,7 @@ defmodule JS2E.Printer.Utils.ElmTypes do
           SchemaDefinition.t(),
           Types.schemaDictionary()
         ) ::
-          {:ok, [named_field]} | {:error, PrinterError.t()}
+          {:ok, [named_field()]} | {:error, PrinterError.t()}
   def do_create_fields(
         resolved_type,
         _resolved_schema,
@@ -121,7 +120,7 @@ defmodule JS2E.Printer.Utils.ElmTypes do
         end
 
       _ ->
-        # TODO: Other types
+        # TODO: Other cases?
         {:ok, []}
     end
   end
@@ -134,7 +133,7 @@ defmodule JS2E.Printer.Utils.ElmTypes do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, named_field} | {:error, PrinterError.t()}
+        ) :: {:ok, [named_field()]} | {:error, PrinterError.t()}
   def do_create_field(
         property_name,
         resolved_type,
@@ -210,7 +209,7 @@ defmodule JS2E.Printer.Utils.ElmTypes do
           SchemaDefinition.t(),
           SchemaDefinition.t(),
           String.t()
-        ) :: named_field
+        ) :: named_field()
   defp check_qualified_name(
          property_name,
          type_name,

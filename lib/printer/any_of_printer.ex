@@ -1,14 +1,14 @@
 defmodule JS2E.Printer.AnyOfPrinter do
   @behaviour JS2E.Printer.PrinterBehaviour
-  @moduledoc ~S"""
+  @moduledoc """
   A printer for printing an 'any of' type decoder.
   """
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.{Resolver, Types}
+  alias JsonSchema.{Parser, Resolver, Types}
+  alias Parser.ParserError
   alias Printer.{PrinterError, PrinterResult, Utils}
-
   alias Types.{AnyOfType, SchemaDefinition}
 
   alias Utils.{
@@ -71,15 +71,13 @@ defmodule JS2E.Printer.AnyOfPrinter do
     |> PrinterResult.new(errors)
   end
 
-  @type elm_type_field :: %{name: String.t(), type: String.t()}
-
   @spec create_type_fields(
           URI.t(),
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [elm_type_field]} | {:error, PrinterError.t()}
+        ) :: {:ok, [ElmTypes.named_field()]} | {:error, PrinterError.t() | ParserError.t()}
   defp create_type_fields(
          type_path,
          parent,
@@ -99,9 +97,7 @@ defmodule JS2E.Printer.AnyOfPrinter do
              schema_dict,
              module_name
            ) do
-      type_fields =
-        type_fields
-        |> Enum.map(&check_optional(&1, [resolved_type.required]))
+      type_fields = type_fields |> Enum.map(&make_optional(&1))
 
       {:ok, type_fields}
     else
@@ -110,13 +106,9 @@ defmodule JS2E.Printer.AnyOfPrinter do
     end
   end
 
-  @spec check_optional(ElmTypes.named_field(), [String.t()]) :: ElmTypes.named_field()
-  defp check_optional(field, required) do
-    if field.name in required do
-      %{field | type: field.type}
-    else
-      %{field | type: "Maybe #{field.type}"}
-    end
+  @spec make_optional(ElmTypes.named_field()) :: ElmTypes.named_field()
+  defp make_optional(field) do
+    %{field | type: "Maybe #{field.type}"}
   end
 
   # Decoder
@@ -164,7 +156,9 @@ defmodule JS2E.Printer.AnyOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [map]} | {:error, PrinterError.t()}
+        ) ::
+          {:ok, [ElmDecoders.named_product_clause()]}
+          | {:error, PrinterError.t() | ParserError.t()}
   defp create_decoder_property(
          type_path,
          parent,
@@ -256,7 +250,7 @@ defmodule JS2E.Printer.AnyOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) :: {:ok, ElmEncoders.product_encoder()} | {:error, PrinterError.t() | ParserError.t()}
   defp create_encoder_property(
          type_path,
          parent,
@@ -264,10 +258,10 @@ defmodule JS2E.Printer.AnyOfPrinter do
          schema_dict,
          module_name
        ) do
-    with {:ok, {resolved_type, resolved_schema}} <-
-           Resolver.resolve_type(type_path, parent, schema_def, schema_dict) do
-      to_encoder_property(resolved_type, resolved_schema, schema_dict, module_name)
-    else
+    case Resolver.resolve_type(type_path, parent, schema_def, schema_dict) do
+      {:ok, {resolved_type, resolved_schema}} ->
+        to_encoder_property(resolved_type, resolved_schema, schema_dict, module_name)
+
       {:error, error} ->
         {:error, error}
     end
@@ -373,12 +367,12 @@ defmodule JS2E.Printer.AnyOfPrinter do
   end
 
   @spec create_property_fuzzer(
-          URI.t(),
-          URI.t(),
+          Types.typeIdentifier(),
+          Types.typeIdentifier(),
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+        ) :: {:ok, ElmFuzzers.field_fuzzer()} | {:error, PrinterError.t() | ParserError.t()}
   defp create_property_fuzzer(
          type_path,
          parent,

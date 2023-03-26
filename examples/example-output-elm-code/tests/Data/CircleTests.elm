@@ -16,7 +16,7 @@ circleFuzzer =
         Circle
         Definitions.pointFuzzer
         (Fuzz.maybe Definitions.colorFuzzer)
-        Fuzz.float
+        Fuzz.niceFloat
 
 
 encodeDecodeCircleTest : Test

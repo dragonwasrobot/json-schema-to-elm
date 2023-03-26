@@ -6,10 +6,19 @@ defmodule JS2E.Printer.OneOfPrinter do
 
   require Elixir.{EEx, Logger}
   alias JS2E.Printer
-  alias JsonSchema.{Resolver, Types}
+  alias JsonSchema.{Parser, Resolver, Types}
+  alias Parser.ParserError
   alias Printer.{PrinterError, PrinterResult, Utils}
   alias Types.{OneOfType, SchemaDefinition}
-  alias Utils.{CommonOperations, ElmFuzzers, Indentation, Naming}
+
+  alias Utils.{
+    CommonOperations,
+    ElmDecoders,
+    ElmFuzzers,
+    ElmTypes,
+    Indentation,
+    Naming
+  }
 
   @templates_location Application.compile_env(:js2e, :templates_location)
 
@@ -51,7 +60,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
+        ) :: [{:ok, ElmTypes.named_clause()} | {:error, PrinterError.t() | ParserError.t()}]
   defp create_type_clauses(type_clauses, name, parent, schema_def, schema_dict) do
     type_clauses
     |> Enum.map(&create_type_clause(&1, name, parent, schema_def, schema_dict))
@@ -63,7 +72,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) :: {:ok, ElmTypes.named_clause()} | {:error, PrinterError.t() | ParserError.t()}
   defp create_type_clause(type_clause_id, name, parent, schema_def, schema_dict) do
     case Resolver.resolve_type(
            type_clause_id,
@@ -128,7 +137,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
+        ) :: [{:ok, ElmDecoders.named_sum_clause()} | {:error, PrinterError.t()}]
   defp create_decoder_clauses(
          type_clauses,
          name,
@@ -146,7 +155,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: {:ok, String.t()} | {:error, PrinterError.t()}
+        ) :: {:ok, ElmDecoders.named_sum_clause()} | {:error, PrinterError.t() | ParserError.t()}
   defp create_decoder_clause(
          type_clause_id,
          name,
@@ -213,11 +222,13 @@ defmodule JS2E.Printer.OneOfPrinter do
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: [{:ok, map} | {:error, PrinterError.t()}]
+        ) :: [{:ok, encoder_clause()} | {:error, PrinterError.t() | ParserError.t()}]
   defp create_encoder_cases(types, name, parent, schema_def, schema_dict) do
     types
     |> Enum.map(&create_encoder_clause(&1, name, parent, schema_def, schema_dict))
   end
+
+  @type encoder_clause :: %{constructor: String.t(), encoder: String.t()}
 
   @spec create_encoder_clause(
           String.t(),
@@ -225,7 +236,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           URI.t(),
           SchemaDefinition.t(),
           Types.schemaDictionary()
-        ) :: {:ok, map} | {:error, PrinterError.t()}
+        ) :: {:ok, encoder_clause()} | {:error, PrinterError.t() | ParserError.t()}
   defp create_encoder_clause(type_path, name, parent, schema_def, schema_dict) do
     case Resolver.resolve_type(type_path, parent, schema_def, schema_dict) do
       {:ok, {clause_type, _resolved_schema_def}} ->
@@ -301,7 +312,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: [{:ok, String.t()} | {:error, PrinterError.t()}]
+        ) :: [{:ok, ElmFuzzers.field_fuzzer()} | {:error, PrinterError.t() | ParserError.t()}]
   defp create_fuzzer_properties(
          types,
          parent,
@@ -327,7 +338,7 @@ defmodule JS2E.Printer.OneOfPrinter do
           SchemaDefinition.t(),
           Types.schemaDictionary(),
           String.t()
-        ) :: {:ok, [String.t()]} | {:error, PrinterError.t()}
+        ) :: {:ok, [ElmFuzzers.field_fuzzer()]} | {:error, PrinterError.t() | ParserError.t()}
   defp create_fuzzer_property(
          type,
          parent,

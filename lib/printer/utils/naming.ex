@@ -1,5 +1,5 @@
 defmodule JS2E.Printer.Utils.Naming do
-  @moduledoc ~S"""
+  @moduledoc """
   Module containing various utility functions for normalizing names of
   identifiers in the Elm output.
   """
