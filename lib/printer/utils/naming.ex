@@ -78,7 +78,11 @@ defmodule JS2E.Printer.Utils.Naming do
 
   """
   @spec normalize_identifier(String.t(), casing) :: String.t()
-  def normalize_identifier(identifier, casing \\ :none) do
+  def normalize_identifier(identifier, casing \\ :none)
+  def normalize_identifier(:anonymous, _) do
+    "Hash"
+  end
+  def normalize_identifier(identifier, casing) do
     normalized_identifier =
       identifier
       |> kebab_to_camel_case
@@ -186,11 +190,13 @@ defmodule JS2E.Printer.Utils.Naming do
 
   # Turns a kebab-cased identifier into a camelCased one
   @spec kebab_to_camel_case(String.t()) :: String.t()
-  defp kebab_to_camel_case(str) do
+  defp kebab_to_camel_case(str) when is_binary(str) do
     str
     |> String.split("-")
     |> Enum.map_join(fn word -> upcase_first(word) end)
   end
+
+  defp kebab_to_camel_case(_), do: {:error, "Input must be a string"}
 
   # Turns a snake_cased identifier into a camelCased one
   @spec snake_to_camel_case(String.t()) :: String.t()
@@ -220,7 +226,7 @@ defmodule JS2E.Printer.Utils.Naming do
   @spec upcase_first(String.t()) :: String.t()
   def upcase_first(string) when is_binary(string) do
     if String.length(string) > 0 do
-      String.upcase(String.at(string, 0)) <> String.slice(string, 1..-1)
+      String.upcase(String.at(string, 0)) <> String.slice(string, 1..-1//1)
     else
       ""
     end
@@ -238,7 +244,7 @@ defmodule JS2E.Printer.Utils.Naming do
   @spec downcase_first(String.t()) :: String.t()
   def downcase_first(string) when is_binary(string) do
     if String.length(string) > 0 do
-      String.downcase(String.at(string, 0)) <> String.slice(string, 1..-1)
+      String.downcase(String.at(string, 0)) <> String.slice(string, 1..-1//1)
     else
       ""
     end
