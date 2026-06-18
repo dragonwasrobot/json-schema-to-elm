@@ -279,7 +279,8 @@ defmodule JS2E.Printer.AnyOfPrinter do
          schema_dict,
          module_name
        ) do
-    type_def.properties
+    type_def
+    |> Map.get(:properties, [])
     |> Enum.map(fn {child_name, child_path} ->
       with {:ok, {child_type_def, child_schema_def}} <-
              Resolver.resolve_type(
